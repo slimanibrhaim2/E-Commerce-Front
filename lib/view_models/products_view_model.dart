@@ -29,6 +29,22 @@ class ProductsViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> toggleFavorite(int productId) async {
+    try {
+      final productIndex = _products.indexWhere((p) => p.id == productId);
+      if (productIndex != -1) {
+        final product = _products[productIndex];
+        final updatedProduct = product.copyWith(isFavorite: !product.isFavorite);
+        _products[productIndex] = updatedProduct;
+        await _repository.update(updatedProduct);
+        notifyListeners();
+      }
+    } catch (e) {
+      _error = 'حدث خطأ أثناء تحديث حالة المفضلة';
+      notifyListeners();
+    }
+  }
+
   Future<void> addProduct(Product product) async {
     try {
       _isLoading = true;

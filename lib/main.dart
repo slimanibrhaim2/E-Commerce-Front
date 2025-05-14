@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'repositories/fake_repository.dart';
 import 'view_models/products_view_model.dart';
-import 'views/products_view.dart';
+import 'views/products/products_view.dart';
 
 void main() {
   runApp(const MyApp());
