@@ -10,6 +10,7 @@ class ProductsViewModel extends ChangeNotifier {
 
   ProductsViewModel(this._repository);
 
+  BaseRepository<Product> get repository => _repository;
   List<Product> get products => _products;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -33,15 +34,24 @@ class ProductsViewModel extends ChangeNotifier {
     try {
       final productIndex = _products.indexWhere((p) => p.id == productId);
       if (productIndex != -1) {
+        // Optimistic update - update UI immediately
         final product = _products[productIndex];
         final updatedProduct = product.copyWith(isFavorite: !product.isFavorite);
         _products[productIndex] = updatedProduct;
-        await _repository.update(updatedProduct);
         notifyListeners();
+
+        // Make API call in background
+        await _repository.update(updatedProduct);
       }
     } catch (e) {
-      _error = 'حدث خطأ أثناء تحديث حالة المفضلة';
-      notifyListeners();
+      // Revert changes if API call fails
+      final productIndex = _products.indexWhere((p) => p.id == productId);
+      if (productIndex != -1) {
+        final product = _products[productIndex];
+        _products[productIndex] = product.copyWith(isFavorite: !product.isFavorite);
+        _error = 'حدث خطأ أثناء تحديث حالة المفضلة';
+        notifyListeners();
+      }
     }
   }
 
