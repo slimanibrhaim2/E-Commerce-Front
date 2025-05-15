@@ -4,6 +4,7 @@ import 'products/products_view.dart';
 import 'package:provider/provider.dart';
 import '../view_models/products_view_model.dart';
 import 'products/widgets/product_card.dart';
+import 'home/home_view.dart';
 
 class MainNavigationPage extends StatefulWidget {
   static final GlobalKey<_MainNavigationPageState> globalKey = GlobalKey<_MainNavigationPageState>();
@@ -30,7 +31,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
     const AccountPage(),
     const CartView(),
     const CategoriesPage(),
-    const HomePage(),
+    const HomeView(),
   ];
 
   @override
