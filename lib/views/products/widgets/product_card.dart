@@ -4,7 +4,10 @@ import '../../../view_models/product_details_view_model.dart';
 import '../../../widgets/modern_loader.dart';
 import '../../../models/product.dart';
 import '../../../view_models/products_view_model.dart';
+import '../../../view_models/favorites_view_model.dart';
 import '../product_details_view.dart';
+import '../../favorites/favorites_view.dart';
+import '../../../view_models/cart_view_model.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -156,7 +159,7 @@ class ProductCard extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  '${product.price} ريال',
+                                  '${product.price} ل.س',
                                   style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
@@ -183,7 +186,15 @@ class ProductCard extends StatelessWidget {
                       return Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: () => viewModel.toggleFavorite(product.id),
+                          onTap: () {
+                            viewModel.toggleFavorite(product.id);
+                            // Try to reload favorites if FavoritesViewModel is available
+                            try {
+                              context.read<FavoritesViewModel>().loadFavorites();
+                            } catch (e) {
+                              // Not in favorites view, ignore
+                            }
+                          },
                           customBorder: const CircleBorder(),
                           child: Container(
                             padding: const EdgeInsets.all(6),
@@ -211,7 +222,18 @@ class ProductCard extends StatelessWidget {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        // TODO: Implement quick add to cart
+                        context.read<CartViewModel>().addToCart(product);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'تمت إضافة ${product.name} إلى السلة',
+                              style: const TextStyle(fontFamily: 'Cairo'),
+                              textAlign: TextAlign.right,
+                            ),
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
                       },
                       customBorder: const CircleBorder(),
                       child: Container(

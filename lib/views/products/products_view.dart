@@ -2,6 +2,10 @@ import 'package:e_commerce/views/products/widgets/product_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/products_view_model.dart';
+import '../../view_models/favorites_view_model.dart';
+import '../favorites/favorites_view.dart';
+import '../../view_models/cart_view_model.dart';
+import '../cart/cart_view.dart';
 
 class ProductsView extends StatelessWidget {
   const ProductsView({Key? key}) : super(key: key);
@@ -21,17 +25,68 @@ class ProductsView extends StatelessWidget {
           ),
           centerTitle: true,
           actions: [
-            IconButton(
-              icon: const Icon(Icons.shopping_cart),
-              onPressed: () {
-                // TODO: Navigate to cart
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.favorite),
-              onPressed: () {
-                // TODO: Navigate to favorites
-              },
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.favorite),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChangeNotifierProvider(
+                          create: (context) => FavoritesViewModel(
+                            context.read<ProductsViewModel>().repository,
+                          ),
+                          child: const FavoritesView(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                Consumer<CartViewModel>(
+                  builder: (context, cart, child) {
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.shopping_cart),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChangeNotifierProvider.value(
+                                  value: cart,
+                                  child: const CartView(),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        if (cart.itemCount > 0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFE84393),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '${cart.itemCount}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),

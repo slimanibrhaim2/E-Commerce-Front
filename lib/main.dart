@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'repositories/api_repository.dart';
 import 'view_models/products_view_model.dart';
+import 'view_models/cart_view_model.dart';
+import 'repositories/api_repository.dart';
 import 'views/products/products_view.dart';
 
 void main() {
@@ -13,16 +14,26 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ProductsViewModel(ApiRepository())..loadProducts(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => ProductsViewModel(
+            ApiRepository(),
+          )..loadProducts(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => CartViewModel(
+            context.read<ProductsViewModel>().repository,
+          ),
+        ),
+      ],
       child: MaterialApp(
-        title: 'متجر إلكتروني',
+        title: 'متجر الإلكترونيات',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
+          primarySwatch: Colors.pink,
           fontFamily: 'Cairo',
         ),
         home: const ProductsView(),
-        debugShowCheckedModeBanner: false,
       ),
     );
   }

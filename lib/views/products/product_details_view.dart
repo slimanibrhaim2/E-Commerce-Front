@@ -162,7 +162,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '${product.price} ريال',
+                          '${product.price} ل.س',
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -194,7 +194,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: () => viewModel.addToCart(),
+                            onPressed: () => viewModel.addToCart(context),
                             icon: const Icon(Icons.shopping_cart),
                             label: const Text(
                               'إضافة إلى السلة',

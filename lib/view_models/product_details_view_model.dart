@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../repositories/base_repository.dart';
+import 'cart_view_model.dart';
 
 class ProductDetailsViewModel extends ChangeNotifier {
   final BaseRepository<Product> _repository;
@@ -54,20 +57,32 @@ class ProductDetailsViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> addToCart() async {
+  Future<void> addToCart(BuildContext context) async {
     if (_product == null) return;
 
     try {
       _isInCart = true;
       notifyListeners();
-      
-      // TODO: Implement actual cart functionality
-      await Future.delayed(const Duration(seconds: 1)); // Simulate API call
-      
+
+      // Get CartViewModel and add product to cart
+      final cartViewModel = context.read<CartViewModel>();
+      await cartViewModel.addToCart(_product!);
+
       // Show success message
-      _error = 'تمت إضافة المنتج إلى السلة';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'تمت إضافة ${_product!.name} إلى السلة',
+            style: const TextStyle(fontFamily: 'Cairo'),
+            textAlign: TextAlign.right,
+          ),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
       _error = 'حدث خطأ أثناء إضافة المنتج إلى السلة';
+      notifyListeners();
     } finally {
       _isInCart = false;
       notifyListeners();
