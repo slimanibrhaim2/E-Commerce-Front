@@ -1,39 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'view_models/products_view_model.dart';
 import 'view_models/cart_view_model.dart';
+import 'view_models/products_view_model.dart';
 import 'repositories/api_repository.dart';
-import 'views/products/products_view.dart';
+import 'views/main_navigation_page.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (context) => ProductsViewModel(
-            ApiRepository(),
-          )..loadProducts(),
+          create: (_) => CartViewModel(ApiRepository()),
         ),
         ChangeNotifierProvider(
-          create: (context) => CartViewModel(
-            context.read<ProductsViewModel>().repository,
-          ),
+          create: (_) => ProductsViewModel(ApiRepository())..loadProducts(),
         ),
       ],
       child: MaterialApp(
-        title: 'متجر الإلكترونيات',
+        title: 'E-Commerce',
         theme: ThemeData(
           primarySwatch: Colors.pink,
           fontFamily: 'Cairo',
         ),
-        home: const ProductsView(),
+        home: MainNavigationPage(),
+        debugShowCheckedModeBanner: false,
       ),
     );
   }

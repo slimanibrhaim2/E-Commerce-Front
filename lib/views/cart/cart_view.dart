@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/cart_view_model.dart';
 import '../../widgets/modern_loader.dart';
+import '../main_navigation_page.dart';
 
 class CartView extends StatelessWidget {
   const CartView({Key? key}) : super(key: key);
@@ -122,7 +123,8 @@ class CartView extends StatelessWidget {
                     const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        // Switch to the products page (Home tab)
+                        MainNavigationPage.setTab(3);
                       },
                       child: const Text(
                         'تصفح المنتجات',

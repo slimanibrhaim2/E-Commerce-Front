@@ -49,8 +49,8 @@ class ProductsViewModel extends ChangeNotifier {
       if (productIndex != -1) {
         final product = _products[productIndex];
         _products[productIndex] = product.copyWith(isFavorite: !product.isFavorite);
-        _error = 'حدث خطأ أثناء تحديث حالة المفضلة';
-        notifyListeners();
+      _error = 'حدث خطأ أثناء تحديث حالة المفضلة';
+      notifyListeners();
       }
     }
   }
