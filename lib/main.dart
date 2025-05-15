@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'repositories/fake_repository.dart';
+import 'repositories/api_repository.dart';
 import 'view_models/products_view_model.dart';
 import 'views/products/products_view.dart';
 
@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => ProductsViewModel(FakeRepository())..loadProducts(),
+      create: (context) => ProductsViewModel(ApiRepository())..loadProducts(),
       child: MaterialApp(
         title: 'متجر إلكتروني',
         theme: ThemeData(
