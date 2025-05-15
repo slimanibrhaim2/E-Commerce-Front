@@ -96,12 +96,18 @@ class HomePage extends StatelessWidget {
                           ),
                         );
                       },
-                      child: const Text(
-                        'عرض الكل',
-                        style: TextStyle(
+                      child: Row(
+                        children: [
+                          const Icon(Icons.arrow_back_ios),
+                          const Text(
+                            'عرض الكل',
+                            style: TextStyle(
                           fontFamily: 'Cairo',
                           fontWeight: FontWeight.bold,
                         ),
+                        ),
+                        
+                        ]
                       ),
                     ),
                     const Text(
