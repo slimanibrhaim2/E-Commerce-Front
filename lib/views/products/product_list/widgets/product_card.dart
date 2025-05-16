@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../view_models/product_details_view_model.dart';
-import '../../../widgets/modern_loader.dart';
-import '../../../models/product.dart';
-import '../../../view_models/products_view_model.dart';
-import '../../../view_models/favorites_view_model.dart';
-import '../product_details_view.dart';
-import '../../favorites/favorites_view.dart';
-import '../../../view_models/cart_view_model.dart';
+import '../../../../models/product.dart';
+import '../../../../view_models/cart_view_model.dart';
+import '../../../../view_models/favorites_view_model.dart';
+import '../../../../view_models/product_details_view_model.dart';
+import '../../../../view_models/products_view_model.dart';
+import '../../../../widgets/modern_loader.dart';
+import '../../product_detail/product_detail_screen.dart';
+
 
 class ProductCard extends StatelessWidget {
   final Product product;

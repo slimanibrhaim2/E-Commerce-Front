@@ -1,10 +1,13 @@
+import 'package:e_commerce/views/products/product_list/product_list_screen.dart';
+import 'package:e_commerce/views/products/product_list/widgets/product_card.dart';
 import 'package:flutter/material.dart';
-import 'cart/cart_view.dart';
-import 'products/products_view.dart';
+
 import 'package:provider/provider.dart';
 import '../view_models/products_view_model.dart';
-import 'products/widgets/product_card.dart';
-import 'home/home_view.dart';
+import 'cart/cart_screen.dart';
+import 'home/home_screen.dart';
+import 'categories/categories_screen.dart';
+
 
 class MainNavigationPage extends StatefulWidget {
   static final GlobalKey<_MainNavigationPageState> globalKey = GlobalKey<_MainNavigationPageState>();
@@ -63,7 +66,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'المنتجات',
+            label: 'الرئيسية',
           ),
         ],
       ),
@@ -153,12 +156,7 @@ class CategoriesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'التصنيفات',
-        style: TextStyle(fontSize: 24, fontFamily: 'Cairo'),
-      ),
-    );
+    return const CategoriesScreen();
   }
 }
 

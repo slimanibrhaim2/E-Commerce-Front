@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../view_models/product_details_view_model.dart';
-import '../../widgets/modern_loader.dart';
+
+import '../../../view_models/product_details_view_model.dart';
+import '../../../widgets/modern_loader.dart';
+
 
 class ProductDetailsView extends StatefulWidget {
   final int productId;

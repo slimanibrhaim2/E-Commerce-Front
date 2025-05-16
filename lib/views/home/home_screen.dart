@@ -1,9 +1,9 @@
+import 'package:e_commerce/views/home/widgets/search_and_favorite_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/products_view_model.dart';
-import '../products/widgets/product_card.dart';
-import '../products/products_view.dart';
-import 'widgets/search_and_favorite_bar.dart';
+import '../products/product_list/product_list_screen.dart';
+import '../products/product_list/widgets/product_card.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -103,4 +103,4 @@ class HomeView extends StatelessWidget {
       ),
     );
   }
-} 
+}

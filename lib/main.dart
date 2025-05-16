@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'view_models/cart_view_model.dart';
 import 'view_models/products_view_model.dart';
-import 'repositories/api_repository.dart';
+import 'view_models/categories_view_model.dart';
+import 'repositories/product_repository.dart';
+import 'repositories/category_repository.dart';
 import 'views/main_navigation_page.dart';
 
 void main() {
@@ -16,11 +18,26 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => CartViewModel(ApiRepository()),
+        Provider<ProductRepository>(
+          create: (_) => ProductRepository(),
+        ),
+        Provider<CategoryRepository>(
+          create: (_) => CategoryRepository(),
         ),
         ChangeNotifierProvider(
-          create: (_) => ProductsViewModel(ApiRepository())..loadProducts(),
+          create: (context) => CartViewModel(
+            context.read<ProductRepository>(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => ProductsViewModel(
+            context.read<ProductRepository>(),
+          )..loadProducts(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => CategoriesViewModel(
+            context.read<CategoryRepository>(),
+          )..loadCategories(),
         ),
       ],
       child: MaterialApp(

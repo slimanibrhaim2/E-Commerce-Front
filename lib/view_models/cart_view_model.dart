@@ -100,6 +100,7 @@ class CartViewModel extends ChangeNotifier {
         description: '',
         price: 0,
         imageUrl: '',
+        category: 'Unknown',
         isFavorite: false,
       )),
     );

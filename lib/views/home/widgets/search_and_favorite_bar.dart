@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../favorites/favorites_screen.dart';
+import '../../../view_models/favorites_view_model.dart';
+import '../../../repositories/product_repository.dart';
+import 'package:provider/provider.dart';
 
 class SearchAndFavoriteBar extends StatelessWidget {
   final int favoriteCount;
@@ -44,13 +48,25 @@ class SearchAndFavoriteBar extends StatelessWidget {
           const SizedBox(width: 12),
           // Favorite icon with badge
           GestureDetector(
-            onTap: onFavoriteTap,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChangeNotifierProvider(
+                    create: (context) => FavoritesViewModel(
+                      context.read<ProductRepository>(),
+                    ),
+                    child: const FavoritesView(),
+                  ),
+                ),
+              );
+            },
             child: Stack(
               clipBehavior: Clip.none,
               children: [
                 const Icon(
                   Icons.favorite,
-                  color: Color(0xFFE84393), // Pink color
+                  color: Colors.grey,
                   size: 32,
                 ),
                 if (favoriteCount > 0)

@@ -4,6 +4,7 @@ class Product {
   final String description;
   final double price;
   final String imageUrl;
+  final String category;
   bool isFavorite;
 
   Product({
@@ -12,6 +13,7 @@ class Product {
     required this.description,
     required this.price,
     required this.imageUrl,
+    required this.category,
     this.isFavorite = false,
   });
 
@@ -21,6 +23,7 @@ class Product {
     String? description,
     double? price,
     String? imageUrl,
+    String? category,
     bool? isFavorite,
   }) {
     return Product(
@@ -29,6 +32,7 @@ class Product {
       description: description ?? this.description,
       price: price ?? this.price,
       imageUrl: imageUrl ?? this.imageUrl,
+      category: category ?? this.category,
       isFavorite: isFavorite ?? this.isFavorite,
     );
   }

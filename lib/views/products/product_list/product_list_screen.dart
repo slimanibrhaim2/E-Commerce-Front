@@ -1,14 +1,20 @@
-import 'package:e_commerce/views/products/widgets/product_card.dart';
+import 'package:e_commerce/views/products/product_list/widgets/product_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../view_models/products_view_model.dart';
-import '../../view_models/favorites_view_model.dart';
-import '../favorites/favorites_view.dart';
-import '../../view_models/cart_view_model.dart';
-import '../cart/cart_view.dart';
+import '../../../view_models/cart_view_model.dart';
+import '../../../view_models/favorites_view_model.dart';
+import '../../../view_models/products_view_model.dart';
+import '../../cart/cart_screen.dart';
+import '../../favorites/favorites_screen.dart';
+import '../../../models/category.dart';
 
 class ProductsView extends StatelessWidget {
-  const ProductsView({Key? key}) : super(key: key);
+  final Category? category;
+
+  const ProductsView({
+    Key? key,
+    this.category,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,9 +22,9 @@ class ProductsView extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'المنتجات',
-          style: TextStyle(
+        title: Text(
+          category?.name ?? 'المنتجات',
+          style: const TextStyle(
             fontFamily: 'Cairo',
             fontWeight: FontWeight.bold,
           ),
@@ -123,11 +129,19 @@ class ProductsView extends StatelessWidget {
             );
           }
 
-          if (viewModel.products.isEmpty) {
-            return const Center(
+          final products = category != null
+              ? viewModel.products.where((p) => 
+                  p.category.trim().toLowerCase() == category!.name.trim().toLowerCase()
+                ).toList()
+              : viewModel.products;
+
+          if (products.isEmpty) {
+            return Center(
               child: Text(
-                'لا توجد منتجات متاحة',
-                style: TextStyle(
+                category != null
+                    ? 'لا توجد منتجات في هذا التصنيف'
+                    : 'لا توجد منتجات متاحة',
+                style: const TextStyle(
                   fontFamily: 'Cairo',
                   fontSize: 16,
                 ),
@@ -154,9 +168,9 @@ class ProductsView extends StatelessWidget {
                     crossAxisSpacing: crossAxisSpacing,
                     mainAxisSpacing: mainAxisSpacing,
                   ),
-                  itemCount: viewModel.products.length,
+                  itemCount: products.length,
                   itemBuilder: (context, index) {
-                    return ProductCard(product: viewModel.products[index]);
+                    return ProductCard(product: products[index]);
                   },
                 ),
               );
