@@ -130,9 +130,7 @@ class ProductsView extends StatelessWidget {
           }
 
           final products = category != null
-              ? viewModel.products.where((p) => 
-                  p.category.trim().toLowerCase() == category!.name.trim().toLowerCase()
-                ).toList()
+              ? viewModel.products.where((p) => p.category == category!.name).toList()
               : viewModel.products;
 
           if (products.isEmpty) {
