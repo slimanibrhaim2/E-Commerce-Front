@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../repositories/base_repository.dart';
+import '../widgets/modern_snackbar.dart';
 
 class CartItem {
   final Product product;
@@ -50,24 +52,42 @@ class CartViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> removeFromCart(int productId) async {
+  Future<void> removeFromCart(int productId, BuildContext context) async {
     try {
+      final product = _items.firstWhere((item) => item.product.id == productId).product;
       _items.removeWhere((item) => item.product.id == productId);
       notifyListeners();
+      
+      ModernSnackbar.show(
+        context: context,
+        message: 'تمت إزالة ${product.name} من السلة',
+        type: SnackBarType.info,
+      );
     } catch (e) {
       _error = 'حدث خطأ أثناء إزالة المنتج من السلة';
       notifyListeners();
     }
   }
 
-  Future<void> updateQuantity(int productId, int quantity) async {
+  Future<void> updateQuantity(int productId, int quantity, BuildContext context) async {
     try {
       final itemIndex = _items.indexWhere((item) => item.product.id == productId);
       if (itemIndex != -1) {
+        final product = _items[itemIndex].product;
         if (quantity <= 0) {
           _items.removeAt(itemIndex);
+          ModernSnackbar.show(
+            context: context,
+            message: 'تمت إزالة ${product.name} من السلة',
+            type: SnackBarType.info,
+          );
         } else {
           _items[itemIndex].quantity = quantity;
+          ModernSnackbar.show(
+            context: context,
+            message: 'تم تحديث كمية ${product.name} إلى $quantity',
+            type: SnackBarType.success,
+          );
         }
         notifyListeners();
       }
@@ -77,10 +97,16 @@ class CartViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> clearCart() async {
+  Future<void> clearCart(BuildContext context) async {
     try {
       _items.clear();
       notifyListeners();
+      
+      ModernSnackbar.show(
+        context: context,
+        message: 'تم تفريغ السلة بنجاح',
+        type: SnackBarType.info,
+      );
     } catch (e) {
       _error = 'حدث خطأ أثناء تفريغ السلة';
       notifyListeners();

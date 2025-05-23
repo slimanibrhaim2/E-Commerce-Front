@@ -5,9 +5,14 @@ import '../../view_models/products_view_model.dart';
 import '../products/product_list/product_list_screen.dart';
 import '../products/product_list/widgets/product_card.dart';
 
-class HomeView extends StatelessWidget {
-  const HomeView({Key? key}) : super(key: key);
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -54,7 +59,7 @@ class HomeView extends StatelessWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const ProductsView(),
+                                      builder: (context) => const ProductListScreen(),
                                     ),
                                   );
                                 },

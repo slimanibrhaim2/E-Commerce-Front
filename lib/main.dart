@@ -1,3 +1,4 @@
+import 'package:e_commerce/views/main_navigation_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'view_models/cart_view_model.dart';
@@ -5,7 +6,6 @@ import 'view_models/products_view_model.dart';
 import 'view_models/categories_view_model.dart';
 import 'repositories/product_repository.dart';
 import 'repositories/category_repository.dart';
-import 'views/main_navigation_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.pink,
           fontFamily: 'Cairo',
         ),
-        home: MainNavigationPage(),
+        home: MainNavigationScreen(),
         debugShowCheckedModeBanner: false,
       ),
     );

@@ -79,7 +79,7 @@ class CategoryCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ProductsView(category: category),
+              builder: (context) => ProductListScreen(category: category),
             ),
           );
         },

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/cart_view_model.dart';
 import '../../widgets/modern_loader.dart';
-import '../main_navigation_page.dart';
+import '../main_navigation_screen.dart';
 
-class CartView extends StatelessWidget {
-  const CartView({Key? key}) : super(key: key);
+class CartScreen extends StatelessWidget {
+  const CartScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +48,7 @@ class CartView extends StatelessWidget {
                           ),
                           TextButton(
                             onPressed: () {
-                              cart.clearCart();
+                              cart.clearCart(context);
                               Navigator.pop(context);
                             },
                             child: const Text(
@@ -124,7 +124,7 @@ class CartView extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         // Switch to the products page (Home tab)
-                        MainNavigationPage.setTab(3);
+                        MainNavigationScreen.setTab(3);
                       },
                       child: const Text(
                         'تصفح المنتجات',
@@ -204,9 +204,10 @@ class CartView extends StatelessWidget {
                                         cart.updateQuantity(
                                           item.product.id,
                                           item.quantity - 1,
+                                          context,
                                         );
                                       } else {
-                                        cart.removeFromCart(item.product.id);
+                                        cart.removeFromCart(item.product.id, context);
                                       }
                                     },
                                   ),
@@ -223,6 +224,7 @@ class CartView extends StatelessWidget {
                                       cart.updateQuantity(
                                         item.product.id,
                                         item.quantity + 1,
+                                        context,
                                       );
                                     },
                                   ),

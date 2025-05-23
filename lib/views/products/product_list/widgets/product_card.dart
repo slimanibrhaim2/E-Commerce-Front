@@ -7,6 +7,7 @@ import '../../../../view_models/product_details_view_model.dart';
 import '../../../../view_models/products_view_model.dart';
 import '../../../../widgets/modern_loader.dart';
 import '../../product_detail/product_detail_screen.dart';
+import '../../../../widgets/modern_snackbar.dart';
 
 
 class ProductCard extends StatelessWidget {
@@ -41,7 +42,7 @@ class ProductCard extends StatelessWidget {
                     create: (context) => ProductDetailsViewModel(
                       context.read<ProductsViewModel>().repository,
                     ),
-                    child: ProductDetailsView(productId: product.id),
+                    child: ProductDetailScreen(productId: product.id),
                   ),
                 ),
               );
@@ -187,13 +188,20 @@ class ProductCard extends StatelessWidget {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () {
-                            viewModel.toggleFavorite(product.id);
+                            viewModel.toggleFavorite(product.id, context);
                             // Try to reload favorites if FavoritesViewModel is available
                             try {
                               context.read<FavoritesViewModel>().loadFavorites();
                             } catch (e) {
                               // Not in favorites view, ignore
                             }
+                            ModernSnackbar.show(
+                              context: context,
+                              message: product.isFavorite 
+                                ? 'تمت إزالة ${product.name} من المفضلة'
+                                : 'تمت إضافة ${product.name} إلى المفضلة',
+                              type: product.isFavorite ? SnackBarType.info : SnackBarType.success,
+                            );
                           },
                           customBorder: const CircleBorder(),
                           child: Container(
@@ -223,16 +231,10 @@ class ProductCard extends StatelessWidget {
                     child: InkWell(
                       onTap: () {
                         context.read<CartViewModel>().addToCart(product);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'تمت إضافة ${product.name} إلى السلة',
-                              style: const TextStyle(fontFamily: 'Cairo'),
-                              textAlign: TextAlign.right,
-                            ),
-                            duration: const Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                          ),
+                        ModernSnackbar.show(
+                          context: context,
+                          message: 'تمت إضافة ${product.name} إلى السلة',
+                          type: SnackBarType.success,
                         );
                       },
                       customBorder: const CircleBorder(),

@@ -8,14 +8,19 @@ import '../../cart/cart_screen.dart';
 import '../../favorites/favorites_screen.dart';
 import '../../../models/category.dart';
 
-class ProductsView extends StatelessWidget {
+class ProductListScreen extends StatefulWidget {
   final Category? category;
 
-  const ProductsView({
+  const ProductListScreen({
     Key? key,
     this.category,
   }) : super(key: key);
 
+  @override
+  State<ProductListScreen> createState() => _ProductListScreenState();
+}
+
+class _ProductListScreenState extends State<ProductListScreen> {
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -23,7 +28,7 @@ class ProductsView extends StatelessWidget {
       child: Scaffold(
       appBar: AppBar(
         title: Text(
-          category?.name ?? 'المنتجات',
+          widget.category?.name ?? 'المنتجات',
           style: const TextStyle(
             fontFamily: 'Cairo',
             fontWeight: FontWeight.bold,
@@ -44,7 +49,7 @@ class ProductsView extends StatelessWidget {
                           create: (context) => FavoritesViewModel(
                             context.read<ProductsViewModel>().repository,
                           ),
-                          child: const FavoritesView(),
+                          child: const FavoritesScreen(),
                         ),
                       ),
                     );
@@ -62,7 +67,7 @@ class ProductsView extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) => ChangeNotifierProvider.value(
                                   value: cart,
-                                  child: const CartView(),
+                                  child: const CartScreen(),
                                 ),
                               ),
                             );
@@ -129,14 +134,14 @@ class ProductsView extends StatelessWidget {
             );
           }
 
-          final products = category != null
-              ? viewModel.products.where((p) => p.category == category!.name).toList()
+          final products = widget.category != null
+              ? viewModel.products.where((p) => p.category == widget.category!.name).toList()
               : viewModel.products;
 
           if (products.isEmpty) {
             return Center(
               child: Text(
-                category != null
+                widget.category != null
                     ? 'لا توجد منتجات في هذا التصنيف'
                     : 'لا توجد منتجات متاحة',
                 style: const TextStyle(

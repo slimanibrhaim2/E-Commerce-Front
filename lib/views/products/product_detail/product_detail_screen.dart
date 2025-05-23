@@ -5,19 +5,19 @@ import '../../../view_models/product_details_view_model.dart';
 import '../../../widgets/modern_loader.dart';
 
 
-class ProductDetailsView extends StatefulWidget {
+class ProductDetailScreen extends StatefulWidget {
   final int productId;
 
-  const ProductDetailsView({
+  const ProductDetailScreen({
     Key? key,
     required this.productId,
   }) : super(key: key);
 
   @override
-  State<ProductDetailsView> createState() => _ProductDetailsViewState();
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
-class _ProductDetailsViewState extends State<ProductDetailsView> {
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   void initState() {
     super.initState();
@@ -124,7 +124,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            onTap: () => viewModel.toggleFavorite(),
+                            onTap: () => viewModel.toggleFavorite(context),
                             customBorder: const CircleBorder(),
                             child: Container(
                               padding: const EdgeInsets.all(8),

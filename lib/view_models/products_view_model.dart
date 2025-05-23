@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../repositories/base_repository.dart';
+import '../widgets/modern_snackbar.dart';
 
 class ProductsViewModel extends ChangeNotifier {
   final BaseRepository<Product> _repository;
@@ -30,7 +32,7 @@ class ProductsViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> toggleFavorite(int productId) async {
+  Future<void> toggleFavorite(int productId, BuildContext context) async {
     try {
       final productIndex = _products.indexWhere((p) => p.id == productId);
       if (productIndex != -1) {
@@ -42,6 +44,14 @@ class ProductsViewModel extends ChangeNotifier {
 
         // Make API call in background
         await _repository.update(updatedProduct);
+        
+        ModernSnackbar.show(
+          context: context,
+          message: product.isFavorite 
+            ? 'تمت إزالة ${product.name} من المفضلة'
+            : 'تمت إضافة ${product.name} إلى المفضلة',
+          type: product.isFavorite ? SnackBarType.info : SnackBarType.success,
+        );
       }
     } catch (e) {
       // Revert changes if API call fails
@@ -49,8 +59,8 @@ class ProductsViewModel extends ChangeNotifier {
       if (productIndex != -1) {
         final product = _products[productIndex];
         _products[productIndex] = product.copyWith(isFavorite: !product.isFavorite);
-      _error = 'حدث خطأ أثناء تحديث حالة المفضلة';
-      notifyListeners();
+        _error = 'حدث خطأ أثناء تحديث حالة المفضلة';
+        notifyListeners();
       }
     }
   }

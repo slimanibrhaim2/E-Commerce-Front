@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../repositories/base_repository.dart';
 import 'cart_view_model.dart';
+import '../widgets/modern_snackbar.dart';
 
 class ProductDetailsViewModel extends ChangeNotifier {
   final BaseRepository<Product> _repository;
@@ -38,7 +39,7 @@ class ProductDetailsViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> toggleFavorite() async {
+  Future<void> toggleFavorite(BuildContext context) async {
     if (_product == null) return;
 
     // Optimistic update - update UI immediately
@@ -49,6 +50,15 @@ class ProductDetailsViewModel extends ChangeNotifier {
     try {
       // Make API call in background
       await _repository.update(updatedProduct);
+      
+      // Show success message
+      ModernSnackbar.show(
+        context: context,
+        message: _product!.isFavorite 
+          ? 'تمت إضافة ${_product!.name} إلى المفضلة'
+          : 'تمت إزالة ${_product!.name} من المفضلة',
+        type: _product!.isFavorite ? SnackBarType.success : SnackBarType.info,
+      );
     } catch (e) {
       // Revert changes if API call fails
       _product = _product!.copyWith(isFavorite: !_product!.isFavorite);
@@ -69,16 +79,10 @@ class ProductDetailsViewModel extends ChangeNotifier {
       await cartViewModel.addToCart(_product!);
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'تمت إضافة ${_product!.name} إلى السلة',
-            style: const TextStyle(fontFamily: 'Cairo'),
-            textAlign: TextAlign.right,
-          ),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-        ),
+      ModernSnackbar.show(
+        context: context,
+        message: 'تمت إضافة ${_product!.name} إلى السلة',
+        type: SnackBarType.success,
       );
     } catch (e) {
       _error = 'حدث خطأ أثناء إضافة المنتج إلى السلة';

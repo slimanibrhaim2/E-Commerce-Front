@@ -56,7 +56,7 @@ class SearchAndFavoriteBar extends StatelessWidget {
                     create: (context) => FavoritesViewModel(
                       context.read<ProductRepository>(),
                     ),
-                    child: const FavoritesView(),
+                    child: const FavoritesScreen(),
                   ),
                 ),
               );

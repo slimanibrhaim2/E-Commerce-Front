@@ -9,43 +9,42 @@ import 'home/home_screen.dart';
 import 'categories/categories_screen.dart';
 
 
-class MainNavigationPage extends StatefulWidget {
-  static final GlobalKey<_MainNavigationPageState> globalKey = GlobalKey<_MainNavigationPageState>();
-  MainNavigationPage({Key? key}) : super(key: globalKey);
+class MainNavigationScreen extends StatefulWidget {
+  const MainNavigationScreen({Key? key}) : super(key: key);
 
   static void setTab(int index) {
-    globalKey.currentState?._setTab(index);
+    _MainNavigationScreenState.currentIndex = index;
   }
 
   @override
-  State<MainNavigationPage> createState() => _MainNavigationPageState();
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationPageState extends State<MainNavigationPage> {
-  int _currentIndex = 0;
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  static int currentIndex = 0;
 
   void _setTab(int index) {
     setState(() {
-      _currentIndex = index;
+      currentIndex = index;
     });
   }
 
   final List<Widget> _pages = [
-    const AccountPage(),
-    const CartView(),
-    const CategoriesPage(),
-    const HomeView(),
+    const AccountScreen(),
+    const CartScreen(),
+    const CategoriesScreen(),
+    const HomeScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: _pages[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
+        currentIndex: currentIndex,
         onTap: (index) {
           setState(() {
-            _currentIndex = index;
+            currentIndex = index;
           });
         },
         selectedItemColor: Colors.pink,
@@ -96,7 +95,7 @@ class HomePage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ProductsView(),
+                            builder: (context) => const ProductListScreen(),
                           ),
                         );
                       },
@@ -160,8 +159,8 @@ class CategoriesPage extends StatelessWidget {
   }
 }
 
-class AccountPage extends StatelessWidget {
-  const AccountPage({Key? key}) : super(key: key);
+class AccountScreen extends StatelessWidget {
+  const AccountScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

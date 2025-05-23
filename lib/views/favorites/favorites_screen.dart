@@ -4,14 +4,14 @@ import '../../view_models/favorites_view_model.dart';
 import '../../widgets/modern_loader.dart';
 import '';
 import '../products/product_list/widgets/product_card.dart';
-class FavoritesView extends StatefulWidget {
-  const FavoritesView({Key? key}) : super(key: key);
+class FavoritesScreen extends StatefulWidget {
+  const FavoritesScreen({Key? key}) : super(key: key);
 
   @override
-  State<FavoritesView> createState() => _FavoritesViewState();
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
 }
 
-class _FavoritesViewState extends State<FavoritesView> {
+class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   void initState() {
     super.initState();
@@ -67,7 +67,7 @@ class _FavoritesViewState extends State<FavoritesView> {
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              viewModel.removeAllFavorites();
+                              viewModel.removeAllFavorites(context);
                             },
                             child: const Text(
                               'إزالة',
