@@ -1,71 +1,64 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'base_repository.dart';
+import '../core/api/api_client.dart';
+import '../core/api/api_endpoints.dart';
+import '../core/api/api_base_repository.dart' as api;
+import '../repositories/base_repository.dart';
 import '../models/product.dart';
 
-class ProductRepository implements BaseRepository<Product> {
-  final String baseUrl = 'https://api.escuelajs.co/api/v1';
-  
-  ProductRepository();
+class ProductRepository extends api.ApiRepositoryBase<Product> implements BaseRepository<Product> {
+  ProductRepository(ApiClient apiClient) : super(apiClient);
+
+  Future<List<Product>> getProducts() async {
+    return handleListApiCall(() async {
+      final response = await apiClient.get(ApiEndpoints.products);
+      if (response is List) {
+        return response.map((json) => Product.fromJson(json)).toList();
+      }
+      throw Exception('Invalid response format');
+    });
+  }
+
+  Future<Product?> getById(int id) async {
+    return handleApiCall(() async {
+      final response = await apiClient.get('${ApiEndpoints.productDetail}$id');
+      if (response is Map<String, dynamic>) {
+        return Product.fromJson(response);
+      }
+      throw Exception('Invalid response format');
+    });
+  }
+
+  Future<List<Product>> getProductsByCategory(String category) async {
+    return handleListApiCall(() async {
+      final response = await apiClient.get('${ApiEndpoints.categoryProducts}$category');
+      if (response is List) {
+        return response.map((json) => Product.fromJson(json)).toList();
+      }
+      throw Exception('Invalid response format');
+    });
+  }
 
   @override
   Future<List<Product>> getAll() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/products'));
-      
-      if (response.statusCode == 200) {
-        final List<dynamic> productsJson = json.decode(response.body);
-        
-        return productsJson.map((json) => Product(
-          id: json['id'],
-          name: json['title'],
-          description: json['description'],
-          price: json['price'].toDouble(),
-          imageUrl: json['images'][0],
-          category: json['category']['name'],
-        )).toList();
-      } else {
-        throw Exception('Failed to load products: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load products: $e');
-    }
+    return getProducts();
   }
 
-  @override
-  Future<Product?> getById(int id) async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/products/$id'));
-      
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> json = jsonDecode(response.body);
-        return Product(
-          id: json['id'],
-          name: json['title'],
-          description: json['description'],
-          price: json['price'].toDouble(),
-          imageUrl: json['images'][0],
-          category: json['category']['name'],
-        );
-      } else if (response.statusCode == 404) {
-        return null;
-      } else {
-        throw Exception('Failed to load product: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load product: $e');
-    }
-  }
-
-  // These methods are required by the interface but we're not implementing them yet
   @override
   Future<Product> create(Product item) {
     throw UnimplementedError('Create not implemented yet');
   }
 
   @override
-  Future<Product> update(Product item) {
-    throw UnimplementedError('Update not implemented yet');
+  Future<Product> update(Product item) async {
+    return handleApiCall(() async {
+      final response = await apiClient.post(
+        '${ApiEndpoints.productDetail}${item.id}',
+        item.toJson(),
+      );
+      if (response is Map<String, dynamic>) {
+        return Product.fromJson(response);
+      }
+      throw Exception('Invalid response format');
+    });
   }
 
   @override

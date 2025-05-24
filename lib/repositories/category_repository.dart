@@ -1,51 +1,43 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'base_repository.dart';
+import '../core/api/api_client.dart';
+import '../core/api/api_endpoints.dart';
+import '../core/api/api_base_repository.dart' as api;
+import '../repositories/base_repository.dart';
 import '../models/category.dart';
 
-class CategoryRepository implements BaseRepository<Category> {
-  final String baseUrl = 'https://api.escuelajs.co/api/v1';
-  
-  CategoryRepository();
+class CategoryRepository extends api.ApiRepositoryBase<Category> implements BaseRepository<Category> {
+  CategoryRepository(ApiClient apiClient) : super(apiClient);
+
+  Future<List<Category>> getCategories() async {
+    return handleListApiCall(() async {
+      final response = await apiClient.get(ApiEndpoints.categories);
+      if (response is List) {
+        return response.asMap().entries.map((entry) => Category(
+          id: entry.key + 1,
+          name: entry.value.toString(),
+          image: '',
+        )).toList();
+      }
+      throw Exception('Invalid response format');
+    });
+  }
 
   @override
   Future<List<Category>> getAll() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/categories'));
-      
-      if (response.statusCode == 200) {
-        final List<dynamic> categoriesJson = json.decode(response.body);
-        
-        return categoriesJson.map((json) => Category(
-          id: json['id'],
-          name: json['name'],
-          image: json['image'],
-        )).toList();
-      } else {
-        throw Exception('Failed to load categories: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load categories: $e');
-    }
+    return getCategories();
   }
 
   @override
   Future<Category?> getById(int id) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/categories/$id'));
-      
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> json = jsonDecode(response.body);
+      final response = await apiClient.get(ApiEndpoints.categories);
+      if (response is List && id > 0 && id <= response.length) {
         return Category(
-          id: json['id'],
-          name: json['name'],
-          image: json['image'],
+          id: id,
+          name: response[id - 1].toString(),
+          image: '',
         );
-      } else if (response.statusCode == 404) {
-        return null;
-      } else {
-        throw Exception('Failed to load category: ${response.statusCode}');
       }
+      return null;
     } catch (e) {
       throw Exception('Failed to load category: $e');
     }

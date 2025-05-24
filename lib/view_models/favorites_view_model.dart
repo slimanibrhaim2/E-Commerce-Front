@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../repositories/base_repository.dart';
+import '../repositories/product_repository.dart';
 import '../widgets/modern_snackbar.dart';
 
 class FavoritesViewModel extends ChangeNotifier {
-  final BaseRepository<Product> _repository;
+  final ProductRepository _repository;
   List<Product> _favorites = [];
   bool _isLoading = false;
   String? _error;

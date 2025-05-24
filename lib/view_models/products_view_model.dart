@@ -1,29 +1,36 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../repositories/base_repository.dart';
+import '../repositories/product_repository.dart';
 import '../widgets/modern_snackbar.dart';
 
 class ProductsViewModel extends ChangeNotifier {
-  final BaseRepository<Product> _repository;
+  final ProductRepository _repository;
   List<Product> _products = [];
   bool _isLoading = false;
   String? _error;
+  String? _currentCategory;
 
   ProductsViewModel(this._repository);
 
-  BaseRepository<Product> get repository => _repository;
+  ProductRepository get repository => _repository;
   List<Product> get products => _products;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  String? get currentCategory => _currentCategory;
 
-  Future<void> loadProducts() async {
+  Future<void> loadProducts({String? category}) async {
     try {
       _isLoading = true;
       _error = null;
+      _currentCategory = category;
       notifyListeners();
 
-      _products = await _repository.getAll();
+      if (category != null) {
+        _products = await _repository.getProductsByCategory(category);
+      } else {
+        _products = await _repository.getAll();
+      }
     } catch (e) {
       _error = 'حدث خطأ أثناء تحميل المنتجات';
     } finally {

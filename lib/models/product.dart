@@ -17,6 +17,28 @@ class Product {
     this.isFavorite = false,
   });
 
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
+      id: json['id'],
+      name: json['title'],
+      description: json['description'],
+      price: (json['price'] as num).toDouble(),
+      imageUrl: json['image'],
+      category: json['category'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': name,
+      'description': description,
+      'price': price,
+      'image': imageUrl,
+      'category': category,
+    };
+  }
+
   Product copyWith({
     int? id,
     String? name,

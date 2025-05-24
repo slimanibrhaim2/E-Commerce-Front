@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../repositories/base_repository.dart';
+import '../repositories/product_repository.dart';
 import '../widgets/modern_snackbar.dart';
 
 class CartItem {
@@ -17,7 +17,7 @@ class CartItem {
 }
 
 class CartViewModel extends ChangeNotifier {
-  final BaseRepository<Product> _repository;
+  final ProductRepository _repository;
   final List<CartItem> _items = [];
   bool _isLoading = false;
   String? _error;

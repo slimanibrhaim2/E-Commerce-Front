@@ -22,26 +22,37 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   @override
+  void initState() {
+    super.initState();
+    // Load products when screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProductsViewModel>().loadProducts(
+        category: widget.category?.name,
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.category?.name ?? 'المنتجات',
-          style: const TextStyle(
-            fontFamily: 'Cairo',
-            fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          title: Text(
+            widget.category?.name ?? 'المنتجات',
+            style: const TextStyle(
+              fontFamily: 'Cairo',
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        centerTitle: true,
-        actions: [
+          centerTitle: true,
+          actions: [
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-          IconButton(
-            icon: const Icon(Icons.favorite),
-            onPressed: () {
+                IconButton(
+                  icon: const Icon(Icons.favorite),
+                  onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -55,131 +66,100 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     );
                   },
                 ),
-                Consumer<CartViewModel>(
-                  builder: (context, cart, child) {
-                    return Stack(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.shopping_cart),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChangeNotifierProvider.value(
-                                  value: cart,
-                                  child: const CartScreen(),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        if (cart.itemCount > 0)
-                          Positioned(
-                            right: 8,
-                            top: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFE84393),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                '${cart.itemCount}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                IconButton(
+                  icon: const Icon(Icons.shopping_cart),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CartScreen(),
+                      ),
                     );
                   },
                 ),
               ],
-          ),
-        ],
-      ),
-      body: Consumer<ProductsViewModel>(
-        builder: (context, viewModel, child) {
-          if (viewModel.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+            ),
+          ],
+        ),
+        body: Consumer<ProductsViewModel>(
+          builder: (context, viewModel, child) {
+            if (viewModel.isLoading) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
 
-          if (viewModel.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    viewModel.error!,
-                    style: const TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 16,
+            if (viewModel.error != null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      viewModel.error!,
+                      style: const TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => viewModel.loadProducts(),
-                    child: const Text(
-                      'إعادة المحاولة',
-                      style: TextStyle(fontFamily: 'Cairo'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => viewModel.loadProducts(
+                        category: widget.category?.name,
+                      ),
+                      child: const Text(
+                        'إعادة المحاولة',
+                        style: TextStyle(fontFamily: 'Cairo'),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final products = widget.category != null
-              ? viewModel.products.where((p) => p.category == widget.category!.name).toList()
-              : viewModel.products;
-
-          if (products.isEmpty) {
-            return Center(
-              child: Text(
-                widget.category != null
-                    ? 'لا توجد منتجات في هذا التصنيف'
-                    : 'لا توجد منتجات متاحة',
-                style: const TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 16,
-                ),
-              ),
-            );
-          }
-
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final crossAxisCount = (constraints.maxWidth / 200).floor();
-              final columns = crossAxisCount < 2 ? 2 : crossAxisCount;
-              final aspectRatio = 0.75;
-              final crossAxisSpacing = 16.0;
-              final mainAxisSpacing = 16.0;
-              final padding = 16.0;
-
-              return RefreshIndicator(
-                onRefresh: () => viewModel.loadProducts(),
-                child: GridView.builder(
-                  padding: EdgeInsets.all(padding),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    childAspectRatio: aspectRatio,
-                    crossAxisSpacing: crossAxisSpacing,
-                    mainAxisSpacing: mainAxisSpacing,
-                  ),
-                  itemCount: products.length,
-                  itemBuilder: (context, index) {
-                    return ProductCard(product: products[index]);
-                  },
+                  ],
                 ),
               );
-            },
-          );
-        },
+            }
+
+            if (viewModel.products.isEmpty) {
+              return Center(
+                child: Text(
+                  widget.category != null
+                      ? 'لا توجد منتجات في هذا التصنيف'
+                      : 'لا توجد منتجات متاحة',
+                  style: const TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 16,
+                  ),
+                ),
+              );
+            }
+
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = (constraints.maxWidth / 200).floor();
+                final columns = crossAxisCount < 2 ? 2 : crossAxisCount;
+                final aspectRatio = 0.75;
+                final crossAxisSpacing = 16.0;
+                final mainAxisSpacing = 16.0;
+                final padding = 16.0;
+
+                return RefreshIndicator(
+                  onRefresh: () => viewModel.loadProducts(
+                    category: widget.category?.name,
+                  ),
+                  child: GridView.builder(
+                    padding: EdgeInsets.all(padding),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      childAspectRatio: aspectRatio,
+                      crossAxisSpacing: crossAxisSpacing,
+                      mainAxisSpacing: mainAxisSpacing,
+                    ),
+                    itemCount: viewModel.products.length,
+                    itemBuilder: (context, index) {
+                      return ProductCard(product: viewModel.products[index]);
+                    },
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
     );
