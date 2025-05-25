@@ -1,11 +1,10 @@
-import '../core/api/api_client.dart';
 import '../core/api/api_endpoints.dart';
 import '../core/api/api_base_repository.dart' as api;
 import '../repositories/base_repository.dart';
 import '../models/product.dart';
 
 class ProductRepository extends api.ApiRepositoryBase<Product> implements BaseRepository<Product> {
-  ProductRepository(ApiClient apiClient) : super(apiClient);
+  ProductRepository(super.apiClient);
 
   Future<List<Product>> getProducts() async {
     return handleListApiCall(() async {
@@ -17,6 +16,7 @@ class ProductRepository extends api.ApiRepositoryBase<Product> implements BaseRe
     });
   }
 
+  @override
   Future<Product?> getById(int id) async {
     return handleApiCall(() async {
       final response = await apiClient.get('${ApiEndpoints.productDetail}$id');

@@ -1,11 +1,10 @@
-import '../core/api/api_client.dart';
 import '../core/api/api_endpoints.dart';
 import '../core/api/api_base_repository.dart' as api;
 import '../repositories/base_repository.dart';
 import '../models/category.dart';
 
 class CategoryRepository extends api.ApiRepositoryBase<Category> implements BaseRepository<Category> {
-  CategoryRepository(ApiClient apiClient) : super(apiClient);
+  CategoryRepository(super.apiClient);
 
   Future<List<Category>> getCategories() async {
     return handleListApiCall(() async {

@@ -29,7 +29,7 @@ class ProductsViewModel extends ChangeNotifier {
       if (category != null) {
         _products = await _repository.getProductsByCategory(category);
       } else {
-        _products = await _repository.getAll();
+      _products = await _repository.getAll();
       }
     } catch (e) {
       _error = 'حدث خطأ أثناء تحميل المنتجات';
