@@ -10,11 +10,12 @@ class CategoryRepository extends api.ApiRepositoryBase<Category> implements Base
     return handleListApiCall(() async {
       final response = await apiClient.get(ApiEndpoints.categories);
       if (response is List) {
-        return response.asMap().entries.map((entry) => Category(
-          id: entry.key + 1,
-          name: entry.value.toString(),
-          image: '',
-        )).toList();
+        return response.asMap().entries.map((entry) => Category.fromJson({
+          'id': entry.key + 1,
+          'name': entry.value.toString(),
+          'image':'', // this api doesn't give a image for the category so we use this latar we will replace this fucntion by
+                      // return response.map((json) => Category.fromJson(json)).toList();
+        })).toList();
       }
       throw Exception('Invalid response format');
     });
@@ -30,11 +31,11 @@ class CategoryRepository extends api.ApiRepositoryBase<Category> implements Base
     try {
       final response = await apiClient.get(ApiEndpoints.categories);
       if (response is List && id > 0 && id <= response.length) {
-        return Category(
-          id: id,
-          name: response[id - 1].toString(),
-          image: '',
-        );
+        return Category.fromJson({
+          'id': id,
+          'name': response[id - 1].toString(),
+          'image': '',
+        });
       }
       return null;
     } catch (e) {
@@ -42,19 +43,27 @@ class CategoryRepository extends api.ApiRepositoryBase<Category> implements Base
     }
   }
 
-  // These methods are required by the interface but we're not implementing them yet
   @override
-  Future<Category> create(Category item) {
-    throw UnimplementedError('Create not implemented yet');
+  Future<Category> create(Category item) async {
+    final jsonData = item.toJson();
+    final response = await apiClient.post(ApiEndpoints.categories, jsonData);
+    return Category.fromJson(response);
   }
 
   @override
-  Future<Category> update(Category item) {
-    throw UnimplementedError('Update not implemented yet');
+  Future<Category> update(Category item) async {
+    final jsonData = item.toJson();
+    final response = await apiClient.post('${ApiEndpoints.categories}/${item.id}', jsonData);
+    return Category.fromJson(response);
   }
 
   @override
-  Future<bool> delete(int id) {
-    throw UnimplementedError('Delete not implemented yet');
+  Future<bool> delete(int id) async {
+    try {
+      await apiClient.post('${ApiEndpoints.categories}/$id', {'_method': 'DELETE'});
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 } 

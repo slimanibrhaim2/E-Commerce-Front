@@ -17,12 +17,13 @@ class Product {
     this.isFavorite = false,
   });
 
+// Factory constructor for creating Product from JSON
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'],
       name: json['title'],
       description: json['description'],
-      price: (json['price'] as num).toDouble(),
+      price: (json['price'] as num).toDouble(), // Ensures `price` is a double
       imageUrl: json['image'],
       category: json['category'],
     );
