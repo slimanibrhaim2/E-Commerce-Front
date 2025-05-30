@@ -41,34 +41,39 @@ class ProductsViewModel extends ChangeNotifier {
 
   Future<void> toggleFavorite(int productId, BuildContext context) async {
     try {
-      final productIndex = _products.indexWhere((p) => p.id == productId);
-      if (productIndex != -1) {
-        // Optimistic update - update UI immediately
-        final product = _products[productIndex];
-        final updatedProduct = product.copyWith(isFavorite: !product.isFavorite);
-        _products[productIndex] = updatedProduct;
+      final product = _products.firstWhere((p) => p.id == productId);
+      final updatedProduct = product.copyWith(isFavorite: !product.isFavorite);
+      
+      // Optimistic update
+      final index = _products.indexWhere((p) => p.id == productId);
+      if (index != -1) {
+        _products[index] = updatedProduct;
         notifyListeners();
+      }
 
-        // Make API call in background
-        await _repository.update(updatedProduct);
-        
-        ModernSnackbar.show(
-          context: context,
-          message: product.isFavorite 
-            ? 'تمت إزالة ${product.name} من المفضلة'
-            : 'تمت إضافة ${product.name} إلى المفضلة',
-          type: product.isFavorite ? SnackBarType.info : SnackBarType.success,
-        );
-      }
+      await _repository.update(updatedProduct);
+      
+      ModernSnackbar.show(
+        context: context,
+        message: updatedProduct.isFavorite 
+          ? 'تمت إضافة ${updatedProduct.name} إلى المفضلة'
+          : 'تمت إزالة ${updatedProduct.name} من المفضلة',
+        type: updatedProduct.isFavorite ? SnackBarType.success : SnackBarType.info,
+      );
     } catch (e) {
-      // Revert changes if API call fails
-      final productIndex = _products.indexWhere((p) => p.id == productId);
-      if (productIndex != -1) {
-        final product = _products[productIndex];
-        _products[productIndex] = product.copyWith(isFavorite: !product.isFavorite);
-      _error = 'حدث خطأ أثناء تحديث حالة المفضلة';
-      notifyListeners();
+      // Revert optimistic update
+      final product = _products.firstWhere((p) => p.id == productId);
+      final index = _products.indexWhere((p) => p.id == productId);
+      if (index != -1) {
+        _products[index] = product.copyWith(isFavorite: !product.isFavorite);
+        notifyListeners();
       }
+      
+      ModernSnackbar.show(
+        context: context,
+        message: 'حدث خطأ أثناء تحديث المفضلة',
+        type: SnackBarType.error,
+      );
     }
   }
 

@@ -102,17 +102,17 @@ class CartScreen extends StatelessWidget {
             }
 
             if (cart.cartItems.isEmpty) {
-              return Center(
+              return const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.shopping_cart_outlined,
                       size: 64,
                       color: Colors.grey,
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
+                    SizedBox(height: 16),
+                    Text(
                       'سلة التسوق فارغة',
                       style: TextStyle(
                         fontFamily: 'Cairo',
@@ -120,17 +120,7 @@ class CartScreen extends StatelessWidget {
                         color: Colors.grey,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Switch to the products page (Home tab)
-                        MainNavigationScreen.setTab(3);
-                      },
-                      child: const Text(
-                        'تصفح المنتجات',
-                        style: TextStyle(fontFamily: 'Cairo'),
-                      ),
-                    ),
+                    SizedBox(height: 8),
                   ],
                 ),
               );

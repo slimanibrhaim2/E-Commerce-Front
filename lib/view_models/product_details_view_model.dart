@@ -42,16 +42,15 @@ class ProductDetailsViewModel extends ChangeNotifier {
   Future<void> toggleFavorite(BuildContext context) async {
     if (_product == null) return;
 
-    // Optimistic update - update UI immediately
-    final updatedProduct = _product!.copyWith(isFavorite: !_product!.isFavorite);
-    _product = updatedProduct;
-    notifyListeners();
-
     try {
+      // Optimistic update - update UI immediately
+      final updatedProduct = _product!.copyWith(isFavorite: !_product!.isFavorite);
+      _product = updatedProduct;
+      notifyListeners();
+
       // Make API call in background
       await _repository.update(updatedProduct);
       
-      // Show success message
       ModernSnackbar.show(
         context: context,
         message: _product!.isFavorite 
@@ -62,8 +61,14 @@ class ProductDetailsViewModel extends ChangeNotifier {
     } catch (e) {
       // Revert changes if API call fails
       _product = _product!.copyWith(isFavorite: !_product!.isFavorite);
-      _error = 'حدث خطأ أثناء تحديث حالة المفضلة';
       notifyListeners();
+      
+      // Only show snackbar, do not set _error
+      ModernSnackbar.show(
+        context: context,
+        message: 'حدث خطأ أثناء تحديث حالة المفضلة',
+        type: SnackBarType.error,
+      );
     }
   }
 

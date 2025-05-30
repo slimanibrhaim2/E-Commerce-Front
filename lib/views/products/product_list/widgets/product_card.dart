@@ -189,19 +189,6 @@ class ProductCard extends StatelessWidget {
                         child: InkWell(
                           onTap: () {
                             viewModel.toggleFavorite(product.id, context);
-                            // Try to reload favorites if FavoritesViewModel is available
-                            try {
-                              context.read<FavoritesViewModel>().loadFavorites();
-                            } catch (e) {
-                              // Not in favorites view, ignore
-                            }
-                            ModernSnackbar.show(
-                              context: context,
-                              message: product.isFavorite 
-                                ? 'تمت إزالة ${product.name} من المفضلة'
-                                : 'تمت إضافة ${product.name} إلى المفضلة',
-                              type: product.isFavorite ? SnackBarType.info : SnackBarType.success,
-                            );
                           },
                           customBorder: const CircleBorder(),
                           child: Container(
