@@ -6,8 +6,10 @@ import 'core/api/api_endpoints.dart';
 import 'view_models/cart_view_model.dart';
 import 'view_models/products_view_model.dart';
 import 'view_models/categories_view_model.dart';
+import 'view_models/favorites_view_model.dart';
 import 'repositories/product_repository.dart';
 import 'repositories/category_repository.dart';
+import 'repositories/favorites_repository.dart';
 
 void main() {
   runApp(MyApp());
@@ -32,6 +34,9 @@ class MyApp extends StatelessWidget {
         Provider<CategoryRepository>(
           create: (context) => CategoryRepository(context.read<ApiClient>()),
         ),
+        Provider<FavoritesRepository>(
+          create: (context) => FavoritesRepository(context.read<ApiClient>()),
+        ),
         ChangeNotifierProvider(
           create: (context) => CartViewModel(
             context.read<ProductRepository>(),
@@ -46,6 +51,11 @@ class MyApp extends StatelessWidget {
           create: (context) => CategoriesViewModel(
             context.read<CategoryRepository>(),
           )..loadCategories(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => FavoritesViewModel(
+            context.read<FavoritesRepository>(),
+          ),
         ),
       ],
       child: MaterialApp(

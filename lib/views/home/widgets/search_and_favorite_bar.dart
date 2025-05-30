@@ -52,12 +52,7 @@ class SearchAndFavoriteBar extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ChangeNotifierProvider(
-                    create: (context) => FavoritesViewModel(
-                      context.read<ProductRepository>(),
-                    ),
-                    child: const FavoritesScreen(),
-                  ),
+                  builder: (context) => const FavoritesScreen(),
                 ),
               );
             },

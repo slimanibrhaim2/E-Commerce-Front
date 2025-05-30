@@ -10,4 +10,8 @@ class ApiEndpoints {
   // Category endpoints
   static const String categories = '/products/categories';
   static const String categoryProducts = '/products/category/'; // Append category name
+
+  // Favorites endpoints
+  static const String favorites = '/favorites';
+  static const String toggleFavorite = '/favorites/toggle/'; // Append product ID
 } 

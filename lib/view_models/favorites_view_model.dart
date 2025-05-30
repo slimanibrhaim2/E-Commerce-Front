@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../repositories/product_repository.dart';
+import '../repositories/favorites_repository.dart';
 import '../widgets/modern_snackbar.dart';
 
 class FavoritesViewModel extends ChangeNotifier {
-  final ProductRepository _repository;
+  final FavoritesRepository _repository;
   List<Product> _favorites = [];
   bool _isLoading = false;
   String? _error;
@@ -21,9 +21,8 @@ class FavoritesViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      // Get all products and filter favorites
-      final allProducts = await _repository.getAll();
-      _favorites = allProducts.where((product) => product.isFavorite).toList();
+      // Get favorites directly from the API
+      _favorites = await _repository.getFavorites();
     } catch (e) {
       _error = 'حدث خطأ أثناء تحميل المفضلة';
     } finally {
@@ -34,28 +33,36 @@ class FavoritesViewModel extends ChangeNotifier {
 
   Future<void> toggleFavorite(int productId, BuildContext context) async {
     try {
-      final productIndex = _favorites.indexWhere((p) => p.id == productId);
-      if (productIndex != -1) {
-        // Optimistic update - update UI immediately
-        final product = _favorites[productIndex];
-        final updatedProduct = product.copyWith(isFavorite: !product.isFavorite);
-        _favorites.removeAt(productIndex); // Remove from favorites list
-        notifyListeners();
-
-        // Make API call in background
-        await _repository.update(updatedProduct);
-        
+      // Make API call to toggle favorite
+      final updatedProduct = await _repository.toggleFavorite(productId);
+      
+      // Update local state based on API response
+      if (updatedProduct.isFavorite) {
+        _favorites.add(updatedProduct);
         ModernSnackbar.show(
           context: context,
-          message: 'تمت إزالة ${product.name} من المفضلة',
+          message: 'تمت إضافة ${updatedProduct.name} إلى المفضلة',
+          type: SnackBarType.success,
+        );
+      } else {
+        _favorites.removeWhere((p) => p.id == productId);
+        ModernSnackbar.show(
+          context: context,
+          message: 'تمت إزالة ${updatedProduct.name} من المفضلة',
           type: SnackBarType.info,
         );
       }
+      
+      notifyListeners();
     } catch (e) {
-      // Revert changes if API call fails
-      await loadFavorites(); // Reload favorites to ensure consistency
       _error = 'حدث خطأ أثناء تحديث حالة المفضلة';
       notifyListeners();
+      
+      ModernSnackbar.show(
+        context: context,
+        message: _error!,
+        type: SnackBarType.error,
+      );
     }
   }
 
@@ -65,10 +72,9 @@ class FavoritesViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      // Update all favorite products to not favorite
+      // Clear favorites in the API
       for (final product in _favorites) {
-        final updatedProduct = product.copyWith(isFavorite: false);
-        await _repository.update(updatedProduct);
+        await _repository.toggleFavorite(product.id);
       }
 
       _favorites.clear();
@@ -86,7 +92,6 @@ class FavoritesViewModel extends ChangeNotifier {
     }
   }
 
-  // Add this method to check if a product is in favorites
   bool isFavorite(int productId) {
     return _favorites.any((product) => product.id == productId);
   }
