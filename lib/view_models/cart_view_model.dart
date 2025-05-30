@@ -39,11 +39,11 @@ class CartViewModel extends ChangeNotifier {
       if (existingItemIndex != -1) {
         // Increase quantity if item exists
         _items[existingItemIndex].quantity++;
-      } else {
+      }
+      else {
         // Add new item
         _items.add(CartItem(product: product));
       }
-      
       notifyListeners();
     } catch (e) {
       _error = 'حدث خطأ أثناء إضافة المنتج إلى السلة';
