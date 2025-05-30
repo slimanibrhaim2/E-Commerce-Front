@@ -1,133 +1,153 @@
 import 'package:flutter/material.dart';
+import '../models/cart_item.dart';
 import '../models/product.dart';
-import '../repositories/product_repository.dart';
+import '../repositories/cart_repository.dart';
 import '../widgets/modern_snackbar.dart';
 
-class CartItem {
-  final Product product;
-  int quantity;
-
-  CartItem({
-    required this.product,
-    this.quantity = 1,
-  });
-
-  double get totalPrice => product.price * quantity;
-}
-
 class CartViewModel extends ChangeNotifier {
-  final ProductRepository _repository;
-  final List<CartItem> _items = [];
+  final CartRepository _repository;
+  List<CartItem> _cartItems = [];
   bool _isLoading = false;
   String? _error;
 
   CartViewModel(this._repository);
 
-  List<CartItem> get items => _items;
+  List<CartItem> get cartItems => _cartItems;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  bool get isEmpty => _items.isEmpty;
 
-  double get total => _items.fold(0, (sum, item) => sum + item.totalPrice);
+  // Calculate total items in cart
+  int get totalItems => _cartItems.fold(0, (sum, item) => sum + item.quantity);
 
-  int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
+  // Calculate total price of cart
+  double get totalPrice => _cartItems.fold(0, (sum, item) => sum + item.totalPrice);
 
-  Future<void> addToCart(Product product) async {
+  Future<void> loadCart() async {
     try {
-      final existingItemIndex = _items.indexWhere((item) => item.product.id == product.id);
-      
-      if (existingItemIndex != -1) {
-        // Increase quantity if item exists
-        _items[existingItemIndex].quantity++;
-      }
-      else {
-        // Add new item
-        _items.add(CartItem(product: product));
-      }
+      _isLoading = true;
+      _error = null;
       notifyListeners();
+
+      _cartItems = await _repository.getCart();
     } catch (e) {
-      _error = 'حدث خطأ أثناء إضافة المنتج إلى السلة';
+      _error = 'حدث خطأ أثناء تحميل السلة';
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> removeFromCart(int productId, BuildContext context) async {
+  Future<void> addToCart(int productId, int quantity, BuildContext context) async {
     try {
-      final product = _items.firstWhere((item) => item.product.id == productId).product;
-      _items.removeWhere((item) => item.product.id == productId);
+      _isLoading = true;
       notifyListeners();
+
+      final cartItem = await _repository.addToCart(productId, quantity);
+      _cartItems.add(cartItem);
       
       ModernSnackbar.show(
         context: context,
-        message: 'تمت إزالة ${product.name} من السلة',
-        type: SnackBarType.info,
+        message: 'تمت إضافة المنتج إلى السلة',
+        type: SnackBarType.success,
       );
     } catch (e) {
-      _error = 'حدث خطأ أثناء إزالة المنتج من السلة';
+      ModernSnackbar.show(
+        context: context,
+        message: 'حدث خطأ أثناء إضافة المنتج إلى السلة',
+        type: SnackBarType.error,
+      );
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> updateQuantity(int productId, int quantity, BuildContext context) async {
+  Future<void> updateQuantity(int itemId, int quantity, BuildContext context) async {
     try {
-      final itemIndex = _items.indexWhere((item) => item.product.id == productId);
-      if (itemIndex != -1) {
-        final product = _items[itemIndex].product;
-        if (quantity <= 0) {
-          _items.removeAt(itemIndex);
-          ModernSnackbar.show(
-            context: context,
-            message: 'تمت إزالة ${product.name} من السلة',
-            type: SnackBarType.info,
-          );
-        } else {
-          _items[itemIndex].quantity = quantity;
-          ModernSnackbar.show(
-            context: context,
-            message: 'تم تحديث كمية ${product.name} إلى $quantity',
-            type: SnackBarType.success,
-          );
-        }
+      final updatedItem = await _repository.updateCartItem(itemId, quantity);
+      final index = _cartItems.indexWhere((item) => item.id == itemId);
+      if (index != -1) {
+        _cartItems[index] = updatedItem;
         notifyListeners();
       }
     } catch (e) {
       _error = 'حدث خطأ أثناء تحديث الكمية';
       notifyListeners();
+      
+      ModernSnackbar.show(
+        context: context,
+        message: _error!,
+        type: SnackBarType.error,
+      );
+    }
+  }
+
+  Future<void> removeFromCart(int itemId, BuildContext context) async {
+    try {
+      await _repository.removeFromCart(itemId);
+      _cartItems.removeWhere((item) => item.id == itemId);
+      
+      ModernSnackbar.show(
+        context: context,
+        message: 'تمت إزالة المنتج من السلة',
+        type: SnackBarType.info,
+      );
+      
+      notifyListeners();
+    } catch (e) {
+      _error = 'حدث خطأ أثناء إزالة المنتج من السلة';
+      notifyListeners();
+      
+      ModernSnackbar.show(
+        context: context,
+        message: _error!,
+        type: SnackBarType.error,
+      );
     }
   }
 
   Future<void> clearCart(BuildContext context) async {
     try {
-      _items.clear();
+      _isLoading = true;
       notifyListeners();
+
+      await _repository.clearCart();
+      _cartItems.clear();
       
       ModernSnackbar.show(
         context: context,
-        message: 'تم تفريغ السلة بنجاح',
+        message: 'تم تفريغ السلة',
         type: SnackBarType.info,
       );
     } catch (e) {
       _error = 'حدث خطأ أثناء تفريغ السلة';
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
   bool isInCart(int productId) {
-    return _items.any((item) => item.product.id == productId);
+    return _cartItems.any((item) => item.product.id == productId);
   }
 
-  int getQuantity(int productId) {
-    final item = _items.firstWhere(
+  int getItemQuantity(int productId) {
+    final item = _cartItems.firstWhere(
       (item) => item.product.id == productId,
-      orElse: () => CartItem(product: Product(
+      orElse: () => CartItem(
         id: -1,
-        name: '',
-        description: '',
-        price: 0,
-        imageUrl: '',
-        category: 'Unknown',
-        isFavorite: false,
-      )),
+        product: Product(
+          id: -1,
+          name: '',
+          description: '',
+          price: 0,
+          imageUrl: '',
+          category: '',
+          isFavorite: false,
+        ),
+        quantity: 0,
+        totalPrice: 0,
+      ),
     );
     return item.quantity;
   }

@@ -76,14 +76,7 @@ class ProductDetailsViewModel extends ChangeNotifier {
 
       // Get CartViewModel and add product to cart
       final cartViewModel = context.read<CartViewModel>();
-      await cartViewModel.addToCart(_product!);
-
-      // Show success message
-      ModernSnackbar.show(
-        context: context,
-        message: 'تمت إضافة ${_product!.name} إلى السلة',
-        type: SnackBarType.success,
-      );
+      await cartViewModel.addToCart(_product!.id, 1, context);
     } catch (e) {
       _error = 'حدث خطأ أثناء إضافة المنتج إلى السلة';
       notifyListeners();

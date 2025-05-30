@@ -10,6 +10,7 @@ import 'view_models/favorites_view_model.dart';
 import 'repositories/product_repository.dart';
 import 'repositories/category_repository.dart';
 import 'repositories/favorites_repository.dart';
+import 'repositories/cart_repository.dart';
 
 void main() {
   runApp(MyApp());
@@ -37,9 +38,12 @@ class MyApp extends StatelessWidget {
         Provider<FavoritesRepository>(
           create: (context) => FavoritesRepository(context.read<ApiClient>()),
         ),
+        Provider<CartRepository>(
+          create: (context) => CartRepository(context.read<ApiClient>()),
+        ),
         ChangeNotifierProvider(
           create: (context) => CartViewModel(
-            context.read<ProductRepository>(),
+            context.read<CartRepository>(),
           ),
         ),
         ChangeNotifierProvider(

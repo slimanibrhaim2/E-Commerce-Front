@@ -230,12 +230,7 @@ class ProductCard extends StatelessWidget {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        context.read<CartViewModel>().addToCart(product);
-                        ModernSnackbar.show(
-                          context: context,
-                          message: 'تمت إضافة ${product.name} إلى السلة',
-                          type: SnackBarType.success,
-                        );
+                        context.read<CartViewModel>().addToCart(product.id, 1, context);
                       },
                       customBorder: const CircleBorder(),
                       child: Container(

@@ -23,7 +23,7 @@ class CartScreen extends StatelessWidget {
           actions: [
             Consumer<CartViewModel>(
               builder: (context, cart, child) {
-                if (cart.isEmpty) return const SizedBox.shrink();
+                if (cart.cartItems.isEmpty) return const SizedBox.shrink();
                 return IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () {
@@ -101,7 +101,7 @@ class CartScreen extends StatelessWidget {
               );
             }
 
-            if (cart.isEmpty) {
+            if (cart.cartItems.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -141,9 +141,9 @@ class CartScreen extends StatelessWidget {
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: cart.items.length,
+                    itemCount: cart.cartItems.length,
                     itemBuilder: (context, index) {
-                      final item = cart.items[index];
+                      final item = cart.cartItems[index];
                       return Card(
                         margin: const EdgeInsets.only(bottom: 16),
                         child: Padding(
@@ -202,12 +202,12 @@ class CartScreen extends StatelessWidget {
                                     onPressed: () {
                                       if (item.quantity > 1) {
                                         cart.updateQuantity(
-                                          item.product.id,
+                                          item.id,
                                           item.quantity - 1,
                                           context,
                                         );
                                       } else {
-                                        cart.removeFromCart(item.product.id, context);
+                                        cart.removeFromCart(item.id, context);
                                       }
                                     },
                                   ),
@@ -222,7 +222,7 @@ class CartScreen extends StatelessWidget {
                                     icon: const Icon(Icons.add),
                                     onPressed: () {
                                       cart.updateQuantity(
-                                        item.product.id,
+                                        item.id,
                                         item.quantity + 1,
                                         context,
                                       );
@@ -265,7 +265,7 @@ class CartScreen extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              '${cart.total} ل.س',
+                              '${cart.totalPrice} ل.س',
                               style: const TextStyle(
                                 fontFamily: 'Cairo',
                                 fontSize: 18,
@@ -284,7 +284,6 @@ class CartScreen extends StatelessWidget {
                             },
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              // backgroundColor: const Color(0xFF2ECC71),
                               backgroundColor: Colors.grey,
                             ),
                             child: const Text(

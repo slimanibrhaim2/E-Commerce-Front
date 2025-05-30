@@ -14,4 +14,11 @@ class ApiEndpoints {
   // Favorites endpoints
   static const String favorites = '/favorites';
   static const String toggleFavorite = '/favorites/toggle/'; // Append product ID
+
+  // Cart endpoints
+  static const String cart = '/cart';
+  static const String cartItem = '/cart/item/'; // Append item ID
+  static const String updateCartItem = '/cart/update/'; // Append item ID
+  static const String removeCartItem = '/cart/remove/'; // Append item ID
+  static const String clearCart = '/cart/clear';
 } 
