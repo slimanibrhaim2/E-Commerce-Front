@@ -42,7 +42,7 @@ class _ModernLoaderState extends State<ModernLoader>
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   width: 10,
                   height: 10,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.deepPurple,
                     shape: BoxShape.circle,
                   ),

@@ -7,6 +7,7 @@ import '../view_models/products_view_model.dart';
 import 'cart/cart_screen.dart';
 import 'home/home_screen.dart';
 import 'categories/categories_screen.dart';
+import 'profile/profile_screen.dart';
 
 
 class MainNavigationScreen extends StatefulWidget {
@@ -30,7 +31,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   final List<Widget> _pages = [
-    const AccountScreen(),
+    const ProfileScreen(),
     const CartScreen(),
     const CategoriesScreen(),
     const HomeScreen(),

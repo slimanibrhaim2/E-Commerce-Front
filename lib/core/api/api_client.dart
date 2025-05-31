@@ -32,6 +32,19 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> put(String endpoint, Map<String, dynamic> data) async {
+    try {
+      final response = await _client.put(
+        Uri.parse('$baseUrl$endpoint'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(data),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      throw Exception('Failed to make PUT request: $e');
+    }
+  }
+
   dynamic _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return json.decode(response.body);

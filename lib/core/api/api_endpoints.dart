@@ -21,4 +21,7 @@ class ApiEndpoints {
   static const String updateCartItem = '/cart/update/'; // Append item ID
   static const String removeCartItem = '/cart/remove/'; // Append item ID
   static const String clearCart = '/cart/clear';
+
+  // User endpoints
+  static const String userProfile = '/user/profile';
 } 

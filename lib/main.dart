@@ -11,6 +11,9 @@ import 'repositories/product_repository.dart';
 import 'repositories/category_repository.dart';
 import 'repositories/favorites_repository.dart';
 import 'repositories/cart_repository.dart';
+import 'repositories/user_repository.dart';
+import 'view_models/user_view_model.dart';
+import 'repositories/fake_user_repository.dart';
 
 void main() {
   runApp(MyApp());
@@ -59,6 +62,14 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => FavoritesViewModel(
             context.read<FavoritesRepository>(),
+          ),
+        ),
+        Provider<UserRepository>(
+          create: (context) => UserRepository(context.read<ApiClient>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => UserViewModel(
+            FakeUserRepository(),
           ),
         ),
       ],

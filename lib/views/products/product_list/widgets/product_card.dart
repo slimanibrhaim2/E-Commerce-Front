@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/product.dart';
 import '../../../../view_models/cart_view_model.dart';
-import '../../../../view_models/favorites_view_model.dart';
 import '../../../../view_models/product_details_view_model.dart';
 import '../../../../view_models/products_view_model.dart';
 import '../../../../widgets/modern_loader.dart';
 import '../../product_detail/product_detail_screen.dart';
-import '../../../../widgets/modern_snackbar.dart';
 
 
 class ProductCard extends StatelessWidget {
