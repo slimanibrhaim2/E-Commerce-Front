@@ -31,7 +31,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_didLoad) {
-      context.read<UserViewModel>().loadUserProfile();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<UserViewModel>().loadUserProfile();
+      });
       _didLoad = true;
     }
   }
