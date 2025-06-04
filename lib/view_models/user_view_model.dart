@@ -44,4 +44,20 @@ class UserViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<String?> createUser(User user) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+      final result = await _repository.createUser(user);
+      return result['message'] as String?;
+    } catch (e) {
+      _error = 'حدث خطأ أثناء إنشاء الحساب';
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 } 

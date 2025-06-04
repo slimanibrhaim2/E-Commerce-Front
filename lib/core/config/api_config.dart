@@ -1,6 +1,6 @@
 class ApiConfig {
   // Base URLs for different environments
-  static const String baseUrl = 'https://fakestoreapi.com';
+  static const String baseUrl = 'http://192.168.43.92:44362';
   
   
   // API Timeout settings

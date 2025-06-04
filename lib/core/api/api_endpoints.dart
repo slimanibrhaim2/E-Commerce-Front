@@ -24,4 +24,7 @@ class ApiEndpoints {
 
   // User endpoints
   static const String userProfile = '/user/profile';
+  static const String users = '/api/users';
+  static const String userDetail = '/api/users/'; // Append user ID
+  static const String userSearch = '/api/users/search';
 } 

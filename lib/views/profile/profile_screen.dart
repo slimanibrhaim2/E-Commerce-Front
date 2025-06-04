@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../view_models/user_view_model.dart';
 import '../../models/user.dart';
+import '../auth/register_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -44,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context, viewModel, child) {
         final user = viewModel.user;
         String displayName = 'اسم المستخدم';
-        if (user != null && (user.firstName.isNotEmpty || user.lastName.isNotEmpty)) {
+        if (user != null && (user.firstName!.isNotEmpty || user.lastName!.isNotEmpty)) {
           displayName = '${user.firstName} ${user.middleName ?? ''} ${user.lastName}'.trim();
         }
         return Directionality(
@@ -145,14 +146,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: ListView(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
+                      _ProfileOption(icon: Icons.receipt_long, label: 'طلباتي', onTap: () {}),
+                      _ProfileOption(icon: Icons.location_on, label: 'عناويني', onTap: () {}),
                       _ProfileOption(icon: Icons.favorite, label: 'المفضلة', onTap: () {}),
                       _ProfileOption(icon: Icons.card_giftcard, label: 'الجوائز و قسائم التخفيض', onTap: () {}),
                       const Divider(height: 32),
-                      _ProfileOption(icon: Icons.gavel, label: 'الشروط والأحكام', onTap: () {}),
                       _ProfileOption(icon: Icons.info, label: 'لمحة عن تطبيقنا', onTap: () {}),
                       _ProfileOption(icon: Icons.privacy_tip, label: 'سياسة الخصوصية', onTap: () {}),
                       _ProfileOption(icon: Icons.phone, label: 'اتصل بنا', onTap: () {}),
                       const SizedBox(height: 16),
+                      _ProfileOption(
+                        icon: Icons.login,
+                        label: 'تسجيل الدخول',
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Login pressed')),
+                          );
+                        },
+                      ),
+                      _ProfileOption(
+                        icon: Icons.app_registration,
+                        label: 'إنشاء حساب',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => RegisterScreen()),
+                          );
+                        },
+                      ),
                       _ProfileOption(
                         icon: Icons.logout,
                         label: 'تسجيل الخروج',

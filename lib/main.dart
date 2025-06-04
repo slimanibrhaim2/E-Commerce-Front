@@ -69,7 +69,7 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (context) => UserViewModel(
-            FakeUserRepository(),
+            context.read<UserRepository>(),
           ),
         ),
       ],

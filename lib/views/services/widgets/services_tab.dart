@@ -16,7 +16,7 @@ class ServicesTab extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Text(
-            'قريباً',
+            'الخدمات',
             style: TextStyle(
               fontSize: 24,
               fontFamily: 'Cairo',
