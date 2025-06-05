@@ -8,4 +8,4 @@ class ContactConfig {
     'facebook': 'https://facebook.com/ecommerce',
     'instagram': 'https://instagram.com/ecommerce',
   };
-} 
+}
