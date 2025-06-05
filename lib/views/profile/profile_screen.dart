@@ -5,9 +5,11 @@ import 'dart:io';
 import '../../view_models/user_view_model.dart';
 import '../../models/user.dart';
 import '../auth/register_screen.dart';
+import '../favorites/favorites_screen.dart';
+import '../contact/contact_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -148,21 +150,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       _ProfileOption(icon: Icons.receipt_long, label: 'طلباتي', onTap: () {}),
                       _ProfileOption(icon: Icons.location_on, label: 'عناويني', onTap: () {}),
-                      _ProfileOption(icon: Icons.favorite, label: 'المفضلة', onTap: () {}),
+                      _ProfileOption(
+                        icon: Icons.favorite,
+                        label: 'المفضلة',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                          );
+                        },
+                      ),
                       _ProfileOption(icon: Icons.card_giftcard, label: 'الجوائز و قسائم التخفيض', onTap: () {}),
                       const Divider(height: 32),
                       _ProfileOption(icon: Icons.info, label: 'لمحة عن تطبيقنا', onTap: () {}),
                       _ProfileOption(icon: Icons.privacy_tip, label: 'سياسة الخصوصية', onTap: () {}),
-                      _ProfileOption(icon: Icons.phone, label: 'اتصل بنا', onTap: () {}),
+                      _ProfileOption(
+                        icon: Icons.phone,
+                        label: 'اتصل بنا',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const ContactScreen()),
+                          );
+                        },
+                      ),
                       const SizedBox(height: 16),
                       _ProfileOption(
                         icon: Icons.login,
                         label: 'تسجيل الدخول',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Login pressed')),
-                          );
-                        },
+                        onTap: () {},
                       ),
                       _ProfileOption(
                         icon: Icons.app_registration,

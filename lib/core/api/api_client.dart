@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
+import 'api_exception.dart';
 
 class ApiClient {
   final String baseUrl;
@@ -12,10 +14,20 @@ class ApiClient {
 
   Future<dynamic> get(String endpoint) async {
     try {
-      final response = await _client.get(Uri.parse('$baseUrl$endpoint'));
+      final response = await _client.get(
+        Uri.parse('$baseUrl$endpoint'),
+      ).timeout(
+        Duration(milliseconds: ApiConfig.timeout),
+        onTimeout: () {
+          throw ApiException.timeout();
+        },
+      );
       return _handleResponse(response);
+    } on http.ClientException catch (e) {
+      throw ApiException.connectionError();
     } catch (e) {
-      throw Exception('Failed to make GET request: $e');
+      if (e is ApiException) rethrow;
+      throw ApiException.serverError('فشل في الاتصال بالخادم. يرجى المحاولة مرة أخرى لاحقاً.');
     }
   }
 
@@ -25,10 +37,18 @@ class ApiClient {
         Uri.parse('$baseUrl$endpoint'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(data),
+      ).timeout(
+        Duration(milliseconds: ApiConfig.timeout),
+        onTimeout: () {
+          throw ApiException.timeout();
+        },
       );
       return _handleResponse(response);
+    } on http.ClientException catch (e) {
+      throw ApiException.connectionError();
     } catch (e) {
-      throw Exception('Failed to make POST request: $e');
+      if (e is ApiException) rethrow;
+      throw ApiException.serverError('فشل في إرسال البيانات. يرجى المحاولة مرة أخرى لاحقاً.');
     }
   }
 
@@ -38,10 +58,18 @@ class ApiClient {
         Uri.parse('$baseUrl$endpoint'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(data),
+      ).timeout(
+        Duration(milliseconds: ApiConfig.timeout),
+        onTimeout: () {
+          throw ApiException.timeout();
+        },
       );
       return _handleResponse(response);
+    } on http.ClientException catch (e) {
+      throw ApiException.connectionError();
     } catch (e) {
-      throw Exception('Failed to make PUT request: $e');
+      if (e is ApiException) rethrow;
+      throw ApiException.serverError('فشل في تحديث البيانات. يرجى المحاولة مرة أخرى لاحقاً.');
     }
   }
 
@@ -50,10 +78,18 @@ class ApiClient {
       final response = await _client.delete(
         Uri.parse('$baseUrl$endpoint'),
         headers: {'Content-Type': 'application/json'},
+      ).timeout(
+        Duration(milliseconds: ApiConfig.timeout),
+        onTimeout: () {
+          throw ApiException.timeout();
+        },
       );
       return _handleResponse(response);
+    } on http.ClientException catch (e) {
+      throw ApiException.connectionError();
     } catch (e) {
-      throw Exception('Failed to make DELETE request: $e');
+      if (e is ApiException) rethrow;
+      throw ApiException.serverError('فشل في حذف البيانات. يرجى المحاولة مرة أخرى لاحقاً.');
     }
   }
 
@@ -65,8 +101,8 @@ class ApiClient {
       // Try to extract a message from the backend error
       final message = decoded is Map && decoded['message'] != null
           ? decoded['message']
-          : 'API request failed with status code: [${response.statusCode}]';
-      throw Exception(message);
+          : 'حدث خطأ في الخادم. الرمز: [${response.statusCode}]';
+      throw ApiException.serverError(message, response.statusCode.toString());
     }
   }
 } 

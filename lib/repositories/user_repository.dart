@@ -1,5 +1,6 @@
 import '../core/api/api_client.dart';
 import '../models/user.dart';
+import '../models/api_response.dart';
 import '../core/api/api_endpoints.dart';
 
 class UserRepository {
@@ -8,75 +9,93 @@ class UserRepository {
   UserRepository(this.apiClient);
 
   // Fetch current user profile
-  Future<User> fetchUserProfile() async {
+  Future<ApiResponse<User>> fetchUserProfile() async {
     final response = await apiClient.get(ApiEndpoints.userProfile);
-    return User.fromJson(response);
+    return ApiResponse(
+      data: User.fromJson(response),
+      message: response['message'] as String?,
+    );
   }
 
   // Update current user profile
-  Future<User> updateUserProfile(User user) async {
+  Future<ApiResponse<User>> updateUserProfile(User user) async {
     final response = await apiClient.put(ApiEndpoints.userProfile, user.toJson());
-    return User.fromJson(response);
+    return ApiResponse(
+      data: User.fromJson(response),
+      message: response['message'] as String?,
+    );
   }
 
   // Create a new user
-  Future<Map<String, dynamic>> createUser(User user) async {
+  Future<ApiResponse<User>> createUser(User user) async {
     final response = await apiClient.post(ApiEndpoints.users, user.toJson());
-    // If backend returns { user: {...}, message: '...' }
-    if (response is Map && response.containsKey('message')) {
-      return {
-        'user': User.fromJson(response['user'] ?? response),
-        'message': response['message'] as String,
-      };
-    }
-    // If backend returns just the user object
-    return {
-      'user': User.fromJson(response),
-      'message': null,
-    };
+    return ApiResponse(
+      data: User.fromJson(response['user'] ?? response),
+      message: response['message'] as String?,
+    );
   }
 
   // List users with pagination
-  Future<List<User>> listUsers({int pageNumber = 1, int pageSize = 10}) async {
+  Future<ApiResponse<List<User>>> listUsers({int pageNumber = 1, int pageSize = 10}) async {
     final response = await apiClient.get(
       '${ApiEndpoints.users}?pageNumber=$pageNumber&pageSize=$pageSize',
     );
+    List<User> users;
     if (response is List) {
-      return response.map((json) => User.fromJson(json)).toList();
+      users = response.map((json) => User.fromJson(json)).toList();
     } else if (response is Map && response['items'] is List) {
-      // In case API returns { items: [...], ... }
-      return (response['items'] as List).map((json) => User.fromJson(json)).toList();
+      users = (response['items'] as List).map((json) => User.fromJson(json)).toList();
+    } else {
+      throw Exception('Invalid response format');
     }
-    throw Exception('Invalid response format');
+    return ApiResponse(
+      data: users,
+      message: response['message'] as String?,
+    );
   }
 
   // Get user by ID
-  Future<User> getUserById(String id) async {
+  Future<ApiResponse<User>> getUserById(String id) async {
     final response = await apiClient.get('${ApiEndpoints.userDetail}$id');
-    return User.fromJson(response);
+    return ApiResponse(
+      data: User.fromJson(response),
+      message: response['message'] as String?,
+    );
   }
 
   // Update user by ID
-  Future<User> updateUser(String id, User user) async {
+  Future<ApiResponse<User>> updateUser(String id, User user) async {
     final response = await apiClient.put('${ApiEndpoints.userDetail}$id', user.toJson());
-    return User.fromJson(response);
+    return ApiResponse(
+      data: User.fromJson(response),
+      message: response['message'] as String?,
+    );
   }
 
   // Delete user by ID
-  Future<void> deleteUser(String id) async {
-    await apiClient.delete('${ApiEndpoints.userDetail}$id');
+  Future<ApiResponse<void>> deleteUser(String id) async {
+    final response = await apiClient.delete('${ApiEndpoints.userDetail}$id');
+    return ApiResponse(
+      message: response['message'] as String?,
+    );
   }
 
   // Search users by name with pagination
-  Future<List<User>> searchUsers(String name, {int pageNumber = 1, int pageSize = 10}) async {
+  Future<ApiResponse<List<User>>> searchUsers(String name, {int pageNumber = 1, int pageSize = 10}) async {
     final response = await apiClient.get(
       '${ApiEndpoints.userSearch}?name=$name&pageNumber=$pageNumber&pageSize=$pageSize',
     );
+    List<User> users;
     if (response is List) {
-      return response.map((json) => User.fromJson(json)).toList();
+      users = response.map((json) => User.fromJson(json)).toList();
     } else if (response is Map && response['items'] is List) {
-      return (response['items'] as List).map((json) => User.fromJson(json)).toList();
+      users = (response['items'] as List).map((json) => User.fromJson(json)).toList();
+    } else {
+      throw Exception('Invalid response format');
     }
-    throw Exception('Invalid response format');
+    return ApiResponse(
+      data: users,
+      message: response['message'] as String?,
+    );
   }
 } 

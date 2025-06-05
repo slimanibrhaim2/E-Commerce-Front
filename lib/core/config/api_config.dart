@@ -4,7 +4,7 @@ class ApiConfig {
   
   
   // API Timeout settings
-  static const int timeout = 30000; // 30 seconds
+  static const int timeout = 3000; // 30 seconds
   
   // Default headers
   static const Map<String, String> defaultHeaders = {

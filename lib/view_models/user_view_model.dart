@@ -1,12 +1,13 @@
+import 'package:e_commerce/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
 import '../models/user.dart';
+import '../models/api_response.dart';
 // Accept both real and fake repositories
 // ignore: prefer_typing_uninitialized_variables
 var _repository;
 
 class UserViewModel extends ChangeNotifier {
-  // Accept both real and fake repositories
-  final dynamic _repository;
+  final UserRepository _repository;
   User? _user;
   bool _isLoading = false;
   String? _error;
@@ -17,28 +18,34 @@ class UserViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> loadUserProfile() async {
+  Future<String?> loadUserProfile() async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
-      _user = await _repository.fetchUserProfile();
+      final response = await _repository.fetchUserProfile();
+      _user = response.data;
+      return response.message;
     } catch (e) {
-      _error = 'حدث خطأ أثناء تحميل بيانات المستخدم';
+      _error = e.toString().replaceAll('Exception: ', '');
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> updateUserProfile(User user) async {
+  Future<String?> updateUserProfile(User user) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
-      _user = await _repository.updateUserProfile(user);
+      final response = await _repository.updateUserProfile(user);
+      _user = response.data;
+      return response.message;
     } catch (e) {
-      _error = 'حدث خطأ أثناء تحديث بيانات المستخدم';
+      _error = e.toString().replaceAll('Exception: ', '');
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -50,10 +57,10 @@ class UserViewModel extends ChangeNotifier {
       _isLoading = true;
       _error = null;
       notifyListeners();
-      final result = await _repository.createUser(user);
-      return result['message'] as String?;
+      final response = await _repository.createUser(user);
+      return response.message;
     } catch (e) {
-      _error = 'حدث خطأ أثناء إنشاء الحساب';
+      _error = e.toString().replaceAll('Exception: ', '');
       rethrow;
     } finally {
       _isLoading = false;

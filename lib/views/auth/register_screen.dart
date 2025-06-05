@@ -6,16 +6,17 @@ import 'dart:convert';
 import '../../view_models/user_view_model.dart';
 import '../../models/user.dart';
 import '../../widgets/modern_snackbar.dart';
+import '../../core/api/api_exception.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>(); // Key to manage the form state and validate input fields
   final _firstNameController = TextEditingController();
   final _middleNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -24,11 +25,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _descriptionController = TextEditingController();
 
   File? _pickedImage;
-  String? _base64Image;
+  String? _base64Image;   // To store the image as a base64 string
   bool _isLoading = false;
 
   @override
-  void dispose() {
+  void dispose() {  // Clean up controllers when the screen is destroyed to free memory
     _firstNameController.dispose();
     _middleNameController.dispose();
     _lastNameController.dispose();
@@ -75,10 +76,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      String errorMsg = e.toString();
-      // Remove all 'Exception:' prefixes
-      while (errorMsg.contains('Exception:')) {
-        errorMsg = errorMsg.substring(errorMsg.indexOf('Exception:') + 'Exception:'.length).trim();
+      String errorMsg;
+      if (e is ApiException) {
+        errorMsg = e.message;
+      } else {
+        errorMsg = e.toString();
+        // Remove all 'Exception:' prefixes
+        while (errorMsg.contains('Exception:')) {
+          errorMsg = errorMsg.substring(errorMsg.indexOf('Exception:') + 'Exception:'.length).trim();
+        }
       }
       ModernSnackbar.show(
         context: context,
@@ -105,7 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Form(
-                  key: _formKey,
+                  key: _formKey, // Connect this form to the _formKey to validate ti later.
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -220,4 +226,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-} 
+}
