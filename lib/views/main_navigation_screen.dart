@@ -8,6 +8,7 @@ import 'cart/cart_screen.dart';
 import 'home/home_screen.dart';
 import 'categories/categories_screen.dart';
 import 'profile/profile_screen.dart';
+import 'products/add_product/add_product_screen.dart';
 
 
 class MainNavigationScreen extends StatefulWidget {
@@ -30,11 +31,88 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     });
   }
 
+  void _showAddDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text(
+              'إضافة جديد',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                fontWeight: FontWeight.bold,
+                color: Colors.pink, // Modern purple
+                fontSize: 22,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Divider(thickness: 1, color: Color(0xFFEEEFF1)),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.pink.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(Icons.shopping_bag, color: Colors.pink),
+                  ),
+                  title: const Text(
+                    'إضافة منتج',
+                    style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 16),
+                    textAlign: TextAlign.right,
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddProductScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.pink.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(Icons.miscellaneous_services, color: Colors.pink),
+                  ),
+                  title: const Text(
+                    'إضافة خدمة',
+                    style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 16),
+                    textAlign: TextAlign.right,
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // TODO: Navigate to add service screen
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   final List<Widget> _pages = [
-    const ProfileScreen(),
-    const CartScreen(),
-    const CategoriesScreen(),
-    const HomeScreen(),
+    const ProfileScreen(),    // 0
+    const CartScreen(),       // 1
+    SizedBox.shrink(),        // 2 (placeholder for add ad)
+    const CategoriesScreen(), // 3
+    const HomeScreen(),       // 4
   ];
 
   @override
@@ -44,9 +122,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) {
-          setState(() {
-            currentIndex = index;
-          });
+          if (index == 2) {
+            // If 'إضافة إعلان' tab is tapped
+            _showAddDialog(context);
+          } else {
+            setState(() {
+              currentIndex = index;
+            });
+          }
         },
         selectedItemColor: Colors.pink,
         unselectedItemColor: Colors.grey,
@@ -59,6 +142,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_cart),
             label: 'السلة',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add),
+            label: 'إضافة إعلان',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.category),
