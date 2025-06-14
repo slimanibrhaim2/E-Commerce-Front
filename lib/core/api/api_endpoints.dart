@@ -27,4 +27,7 @@ class ApiEndpoints {
   static const String users = '/api/users';
   static const String userDetail = '/api/users/'; // Append user ID
   static const String userSearch = '/api/users/search';
+
+  // Aggregate product endpoint
+  static const String aggregateProduct = '/products/aggregate';
 } 

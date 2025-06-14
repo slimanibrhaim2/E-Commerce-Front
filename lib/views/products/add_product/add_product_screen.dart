@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({Key? key}) : super(key: key);
@@ -14,6 +16,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _priceController = TextEditingController();
   final _quantityController = TextEditingController();
   String? _selectedCategory;
+  List<File> _selectedImages = [];
+  List<Map<String, String>> _features = [];
+  final _featureNameController = TextEditingController();
+  final _featureValueController = TextEditingController();
 
   @override
   void dispose() {
@@ -21,12 +27,106 @@ class _AddProductScreenState extends State<AddProductScreen> {
     _descriptionController.dispose();
     _priceController.dispose();
     _quantityController.dispose();
+    _featureNameController.dispose();
+    _featureValueController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImages() async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile> images = await picker.pickMultiImage();
+    if (images.isNotEmpty) {
+      setState(() {
+        _selectedImages.addAll(images.map((xFile) => File(xFile.path)));
+      });
+    }
+  }
+
+  void _addFeatureInline() {
+    if (_featureNameController.text.isNotEmpty && _featureValueController.text.isNotEmpty) {
+      setState(() {
+        _features.add({
+          'name': _featureNameController.text,
+          'value': _featureValueController.text,
+        });
+        _featureNameController.clear();
+        _featureValueController.clear();
+      });
+    }
+  }
+
+  void _editFeature(int index) {
+    _featureNameController.text = _features[index]['name']!;
+    _featureValueController.text = _features[index]['value']!;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('تعديل الميزة', style: TextStyle(fontFamily: 'Cairo')),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _featureNameController,
+                decoration: const InputDecoration(labelText: 'اسم الميزة'),
+              ),
+              TextField(
+                controller: _featureValueController,
+                decoration: const InputDecoration(labelText: 'قيمة الميزة'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _features[index] = {
+                    'name': _featureNameController.text,
+                    'value': _featureValueController.text,
+                  };
+                });
+                _featureNameController.clear();
+                _featureValueController.clear();
+                Navigator.pop(context);
+              },
+              child: const Text('حفظ'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteFeature(int index) {
+    setState(() {
+      _features.removeAt(index);
+    });
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
+
+  void _viewImage(File image) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Image.file(image, fit: BoxFit.contain),
+        );
+      },
+    );
   }
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement product creation
+      // TODO: Implement product creation with images and features
       // For now, just show a success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم إضافة المنتج بنجاح')),
@@ -95,7 +195,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     labelText: 'السعر',
                     labelStyle: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
                     border: OutlineInputBorder(),
-                    prefixText: '₪ ',
+                    suffixText: 'ل.س ',
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
@@ -154,6 +254,106 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _pickImages,
+                  child: const Text('اختر صور'),
+                ),
+                if (_selectedImages.isNotEmpty)
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _selectedImages.length,
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () => _viewImage(_selectedImages[index]),
+                          child: Stack(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Image.file(_selectedImages[index], height: 100, width: 100, fit: BoxFit.cover),
+                              ),
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Container(
+                                  color: Colors.black.withOpacity(0.5),
+                                  child: IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.white),
+                                    onPressed: () => _removeImage(index),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _featureNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'اسم الميزة',
+                          labelStyle: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _featureValueController,
+                        decoration: const InputDecoration(
+                          labelText: 'قيمة الميزة',
+                          labelStyle: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: _addFeatureInline,
+                    ),
+                  ],
+                ),
+                if (_features.isNotEmpty)
+                  Column(
+                    children: _features.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final feature = entry.value;
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${feature['name']}: ${feature['value']}',
+                                style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _editFeature(index),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => _deleteFeature(index),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _submitForm,
@@ -166,6 +366,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontFamily: 'Cairo',
+                      color: Colors.white
                     ),
                   ),
                 ),
