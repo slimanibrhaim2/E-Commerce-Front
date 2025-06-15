@@ -7,6 +7,8 @@ import '../../models/user.dart';
 import '../auth/register_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../contact/contact_screen.dart';
+import 'package:e_commerce/views/address/address_selection_screen.dart';
+import '../address/addresses_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,6 +20,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   File? _pickedImage;
   bool _didLoad = false;
+  List<Map<String, dynamic>> _addresses = [];
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -27,6 +30,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _pickedImage = File(pickedFile.path);
       });
       // Here you can call your ViewModel to update the profile photo if needed
+    }
+  }
+
+  void _addNewAddress() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddressSelectionScreen(),
+      ),
+    );
+
+    if (result != null) {
+      // TODO: Save the address to your backend
+      setState(() {
+        _addresses.add({
+          'title': 'عنوان جديد',
+          'address': result['address'],
+          'latitude': result['latitude'],
+          'longitude': result['longitude'],
+        });
+      });
     }
   }
 
@@ -149,7 +173,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
                       _ProfileOption(icon: Icons.receipt_long, label: 'طلباتي', onTap: () {}),
-                      _ProfileOption(icon: Icons.location_on, label: 'عناويني', onTap: () {}),
+                      _ProfileOption(
+                        icon: Icons.location_on,
+                        label: 'عناويني',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const AddressesScreen()),
+                          );
+                        },
+                      ),
                       _ProfileOption(
                         icon: Icons.favorite,
                         label: 'المفضلة',
