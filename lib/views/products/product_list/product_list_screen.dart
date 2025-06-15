@@ -1,7 +1,6 @@
 import 'package:e_commerce/views/products/product_list/widgets/product_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../view_models/favorites_view_model.dart';
 import '../../../view_models/products_view_model.dart';
 import '../../cart/cart_screen.dart';
 import '../../favorites/favorites_screen.dart';

@@ -97,12 +97,18 @@ class ApiClient {
     final decoded = json.decode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return decoded;
+    } else if (decoded is Map && decoded['message'] != null) {
+      // Return backend business error as a response object
+      return {
+        'success': false,
+        'message': decoded['message'],
+        'data': decoded['data'],
+        'resultStatus': decoded['resultStatus'],
+        'errorType': decoded['errorType'],
+      };
     } else {
-      // Try to extract a message from the backend error
-      final message = decoded is Map && decoded['message'] != null
-          ? decoded['message']
-          : 'حدث خطأ في الخادم. الرمز: [${response.statusCode}]';
-      throw ApiException.serverError(message, response.statusCode.toString());
+      // Only throw for real server/network errors
+      throw ApiException.serverError('حدث خطأ في الخادم. الرمز: [${response.statusCode}]', response.statusCode.toString());
     }
   }
 } 

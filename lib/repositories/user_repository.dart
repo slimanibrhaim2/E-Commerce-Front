@@ -145,4 +145,12 @@ class UserRepository {
       resultStatus: response['resultStatus'] as int?,
     );
   }
+
+  Future<String> refreshToken(String oldToken) async {
+    final response = await apiClient.post(
+      '/auth/refresh',
+      {'token': oldToken},
+    );
+    return response['token'];
+  }
 } 

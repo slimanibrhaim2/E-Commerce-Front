@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ModernLoader extends StatefulWidget {
-  const ModernLoader({Key? key}) : super(key: key);
+  const ModernLoader({super.key});
 
   @override
   State<ModernLoader> createState() => _ModernLoaderState();

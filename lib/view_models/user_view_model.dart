@@ -95,7 +95,7 @@ class UserViewModel extends ChangeNotifier {
       _step = RegistrationStep.verifyingOtp;
       notifyListeners();
       final response = await _repository.verifyOtp(_phoneNumber!, otp);
-      if (response.data != null) {
+      if (response.success == true && response.data != null) {
         _jwt = response.data;
         _step = RegistrationStep.done;
       } else {
@@ -106,7 +106,7 @@ class UserViewModel extends ChangeNotifier {
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
       _step = RegistrationStep.awaitingOtp;
-      rethrow;
+      return _error;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -131,7 +131,7 @@ class UserViewModel extends ChangeNotifier {
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
       _loginStep = LoginStep.none;
-      rethrow;
+      return _error;
     } finally {
       _isLoading = false;
       notifyListeners();

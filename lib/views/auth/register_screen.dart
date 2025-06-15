@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -8,6 +7,9 @@ import '../../view_models/user_view_model.dart';
 import '../../models/user.dart';
 import '../../widgets/modern_snackbar.dart';
 import '../../core/api/api_exception.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../main_navigation_screen.dart';
+import 'package:e_commerce/views/auth/widgets/otp_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -28,6 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   File? _pickedImage;
   String? _base64Image;   // To store the image as a base64 string
   bool _isLoading = false;
+  final _storage = const FlutterSecureStorage();
 
   @override
   void dispose() {  // Clean up controllers when the screen is destroyed to free memory
@@ -68,15 +71,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
     try {
       final userViewModel = context.read<UserViewModel>();
-      await userViewModel.registerUser(user);
-      if (mounted && userViewModel.step == RegistrationStep.awaitingOtp) {
+      final message = await userViewModel.registerUser(user);
+      // Always show backend message (success or error)
+      ModernSnackbar.show(
+        context: context,
+        message: message ?? '',
+        type: userViewModel.step == RegistrationStep.awaitingOtp
+            ? SnackBarType.success
+            : SnackBarType.error,
+      );
+      // Only show OTP dialog if registration is successful
+      if (userViewModel.step == RegistrationStep.awaitingOtp) {
         _showOtpDialog(userViewModel);
-      } else if (userViewModel.error != null) {
-        ModernSnackbar.show(
-          context: context,
-          message: userViewModel.error!,
-          type: SnackBarType.error,
-        );
       }
     } catch (e) {
       String errorMsg = e is ApiException ? e.message : e.toString();
@@ -91,154 +97,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _showOtpDialog(UserViewModel userViewModel) {
-    final List<TextEditingController> controllers = List.generate(4, (_) => TextEditingController());
-    final List<FocusNode> focusNodes = List.generate(4, (_) => FocusNode());
-    
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              bool isVerifying = false;
-              String? otpError;
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                title: const Text(
-                  'أدخل رمز التحقق',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                  textAlign: TextAlign.right,
-                ),
-                content: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'تم إرسال رمز التحقق إلى رقم الهاتف',
-                        textAlign: TextAlign.right,
-                        style: TextStyle(fontSize: 15),
-                      ),
-                      const SizedBox(height: 16),
-                      Directionality(
-                        textDirection: TextDirection.ltr,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: List.generate(4, (index) {
-                            return SizedBox(
-                              width: 50,
-                              child: Focus(
-                                onKey: (node, event) {
-                                  if (event is RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace) {
-                                    if (controllers[index].text.isEmpty && index > 0) {
-                                      focusNodes[index - 1].requestFocus();
-                                      controllers[index - 1].text = '';
-                                    }
-                                  }
-                                  return KeyEventResult.ignored;
-                                },
-                                child: TextField(
-                                  controller: controllers[index],
-                                  focusNode: focusNodes[index],
-                                  textAlign: TextAlign.center,
-                                  keyboardType: TextInputType.number,
-                                  maxLength: 1,
-                                  textDirection: TextDirection.ltr,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(1),
-                                  ],
-                                  decoration: InputDecoration(
-                                    counterText: '',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  onChanged: (value) {
-                                    if (value.length == 1 && index < 3) {
-                                      focusNodes[index + 1].requestFocus();
-                                    }
-                                    if (otpError != null) setState(() => otpError = null);
-                                  },
-                                  onEditingComplete: () {
-                                    if (index < 3) {
-                                      focusNodes[index + 1].requestFocus();
-                                    }
-                                  },
-                                ),
-                              ),
-                            );
-                          }),
-                        ),
-                      ),
-                      if (otpError != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            otpError!,
-                            style: const TextStyle(color: Colors.red, fontSize: 13),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                actions: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: isVerifying ? null : () => Navigator.of(context).pop(),
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: const Text('إلغاء'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: isVerifying
-                              ? null
-                              : () async {
-                                  setState(() => isVerifying = true);
-                                  final otp = controllers.map((c) => c.text).join();
-                                  await userViewModel.verifyOtp(otp);
-                                  setState(() => isVerifying = false);
-                                  if (userViewModel.step == RegistrationStep.done) {
-                                    if (mounted) {
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context).pushReplacementNamed('/login');
-                                    }
-                                  } else if (userViewModel.error != null) {
-                                    setState(() => otpError = userViewModel.error);
-                                  }
-                                },
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                          child: isVerifying
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Text('تحقق', style: TextStyle(fontSize: 16)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
+        String? localError = userViewModel.error;
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return OtpDialog(
+              isLoading: userViewModel.isLoading,
+              errorMessage: localError,
+              onSubmit: (otp) async {
+                final message = await userViewModel.verifyOtp(otp);
+                if (userViewModel.error == null && userViewModel.jwt != null) {
+                  Navigator.of(context).pop();
+                  ModernSnackbar.show(
+                    context: context,
+                    message: message ?? '',
+                    type: SnackBarType.success,
+                  );
+                  print('JWT Token: \n' + userViewModel.jwt!);
+                  await _storage.write(key: 'auth_token', value: userViewModel.jwt!);
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+                    (route) => false,
+                  );
+                } else {
+                  setStateDialog(() {
+                    localError = userViewModel.error ?? message ?? '';
+                  });
+                }
+              },
+              onCancel: () => Navigator.of(context).pop(),
+            );
+          },
         );
       },
     );

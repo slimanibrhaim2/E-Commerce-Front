@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/favorites_view_model.dart';
 import '../../widgets/modern_loader.dart';
-import '';
 import '../products/product_list/widgets/product_card.dart';
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});

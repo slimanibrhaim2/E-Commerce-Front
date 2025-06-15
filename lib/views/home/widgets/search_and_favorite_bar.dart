@@ -10,11 +10,11 @@ class SearchAndFavoriteBar extends StatelessWidget {
   final VoidCallback? onFavoriteTap;
 
   const SearchAndFavoriteBar({
-    Key? key,
+    super.key,
     this.favoriteCount = 0,
     this.onSearch,
     this.onFavoriteTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
