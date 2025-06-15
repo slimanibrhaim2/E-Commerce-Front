@@ -13,6 +13,9 @@ import 'repositories/favorites_repository.dart';
 import 'repositories/cart_repository.dart';
 import 'repositories/user_repository.dart';
 import 'view_models/user_view_model.dart';
+import 'views/auth/login_screen.dart';
+import 'views/home/home_screen.dart';
+import 'views/profile/profile_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -80,6 +83,13 @@ class MyApp extends StatelessWidget {
         ),
         home: MainNavigationScreen(),
         debugShowCheckedModeBanner: false,
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/home': (context) => const HomeScreen(),
+          '/profile': (context) => const ProfileScreen(),
+          // Add your home/profile screen route here, e.g.:
+          // '/home': (context) => const HomeScreen(),
+        },
       ),
     );
   }

@@ -30,4 +30,11 @@ class ApiEndpoints {
 
   // Aggregate product endpoint
   static const String aggregateProduct = '/products/aggregate';
+
+  // New endpoints for register and verify-otp
+  static const String register = '/api/Auth/register';
+  static const String verifyOtp = '/api/Auth/verify-otp';
+
+  // Login endpoint
+  static const String login = '/api/Auth/login';
 } 

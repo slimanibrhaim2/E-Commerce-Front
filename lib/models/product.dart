@@ -75,12 +75,12 @@ class Product {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
+      'id': id,
     'name': name,
-    'description': description,
-    'price': price,
+      'description': description,
+      'price': price,
     'imageUrl': imageUrl,
-    'category': category,
+      'category': category,
     'isFavorite': isFavorite,
     'userId': userId,
     'sku': sku,
@@ -89,7 +89,7 @@ class Product {
     'categoryId': categoryId,
     'media': media.map((m) => m.toJson()).toList(),
     'features': features.map((f) => f.toJson()).toList(),
-  };
+    };
 
   Product copyWith({
     int? id,

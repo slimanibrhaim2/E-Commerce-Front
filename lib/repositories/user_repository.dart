@@ -98,4 +98,51 @@ class UserRepository {
       message: response['message'] as String?,
     );
   }
+
+  // Register user with OTP (step 1)
+  Future<ApiResponse<void>> registerUser(User user) async {
+    final response = await apiClient.post(
+      ApiEndpoints.register,
+      {"userDTO": user.toJson()},
+    );
+    return ApiResponse.fromJson(response);
+  }
+
+  // Verify OTP (step 2)
+  Future<ApiResponse<String>> verifyOtp(String phoneNumber, String otp) async {
+    final response = await apiClient.post(
+      ApiEndpoints.verifyOtp,
+      {"phoneNumber": phoneNumber, "otp": otp},
+    );
+    // Assume JWT is returned as 'token' in response or in data
+    return ApiResponse<String>(
+      data: response['token'] as String? ?? response['data'] as String?,
+      message: response['message'] as String?,
+      success: response['success'] ?? true,
+      resultStatus: response['resultStatus'] as int?,
+    );
+  }
+
+  // Login (step 1)
+  Future<ApiResponse<void>> login(String phoneNumber) async {
+    final response = await apiClient.post(
+      ApiEndpoints.login,
+      {"phoneNumber": phoneNumber},
+    );
+    return ApiResponse.fromJson(response);
+  }
+
+  // Verify OTP for login (step 2)
+  Future<ApiResponse<String>> verifyLoginOtp(String phoneNumber, String otp) async {
+    final response = await apiClient.post(
+      ApiEndpoints.verifyOtp,
+      {"phoneNumber": phoneNumber, "otp": otp},
+    );
+    return ApiResponse<String>(
+      data: response['token'] as String? ?? response['data'] as String?,
+      message: response['message'] as String?,
+      success: response['success'] ?? true,
+      resultStatus: response['resultStatus'] as int?,
+    );
+  }
 } 

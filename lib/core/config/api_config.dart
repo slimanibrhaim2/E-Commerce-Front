@@ -1,6 +1,6 @@
 class ApiConfig {
   // Base URLs for different environments
-  static const String baseUrl = 'http://192.168.43.92:44372';
+  static const String baseUrl = 'http://192.168.131.92:44362';
   
   
   // API Timeout settings
