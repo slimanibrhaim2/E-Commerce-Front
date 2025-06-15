@@ -1,0 +1,22 @@
+name: e_commerce
+
+description: A new Flutter project.
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.1
+  image_picker: ^1.0.7
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+  geocoding: ^2.1.1
+  url_launcher: ^6.2.4
+  font_awesome_flutter: ^10.7.0
+  pin_code_fields: ^8.0.1
+
+flutter:
+  uses-material-design: true 
