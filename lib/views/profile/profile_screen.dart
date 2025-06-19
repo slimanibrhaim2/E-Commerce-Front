@@ -6,6 +6,8 @@ import '../favorites/favorites_screen.dart';
 import '../contact/contact_screen.dart';
 import '../address/addresses_screen.dart';
 import 'user_info_screen.dart';
+import 'about_us_screen.dart';
+import 'privacy_policy_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../widgets/modern_snackbar.dart';
 
@@ -45,19 +47,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isLoggedIn = userViewModel.jwt != null;
     final _storage = const FlutterSecureStorage();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: const [
-            Text('الملف الشخصي'),
-          ],
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'الملف الشخصي',
+            style: TextStyle(
+              fontFamily: 'Cairo',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
         ),
-        centerTitle: false,
-      ),
-      body: Directionality(
-        textDirection: TextDirection.rtl,
-        child: ListView(
+        body: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           children: [
             const SizedBox(height: 16),
@@ -115,12 +118,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _ProfileOption(
               icon: Icons.info,
               label: 'لمحة عن تطبيقنا',
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AboutUsScreen()),
+                );
+              },
             ),
             _ProfileOption(
               icon: Icons.privacy_tip,
               label: 'سياسة الخصوصية',
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+                );
+              },
             ),
             _ProfileOption(
               icon: Icons.phone,
