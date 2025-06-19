@@ -23,10 +23,14 @@ class ApiEndpoints {
   static const String clearCart = '/cart/clear';
 
   // User endpoints
-  static const String userProfile = '/user/profile';
-  static const String users = '/api/users';
-  static const String userDetail = '/api/users/'; // Append user ID
-  static const String userSearch = '/api/users/search';
+  static const String userProfile = '/api/users/me';
+  // static const String users = '/api/users';
+  // static const String userDetail = '/api/users/'; // Append user ID
+  // static const String userSearch = '/api/users/search';
+
+  // Address endpoints
+  static const String addresses = '/api/addresses';
+  static const String addressDetail = '/api/addresses/'; // Append address ID
 
   // Aggregate product endpoint
   static const String aggregateProduct = '/products/aggregate';

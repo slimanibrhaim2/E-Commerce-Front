@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/cart_view_model.dart';
 import '../../widgets/modern_loader.dart';
+import '../../widgets/modern_snackbar.dart';
 import '../main_navigation_screen.dart';
 
 class CartScreen extends StatelessWidget {
@@ -29,37 +30,47 @@ class CartScreen extends StatelessWidget {
                   onPressed: () {
                     showDialog(
                       context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text(
-                          'تفريغ السلة',
-                          style: TextStyle(fontFamily: 'Cairo'),
-                        ),
-                        content: const Text(
-                          'هل أنت متأكد من رغبتك في تفريغ السلة؟',
-                          style: TextStyle(fontFamily: 'Cairo'),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text(
-                              'إلغاء',
-                              style: TextStyle(fontFamily: 'Cairo'),
-                            ),
+                      builder: (context) => Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: AlertDialog(
+                          title: const Text(
+                            'تفريغ السلة',
+                            style: TextStyle(fontFamily: 'Cairo'),
                           ),
-                          TextButton(
-                            onPressed: () {
-                              cart.clearCart(context);
-                              Navigator.pop(context);
-                            },
-                            child: const Text(
-                              'تفريغ',
-                              style: TextStyle(
-                                fontFamily: 'Cairo',
-                                color: Colors.red,
+                          content: const Text(
+                            'هل أنت متأكد من رغبتك في تفريغ السلة؟',
+                            style: TextStyle(fontFamily: 'Cairo'),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text(
+                                'إلغاء',
+                                style: TextStyle(fontFamily: 'Cairo'),
                               ),
                             ),
-                          ),
-                        ],
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.pop(context);
+                                final message = await cart.clearCart(context);
+                                if (message != null && context.mounted) {
+                                  ModernSnackbar.show(
+                                    context: context,
+                                    message: message,
+                                    type: cart.error != null ? SnackBarType.error : SnackBarType.success,
+                                  );
+                                }
+                              },
+                              child: const Text(
+                                'تفريغ',
+                                style: TextStyle(
+                                  fontFamily: 'Cairo',
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -88,8 +99,15 @@ class CartScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () {
-                        // TODO: Implement retry logic
+                      onPressed: () async {
+                        final message = await cart.loadCart();
+                        if (message != null && context.mounted) {
+                          ModernSnackbar.show(
+                            context: context,
+                            message: message,
+                            type: SnackBarType.error,
+                          );
+                        }
                       },
                       child: const Text(
                         'إعادة المحاولة',
@@ -189,15 +207,29 @@ class CartScreen extends StatelessWidget {
                                 children: [
                                   IconButton(
                                     icon: const Icon(Icons.remove),
-                                    onPressed: () {
+                                    onPressed: () async {
                                       if (item.quantity > 1) {
-                                        cart.updateQuantity(
+                                        final message = await cart.updateQuantity(
                                           item.id,
                                           item.quantity - 1,
                                           context,
                                         );
+                                        if (message != null && context.mounted) {
+                                          ModernSnackbar.show(
+                                            context: context,
+                                            message: message,
+                                            type: cart.error != null ? SnackBarType.error : SnackBarType.success,
+                                          );
+                                        }
                                       } else {
-                                        cart.removeFromCart(item.id, context);
+                                        final message = await cart.removeFromCart(item.id, context);
+                                        if (message != null && context.mounted) {
+                                          ModernSnackbar.show(
+                                            context: context,
+                                            message: message,
+                                            type: cart.error != null ? SnackBarType.error : SnackBarType.success,
+                                          );
+                                        }
                                       }
                                     },
                                   ),
@@ -210,12 +242,19 @@ class CartScreen extends StatelessWidget {
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.add),
-                                    onPressed: () {
-                                      cart.updateQuantity(
+                                    onPressed: () async {
+                                      final message = await cart.updateQuantity(
                                         item.id,
                                         item.quantity + 1,
                                         context,
                                       );
+                                      if (message != null && context.mounted) {
+                                        ModernSnackbar.show(
+                                          context: context,
+                                          message: message,
+                                          type: cart.error != null ? SnackBarType.error : SnackBarType.success,
+                                        );
+                                      }
                                     },
                                   ),
                                 ],

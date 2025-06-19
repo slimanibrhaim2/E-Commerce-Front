@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../repositories/product_repository.dart';
-import '../widgets/modern_snackbar.dart';
 
 class ProductsViewModel extends ChangeNotifier {
   final ProductRepository _repository;
@@ -18,7 +17,7 @@ class ProductsViewModel extends ChangeNotifier {
   String? get error => _error;
   String? get currentCategory => _currentCategory;
 
-  Future<void> loadProducts({String? category}) async {
+  Future<String?> loadProducts({String? category}) async {
     try {
       _isLoading = true;
       _error = null;
@@ -28,17 +27,19 @@ class ProductsViewModel extends ChangeNotifier {
       if (category != null) {
         _products = await _repository.getProductsByCategory(category);
       } else {
-      _products = await _repository.getAll();
+        _products = await _repository.getAll();
       }
+      return null; // Success
     } catch (e) {
-      _error = 'حدث خطأ أثناء تحميل المنتجات';
+      _error = e.toString().replaceAll('Exception: ', '');
+      return _error;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> toggleFavorite(int productId, BuildContext context) async {
+  Future<String?> toggleFavorite(int productId, BuildContext context) async {
     try {
       final product = _products.firstWhere((p) => p.id == productId);
       final updatedProduct = product.copyWith(isFavorite: !product.isFavorite);
@@ -52,13 +53,9 @@ class ProductsViewModel extends ChangeNotifier {
 
       await _repository.update(updatedProduct);
       
-      ModernSnackbar.show(
-        context: context,
-        message: updatedProduct.isFavorite 
-          ? 'تمت إضافة ${updatedProduct.name} إلى المفضلة'
-          : 'تمت إزالة ${updatedProduct.name} من المفضلة',
-        type: updatedProduct.isFavorite ? SnackBarType.success : SnackBarType.info,
-      );
+      return updatedProduct.isFavorite 
+        ? 'تمت إضافة ${updatedProduct.name} إلى المفضلة بنجاح'
+        : 'تمت إزالة ${updatedProduct.name} من المفضلة بنجاح';
     } catch (e) {
       // Revert optimistic update
       final product = _products.firstWhere((p) => p.id == productId);
@@ -68,15 +65,13 @@ class ProductsViewModel extends ChangeNotifier {
         notifyListeners();
       }
       
-      ModernSnackbar.show(
-        context: context,
-        message: 'حدث خطأ أثناء تحديث المفضلة',
-        type: SnackBarType.error,
-      );
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = errorMessage;
+      return errorMessage;
     }
   }
 
-  Future<void> addProduct(Product product) async {
+  Future<String?> addProduct(Product product) async {
     try {
       _isLoading = true;
       _error = null;
@@ -84,15 +79,17 @@ class ProductsViewModel extends ChangeNotifier {
 
       await _repository.create(product);
       await loadProducts();
+      return 'تم إضافة المنتج بنجاح';
     } catch (e) {
-      _error = 'حدث خطأ أثناء إضافة المنتج';
+      _error = e.toString().replaceAll('Exception: ', '');
+      return _error;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> updateProduct(Product product) async {
+  Future<String?> updateProduct(Product product) async {
     try {
       _isLoading = true;
       _error = null;
@@ -100,15 +97,17 @@ class ProductsViewModel extends ChangeNotifier {
 
       await _repository.update(product);
       await loadProducts();
+      return 'تم تحديث المنتج بنجاح';
     } catch (e) {
-      _error = 'حدث خطأ أثناء تحديث المنتج';
+      _error = e.toString().replaceAll('Exception: ', '');
+      return _error;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> deleteProduct(int id) async {
+  Future<String?> deleteProduct(int id) async {
     try {
       _isLoading = true;
       _error = null;
@@ -116,8 +115,10 @@ class ProductsViewModel extends ChangeNotifier {
 
       await _repository.delete(id);
       await loadProducts();
+      return 'تم حذف المنتج بنجاح';
     } catch (e) {
-      _error = 'حدث خطأ أثناء حذف المنتج';
+      _error = e.toString().replaceAll('Exception: ', '');
+      return _error;
     } finally {
       _isLoading = false;
       notifyListeners();

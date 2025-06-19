@@ -5,39 +5,89 @@ import '../auth/register_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../contact/contact_screen.dart';
 import '../address/addresses_screen.dart';
+import 'user_info_screen.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../widgets/modern_snackbar.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _didFetch = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final userViewModel = context.watch<UserViewModel>();
+    final isLoggedIn = userViewModel.jwt != null;
+    if (!_didFetch && isLoggedIn && userViewModel.user == null) {
+      _didFetch = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final message = await userViewModel.loadUserProfile();
+        if (userViewModel.error != null && mounted) {
+          ModernSnackbar.show(
+            context: context,
+            message: userViewModel.error!,
+            type: SnackBarType.error,
+          );
+        }
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final userViewModel = context.watch<UserViewModel>();
+    final isLoggedIn = userViewModel.jwt != null;
+    final _storage = const FlutterSecureStorage();
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الملف الشخصي'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: const [
+            Text('الملف الشخصي'),
+          ],
+        ),
+        centerTitle: false,
       ),
       body: Directionality(
-          textDirection: TextDirection.rtl,
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: [
-                      const SizedBox(height: 16),
-                      _ProfileOption(
-              icon: Icons.login,
-              label: 'تسجيل الدخول',
-              onTap: () {
-                Navigator.of(context).pushNamed('/login');
-              },
-            ),
-            _ProfileOption(
-              icon: Icons.app_registration,
-              label: 'إنشاء حساب',
+        textDirection: TextDirection.rtl,
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          children: [
+            const SizedBox(height: 16),
+            _UserInfoHeader(
               onTap: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => RegisterScreen()),
+                  MaterialPageRoute(builder: (_) => const UserInfoScreen()),
                 );
               },
             ),
             const Divider(height: 32),
+            if (!isLoggedIn) ...[
+              _ProfileOption(
+                icon: Icons.login,
+                label: 'تسجيل الدخول',
+                onTap: () {
+                  Navigator.of(context).pushNamed('/login');
+                },
+              ),
+              _ProfileOption(
+                icon: Icons.app_registration,
+                label: 'إنشاء حساب',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                  );
+                },
+              ),
+              const Divider(height: 32),
+            ],
             _ProfileOption(
               icon: Icons.location_on,
               label: 'عناويني',
@@ -65,13 +115,13 @@ class ProfileScreen extends StatelessWidget {
             _ProfileOption(
               icon: Icons.info,
               label: 'لمحة عن تطبيقنا',
-                        onTap: () {},
+              onTap: () {},
             ),
             _ProfileOption(
               icon: Icons.privacy_tip,
               label: 'سياسة الخصوصية',
               onTap: () {},
-                      ),
+            ),
             _ProfileOption(
               icon: Icons.phone,
               label: 'اتصل بنا',
@@ -80,10 +130,95 @@ class ProfileScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => const ContactScreen()),
                 );
               },
-                ),
-              ],
             ),
+            if (isLoggedIn)
+              _ProfileOption(
+                icon: Icons.logout,
+                label: 'تسجيل الخروج',
+                color: Colors.red,
+                onTap: () async {
+                  // Clear JWT and user info
+                  await Provider.of<UserViewModel>(context, listen: false).logout();
+                  await _storage.delete(key: 'auth_token');
+                  ModernSnackbar.show(
+                    context: context,
+                    message: 'تم تسجيل الخروج بنجاح',
+                    type: SnackBarType.success,
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UserInfoHeader extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _UserInfoHeader({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.watch<UserViewModel>().user;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundImage: (user != null && user.profilePhoto != null && user.profilePhoto!.isNotEmpty)
+                    ? NetworkImage(user.profilePhoto!)
+                    : null,
+                child: (user == null || user.profilePhoto == null || user.profilePhoto!.isEmpty)
+                    ? const Icon(Icons.person, size: 30)
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      [
+                        user?.firstName,
+                        user?.middleName,
+                        user?.lastName,
+                      ].where((name) => name != null && name.isNotEmpty).join(' ').isNotEmpty
+                          ? [
+                              user?.firstName,
+                              user?.middleName,
+                              user?.lastName,
+                            ].where((name) => name != null && name.isNotEmpty).join(' ')
+                          : 'اسم المستخدم',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      user?.phoneNumber ?? '',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 18),
+            ],
           ),
+        ),
+      ),
     );
   }
 }

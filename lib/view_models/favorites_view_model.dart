@@ -15,7 +15,7 @@ class FavoritesViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> loadFavorites() async {
+  Future<String?> loadFavorites() async {
     try {
       _isLoading = true;
       _error = null;
@@ -23,15 +23,17 @@ class FavoritesViewModel extends ChangeNotifier {
 
       // Get favorites directly from the API
       _favorites = await _repository.getFavorites();
+      return null; // Success
     } catch (e) {
-      _error = 'حدث خطأ أثناء تحميل المفضلة';
+      _error = e.toString().replaceAll('Exception: ', '');
+      return _error;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> toggleFavorite(int productId, BuildContext context) async {
+  Future<String?> toggleFavorite(int productId, BuildContext context) async {
     try {
       // Make API call to toggle favorite
       final updatedProduct = await _repository.toggleFavorite(productId);
@@ -39,34 +41,22 @@ class FavoritesViewModel extends ChangeNotifier {
       // Update local state based on API response
       if (updatedProduct.isFavorite) {
         _favorites.add(updatedProduct);
-        ModernSnackbar.show(
-          context: context,
-          message: 'تمت إضافة ${updatedProduct.name} إلى المفضلة',
-          type: SnackBarType.success,
-        );
+        notifyListeners();
+        return 'تمت إضافة ${updatedProduct.name} إلى المفضلة بنجاح';
       } else {
         _favorites.removeWhere((p) => p.id == productId);
-        ModernSnackbar.show(
-          context: context,
-          message: 'تمت إزالة ${updatedProduct.name} من المفضلة',
-          type: SnackBarType.info,
-        );
+        notifyListeners();
+        return 'تمت إزالة ${updatedProduct.name} من المفضلة بنجاح';
       }
-      
-      notifyListeners();
     } catch (e) {
-      _error = 'حدث خطأ أثناء تحديث حالة المفضلة';
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = errorMessage;
       notifyListeners();
-      
-      ModernSnackbar.show(
-        context: context,
-        message: _error!,
-        type: SnackBarType.error,
-      );
+      return errorMessage;
     }
   }
 
-  Future<void> removeAllFavorites(BuildContext context) async {
+  Future<String?> removeAllFavorites(BuildContext context) async {
     try {
       _isLoading = true;
       _error = null;
@@ -79,13 +69,11 @@ class FavoritesViewModel extends ChangeNotifier {
 
       _favorites.clear();
       
-      ModernSnackbar.show(
-        context: context,
-        message: 'تمت إزالة جميع المنتجات من المفضلة',
-        type: SnackBarType.info,
-      );
+      return 'تمت إزالة جميع المنتجات من المفضلة بنجاح';
     } catch (e) {
-      _error = 'حدث خطأ أثناء إزالة جميع المفضلة';
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = errorMessage;
+      return errorMessage;
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -7,7 +7,12 @@ import '../main_navigation_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? initialPhoneNumber;
+  
+  const LoginScreen({
+    super.key,
+    this.initialPhoneNumber,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -15,10 +20,16 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _phoneController = TextEditingController();
+  late final TextEditingController _phoneController;
   bool _isLoading = false;
   String? _errorMessage;
   final _storage = const FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneController = TextEditingController(text: widget.initialPhoneNumber ?? '');
+  }
 
   @override
   void dispose() {
@@ -35,6 +46,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final userViewModel = context.read<UserViewModel>();
       final message = await userViewModel.login(_phoneController.text);
+      
+      if (!mounted) return;
       
       // First show the backend message
       ModernSnackbar.show(
@@ -72,34 +85,52 @@ class _LoginScreenState extends State<LoginScreen> {
       barrierDismissible: false,
       builder: (context) {
         String? localError = userViewModel.error;
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return OtpDialog(
-              isLoading: userViewModel.isLoading,
-              errorMessage: localError,
-              onSubmit: (otp) async {
-                final message = await userViewModel.verifyLoginOtp(otp);
-                if (userViewModel.error == null && userViewModel.jwt != null) {
-                  Navigator.of(context).pop();
-                  ModernSnackbar.show(
-                    context: context,
-                    message: message ?? '',
-                    type: SnackBarType.success,
-                  );
-                  await _storage.write(key: 'auth_token', value: userViewModel.jwt!);
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-                    (route) => false,
-                  );
-                } else {
-                  setStateDialog(() {
-                    localError = userViewModel.error ?? message ?? '';
-                  });
-                }
-              },
-              onCancel: () => Navigator.of(context).pop(),
-            );
-          },
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: StatefulBuilder(
+            builder: (context, setStateDialog) {
+              return OtpDialog(
+                isLoading: userViewModel.isLoading,
+                errorMessage: localError,
+                onSubmit: (otp) async {
+                  try {
+                    final message = await userViewModel.verifyLoginOtp(otp);
+                    if (!mounted) return;
+                    
+                    if (userViewModel.error == null && userViewModel.jwt != null) {
+                      // Save token
+                      await _storage.write(key: 'auth_token', value: userViewModel.jwt!);
+                      // Fetch user profile
+                      await userViewModel.loadUserProfile();
+                      if (!mounted) return;
+                      
+                      // Show success message
+                      ModernSnackbar.show(
+                        context: context,
+                        message: message ?? 'تم تسجيل الدخول بنجاح',
+                        type: SnackBarType.success,
+                      );
+                      
+                      // Navigate to home screen
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+                        (route) => false,
+                      );
+                    } else {
+                      setStateDialog(() {
+                        localError = userViewModel.error ?? message ?? '';
+                      });
+                    }
+                  } catch (e) {
+                    setStateDialog(() {
+                      localError = e.toString();
+                    });
+                  }
+                },
+                onCancel: () => Navigator.of(context).pop(),
+              );
+            },
+          ),
         );
       },
     );
@@ -107,13 +138,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('تسجيل الدخول'),
-      ),
-      body: Directionality(
-        textDirection: TextDirection.rtl,
-        child: SingleChildScrollView(
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'تسجيل الدخول',
+            style: TextStyle(fontFamily: 'Cairo'),
+          ),
+        ),
+        body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Form(
@@ -123,9 +157,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   TextFormField(
                     controller: _phoneController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'رقم الهاتف',
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      labelStyle: const TextStyle(fontFamily: 'Cairo'),
                     ),
                     keyboardType: TextInputType.phone,
                     validator: (value) {
@@ -146,7 +183,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: Text(
                         _errorMessage!,
-                        style: TextStyle(color: Colors.red.shade700),
+                        style: TextStyle(
+                          color: Colors.red.shade700,
+                          fontFamily: 'Cairo',
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -155,10 +195,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                       onPressed: _isLoading ? null : _sendOtp,
                       child: _isLoading
-                          ? const CircularProgressIndicator()
-                          : const Text('إرسال رمز التحقق'),
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text(
+                              'إرسال رمز التحقق',
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: 16,
+                              ),
+                            ),
                     ),
                   ),
                 ],

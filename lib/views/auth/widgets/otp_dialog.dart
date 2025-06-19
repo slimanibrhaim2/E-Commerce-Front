@@ -47,7 +47,13 @@ class _OtpDialogState extends State<OtpDialog> {
       textDirection: TextDirection.rtl,
       child: AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('أدخل رمز التحقق'),
+        title: const Text(
+          'أدخل رمز التحقق',
+          style: TextStyle(
+            fontFamily: 'Cairo',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -73,6 +79,10 @@ class _OtpDialogState extends State<OtpDialog> {
                       keyboardType: TextInputType.number,
                       maxLength: 1,
                       textDirection: TextDirection.ltr,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(1),
@@ -81,6 +91,11 @@ class _OtpDialogState extends State<OtpDialog> {
                         counterText: '',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
                         ),
                       ),
                       onChanged: (value) => _onChanged(index, value),
@@ -94,23 +109,39 @@ class _OtpDialogState extends State<OtpDialog> {
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text(
                   widget.errorMessage!,
-                  style: const TextStyle(color: Colors.red, fontSize: 13),
+                  style: TextStyle(
+                    color: Colors.red.shade700,
+                    fontSize: 13,
+                    fontFamily: 'Cairo',
+                  ),
                   textAlign: TextAlign.right,
                 ),
               ),
             if (widget.isLoading)
               const Padding(
                 padding: EdgeInsets.only(top: 16.0),
-                child: CircularProgressIndicator(),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
               ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: widget.isLoading ? null : widget.onCancel ?? () => Navigator.of(context).pop(),
-            child: const Text('إلغاء'),
+            child: const Text(
+              'إلغاء',
+              style: TextStyle(fontFamily: 'Cairo'),
+            ),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
             onPressed: widget.isLoading
                 ? null
                 : () {
@@ -120,8 +151,18 @@ class _OtpDialogState extends State<OtpDialog> {
                     }
                   },
             child: widget.isLoading
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('تحقق'),
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text(
+                    'تحقق',
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
           ),
         ],
       ),

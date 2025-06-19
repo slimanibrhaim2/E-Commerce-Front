@@ -7,28 +7,36 @@ import 'view_models/cart_view_model.dart';
 import 'view_models/products_view_model.dart';
 import 'view_models/categories_view_model.dart';
 import 'view_models/favorites_view_model.dart';
+import 'view_models/address_view_model.dart';
 import 'repositories/product_repository.dart';
 import 'repositories/category_repository.dart';
 import 'repositories/favorites_repository.dart';
 import 'repositories/cart_repository.dart';
 import 'repositories/user_repository.dart';
+import 'repositories/address_repository.dart';
 import 'view_models/user_view_model.dart';
 import 'views/auth/login_screen.dart';
 import 'views/home/home_screen.dart';
 import 'views/profile/profile_screen.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final storage = FlutterSecureStorage();
+  final token = await storage.read(key: 'auth_token');
+  final apiClient = ApiClient(baseUrl: ApiEndpoints.baseUrl);
+  if (token != null && token.isNotEmpty) {
+    apiClient.setToken(token);
+  }
+  runApp(MyApp(apiClient: apiClient));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ApiClient apiClient;
+  const MyApp({super.key, required this.apiClient});
 
   @override
   Widget build(BuildContext context) {
-    // Initialize API client
-    final apiClient = ApiClient(baseUrl: ApiEndpoints.baseUrl);
-
     return MultiProvider(
       providers: [
         Provider<ApiClient>(
@@ -45,6 +53,9 @@ class MyApp extends StatelessWidget {
         ),
         Provider<CartRepository>(
           create: (context) => CartRepository(context.read<ApiClient>()),
+        ),
+        Provider<AddressRepository>(
+          create: (context) => AddressRepository(context.read<ApiClient>()),
         ),
         ChangeNotifierProvider(
           create: (context) => CartViewModel(
@@ -66,12 +77,19 @@ class MyApp extends StatelessWidget {
             context.read<FavoritesRepository>(),
           ),
         ),
+        ChangeNotifierProvider(
+          create: (context) => AddressViewModel(
+            context.read<AddressRepository>(),
+            context.read<ApiClient>(),
+          ),
+        ),
         Provider<UserRepository>(
           create: (context) => UserRepository(context.read<ApiClient>()),
         ),
         ChangeNotifierProvider(
           create: (context) => UserViewModel(
             context.read<UserRepository>(),
+            context.read<ApiClient>(),
           ),
         ),
       ],

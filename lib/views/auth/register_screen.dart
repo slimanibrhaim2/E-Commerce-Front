@@ -118,6 +118,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   );
                   print('JWT Token: \n' + userViewModel.jwt!);
                   await _storage.write(key: 'auth_token', value: userViewModel.jwt!);
+                  // Fetch user profile after registration
+                  await userViewModel.loadUserProfile();
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
                     (route) => false,

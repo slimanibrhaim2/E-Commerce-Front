@@ -22,22 +22,24 @@ class CartViewModel extends ChangeNotifier {
   // Calculate total price of cart
   double get totalPrice => _cartItems.fold(0, (sum, item) => sum + item.totalPrice);
 
-  Future<void> loadCart() async {
+  Future<String?> loadCart() async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
 
       _cartItems = await _repository.getCart();
+      return null; // Success
     } catch (e) {
-      _error = 'حدث خطأ أثناء تحميل السلة';
+      _error = e.toString().replaceAll('Exception: ', '');
+      return _error;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> addToCart(int productId, int quantity, BuildContext context) async {
+  Future<String?> addToCart(int productId, int quantity, BuildContext context) async {
     try {
       _isLoading = true;
       notifyListeners();
@@ -45,24 +47,19 @@ class CartViewModel extends ChangeNotifier {
       final cartItem = await _repository.addToCart(productId, quantity);
       _cartItems.add(cartItem);
       
-      ModernSnackbar.show(
-        context: context,
-        message: 'تمت إضافة المنتج إلى السلة',
-        type: SnackBarType.success,
-      );
+      // Return success message from backend or default
+      return 'تمت إضافة المنتج إلى السلة بنجاح';
     } catch (e) {
-      ModernSnackbar.show(
-        context: context,
-        message: 'حدث خطأ أثناء إضافة المنتج إلى السلة',
-        type: SnackBarType.error,
-      );
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = errorMessage;
+      return errorMessage;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> updateQuantity(int itemId, int quantity, BuildContext context) async {
+  Future<String?> updateQuantity(int itemId, int quantity, BuildContext context) async {
     try {
       final updatedItem = await _repository.updateCartItem(itemId, quantity);
       final index = _cartItems.indexWhere((item) => item.id == itemId);
@@ -70,43 +67,28 @@ class CartViewModel extends ChangeNotifier {
         _cartItems[index] = updatedItem;
         notifyListeners();
       }
+      return 'تم تحديث الكمية بنجاح';
     } catch (e) {
-      _error = 'حدث خطأ أثناء تحديث الكمية';
-      notifyListeners();
-      
-      ModernSnackbar.show(
-        context: context,
-        message: _error!,
-        type: SnackBarType.error,
-      );
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = errorMessage;
+      return errorMessage;
     }
   }
 
-  Future<void> removeFromCart(int itemId, BuildContext context) async {
+  Future<String?> removeFromCart(int itemId, BuildContext context) async {
     try {
       await _repository.removeFromCart(itemId);
       _cartItems.removeWhere((item) => item.id == itemId);
-      
-      ModernSnackbar.show(
-        context: context,
-        message: 'تمت إزالة المنتج من السلة',
-        type: SnackBarType.info,
-      );
-      
       notifyListeners();
+      return 'تمت إزالة المنتج من السلة بنجاح';
     } catch (e) {
-      _error = 'حدث خطأ أثناء إزالة المنتج من السلة';
-      notifyListeners();
-      
-      ModernSnackbar.show(
-        context: context,
-        message: _error!,
-        type: SnackBarType.error,
-      );
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = errorMessage;
+      return errorMessage;
     }
   }
 
-  Future<void> clearCart(BuildContext context) async {
+  Future<String?> clearCart(BuildContext context) async {
     try {
       _isLoading = true;
       notifyListeners();
@@ -114,13 +96,11 @@ class CartViewModel extends ChangeNotifier {
       await _repository.clearCart();
       _cartItems.clear();
       
-      ModernSnackbar.show(
-        context: context,
-        message: 'تم تفريغ السلة',
-        type: SnackBarType.info,
-      );
+      return 'تم تفريغ السلة بنجاح';
     } catch (e) {
-      _error = 'حدث خطأ أثناء تفريغ السلة';
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = errorMessage;
+      return errorMessage;
     } finally {
       _isLoading = false;
       notifyListeners();

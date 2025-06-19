@@ -1,16 +1,16 @@
 import 'package:e_commerce/repositories/user_repository.dart';
+import 'package:e_commerce/core/api/api_client.dart';
 import 'package:flutter/material.dart';
 import '../models/user.dart';
-import '../models/api_response.dart';
-// Accept both real and fake repositories
-// ignore: prefer_typing_uninitialized_variables
-var _repository;
+import 'dart:io';
+
 
 enum RegistrationStep { none, registering, awaitingOtp, verifyingOtp, done }
 enum LoginStep { none, loggingIn, awaitingOtp, verifyingOtp, done }
 
 class UserViewModel extends ChangeNotifier {
   final UserRepository _repository;
+  final ApiClient _apiClient;
   User? _user;
   bool _isLoading = false;
   String? _error;
@@ -19,7 +19,7 @@ class UserViewModel extends ChangeNotifier {
   String? _phoneNumber;
   String? _jwt;
 
-  UserViewModel(this._repository);
+  UserViewModel(this._repository, this._apiClient);
 
   User? get user => _user;
   bool get isLoading => _isLoading;
@@ -39,7 +39,7 @@ class UserViewModel extends ChangeNotifier {
       return response.message;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
-      rethrow;
+      return _error;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -51,8 +51,44 @@ class UserViewModel extends ChangeNotifier {
       _isLoading = true;
       _error = null;
       notifyListeners();
-      final response = await _repository.updateUserProfile(user);
+      final response = await _repository.updateCurrentUserProfile(user);
       _user = response.data;
+      return response.message ?? 'تم تحديث المعلومات بنجاح';
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> uploadProfileImage(File imageFile) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+      final response = await _repository.uploadProfileImage(imageFile);
+      if (response.data != null && _user != null) {
+        // Update the user's profile photo URL
+        _user = _user!.copyWith(profilePhoto: response.data);
+      }
+      return response.message ?? 'تم رفع الصورة بنجاح';
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> deleteUser() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+      final response = await _repository.deleteCurrentUserProfile();
       return response.message;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
@@ -97,6 +133,7 @@ class UserViewModel extends ChangeNotifier {
       final response = await _repository.verifyOtp(_phoneNumber!, otp);
       if (response.success == true && response.data != null) {
         _jwt = response.data;
+        _apiClient.setToken(_jwt);
         _step = RegistrationStep.done;
       } else {
         _error = response.message;
@@ -147,6 +184,7 @@ class UserViewModel extends ChangeNotifier {
       final response = await _repository.verifyLoginOtp(_phoneNumber!, otp);
       if (response.data != null) {
         _jwt = response.data;
+        _apiClient.setToken(_jwt);
         _loginStep = LoginStep.done;
       } else {
         _error = response.message;
@@ -161,5 +199,17 @@ class UserViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> logout() async {
+    _jwt = null;
+    _user = null;
+    _phoneNumber = null;
+    _error = null;
+    _step = RegistrationStep.none;
+    _loginStep = LoginStep.none;
+    notifyListeners();
+    // Also clear from secure storage if needed
+    // (Handled in UI for now)
   }
 } 

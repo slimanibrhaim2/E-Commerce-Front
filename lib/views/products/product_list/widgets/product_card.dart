@@ -5,6 +5,7 @@ import '../../../../view_models/cart_view_model.dart';
 import '../../../../view_models/product_details_view_model.dart';
 import '../../../../view_models/products_view_model.dart';
 import '../../../../widgets/modern_loader.dart';
+import '../../../../widgets/modern_snackbar.dart';
 import '../../product_detail/product_detail_screen.dart';
 
 
@@ -185,8 +186,15 @@ class ProductCard extends StatelessWidget {
                       return Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: () {
-                            viewModel.toggleFavorite(product.id, context);
+                          onTap: () async {
+                            final message = await viewModel.toggleFavorite(product.id, context);
+                            if (message != null && context.mounted) {
+                              ModernSnackbar.show(
+                                context: context,
+                                message: message,
+                                type: viewModel.error != null ? SnackBarType.error : SnackBarType.success,
+                              );
+                            }
                           },
                           customBorder: const CircleBorder(),
                           child: Container(
@@ -214,8 +222,15 @@ class ProductCard extends StatelessWidget {
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: () {
-                        context.read<CartViewModel>().addToCart(product.id, 1, context);
+                      onTap: () async {
+                        final message = await context.read<CartViewModel>().addToCart(product.id, 1, context);
+                        if (message != null && context.mounted) {
+                          ModernSnackbar.show(
+                            context: context,
+                            message: message,
+                            type: context.read<CartViewModel>().error != null ? SnackBarType.error : SnackBarType.success,
+                          );
+                        }
                       },
                       customBorder: const CircleBorder(),
                       child: Container(

@@ -2,20 +2,43 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import 'api_exception.dart';
+import 'dart:io';
 
 class ApiClient {
   final String baseUrl;
   final http.Client _client;
+  String? _jwtToken;
 
   ApiClient({
     required this.baseUrl,
     http.Client? client,
   }) : _client = client ?? http.Client();
 
+  void setToken(String? token) {
+    _jwtToken = token;
+  }
+
+  Map<String, String> _buildHeaders() {
+    final headers = {'Content-Type': 'application/json'};
+    if (_jwtToken != null && _jwtToken!.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $_jwtToken';
+    }
+    return headers;
+  }
+
+  Map<String, String> _buildMultipartHeaders() {
+    final headers = <String, String>{};
+    if (_jwtToken != null && _jwtToken!.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $_jwtToken';
+    }
+    return headers;
+  }
+
   Future<dynamic> get(String endpoint) async {
     try {
       final response = await _client.get(
         Uri.parse('$baseUrl$endpoint'),
+        headers: _buildHeaders(),
       ).timeout(
         Duration(milliseconds: ApiConfig.timeout),
         onTimeout: () {
@@ -35,7 +58,7 @@ class ApiClient {
     try {
       final response = await _client.post(
         Uri.parse('$baseUrl$endpoint'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _buildHeaders(),
         body: json.encode(data),
       ).timeout(
         Duration(milliseconds: ApiConfig.timeout),
@@ -56,7 +79,7 @@ class ApiClient {
     try {
       final response = await _client.put(
         Uri.parse('$baseUrl$endpoint'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _buildHeaders(),
         body: json.encode(data),
       ).timeout(
         Duration(milliseconds: ApiConfig.timeout),
@@ -77,7 +100,7 @@ class ApiClient {
     try {
       final response = await _client.delete(
         Uri.parse('$baseUrl$endpoint'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _buildHeaders(),
       ).timeout(
         Duration(milliseconds: ApiConfig.timeout),
         onTimeout: () {
@@ -90,6 +113,44 @@ class ApiClient {
     } catch (e) {
       if (e is ApiException) rethrow;
       throw ApiException.serverError('فشل في حذف البيانات. يرجى المحاولة مرة أخرى لاحقاً.');
+    }
+  }
+
+  Future<dynamic> uploadFile(String endpoint, File file, String fieldName) async {
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl$endpoint'),
+      );
+
+      // Add headers
+      request.headers.addAll(_buildMultipartHeaders());
+
+      // Add file
+      final fileStream = http.ByteStream(file.openRead());
+      final fileLength = await file.length();
+      final multipartFile = http.MultipartFile(
+        fieldName,
+        fileStream,
+        fileLength,
+        filename: file.path.split('/').last,
+      );
+      request.files.add(multipartFile);
+
+      final streamedResponse = await request.send().timeout(
+        Duration(milliseconds: ApiConfig.timeout),
+        onTimeout: () {
+          throw ApiException.timeout();
+        },
+      );
+
+      final response = await http.Response.fromStream(streamedResponse);
+      return _handleResponse(response);
+    } on http.ClientException catch (e) {
+      throw ApiException.connectionError();
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException.serverError('فشل في رفع الملف. يرجى المحاولة مرة أخرى لاحقاً.');
     }
   }
 
