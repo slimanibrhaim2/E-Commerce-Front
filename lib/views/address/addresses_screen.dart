@@ -200,6 +200,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                                               message: message,
                                                               type: SnackBarType.success,
                                                             );
+                                                            await addressViewModel.loadAddresses();
                                                           }
                                                         }
                                                       },

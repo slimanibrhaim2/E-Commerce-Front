@@ -66,7 +66,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              viewModel.removeAllFavorites(context);
+                              //viewModel.removeAllFavorites(context);
                             },
                             child: const Text(
                               'إزالة',

@@ -50,16 +50,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(
+      appBar: AppBar(
           title: const Text(
             'الملف الشخصي',
             style: TextStyle(
               fontFamily: 'Cairo',
               fontWeight: FontWeight.bold,
             ),
-          ),
-          centerTitle: true,
         ),
+          centerTitle: true,
+      ),
         body: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           children: [

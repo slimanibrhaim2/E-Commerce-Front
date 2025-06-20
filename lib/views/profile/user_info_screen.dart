@@ -18,7 +18,7 @@ class UserInfoScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(
+      appBar: AppBar(
           title: const Text(
             'معلومات الحساب',
             style: TextStyle(
@@ -31,7 +31,7 @@ class UserInfoScreen extends StatelessWidget {
             icon: const Icon(Icons.arrow_back_ios),
             onPressed: () => Navigator.of(context).pop(),
           ),
-        ),
+      ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -178,16 +178,16 @@ class UserInfoScreen extends StatelessWidget {
           backgroundColor: Colors.transparent,
           body: Center(
             child: Directionality(
-              textDirection: TextDirection.rtl,
+            textDirection: TextDirection.rtl,
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                     AppBar(
                       title: const Text('تعديل المعلومات الشخصية'),
                       automaticallyImplyLeading: false,
@@ -284,8 +284,8 @@ class UserInfoScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 24),
-                            TextField(
-                              controller: firstNameController,
+                TextField(
+                  controller: firstNameController,
                               decoration: InputDecoration(
                                 labelText: 'الاسم الأول',
                                 border: OutlineInputBorder(
@@ -293,10 +293,10 @@ class UserInfoScreen extends StatelessWidget {
                                 ),
                                 labelStyle: const TextStyle(fontFamily: 'Cairo'),
                               ),
-                            ),
+                ),
                             const SizedBox(height: 16),
-                            TextField(
-                              controller: middleNameController,
+                TextField(
+                  controller: middleNameController,
                               decoration: InputDecoration(
                                 labelText: 'اسم الأب',
                                 border: OutlineInputBorder(
@@ -304,18 +304,18 @@ class UserInfoScreen extends StatelessWidget {
                                 ),
                                 labelStyle: const TextStyle(fontFamily: 'Cairo'),
                               ),
-                            ),
+                ),
                             const SizedBox(height: 16),
-                            TextField(
-                              controller: lastNameController,
+                TextField(
+                  controller: lastNameController,
                               decoration: InputDecoration(
                                 labelText: 'الكنية',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                ),
+                ),
                                 labelStyle: const TextStyle(fontFamily: 'Cairo'),
-                              ),
-                            ),
+            ),
+          ),
                             const SizedBox(height: 16),
                             TextField(
                               controller: phoneController,
@@ -351,7 +351,7 @@ class UserInfoScreen extends StatelessWidget {
                                 labelText: 'الوصف الشخصي',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                ),
+            ),
                                 labelStyle: const TextStyle(fontFamily: 'Cairo'),
                                 hintText: 'اكتب وصفاً مختصراً عن نفسك...',
                                 hintStyle: const TextStyle(fontFamily: 'Cairo'),
@@ -369,7 +369,7 @@ class UserInfoScreen extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                onPressed: () async {
+              onPressed: () async {
                                   try {
                                     // First upload image if selected
                                     String? finalProfilePhotoUrl = profilePhotoUrl;
@@ -395,19 +395,19 @@ class UserInfoScreen extends StatelessWidget {
                                       finalProfilePhotoUrl = userViewModel.user?.profilePhoto;
                                     }
 
-                                    final updatedUser = User(
-                                      firstName: firstNameController.text.trim(),
-                                      middleName: middleNameController.text.trim(),
-                                      lastName: lastNameController.text.trim(),
+                final updatedUser = User(
+                  firstName: firstNameController.text.trim(),
+                  middleName: middleNameController.text.trim(),
+                  lastName: lastNameController.text.trim(),
                                       phoneNumber: phoneController.text.trim(),
                                       email: emailController.text.trim(),
                                       profilePhoto: finalProfilePhotoUrl,
                                       description: descriptionController.text.trim(),
-                                    );
+                );
 
-                                    final message = await userViewModel.updateUserProfile(updatedUser);
+                final message = await userViewModel.updateUserProfile(updatedUser);
                                     if (!context.mounted) return;
-                                    Navigator.pop(context);
+                Navigator.pop(context);
 
                                     if (phoneChanged) {
                                       showDialog(
@@ -459,11 +459,11 @@ class UserInfoScreen extends StatelessWidget {
                                       );
                                     } else {
                                       // Show the actual backend message
-                                      ModernSnackbar.show(
-                                        context: context,
-                                        message: message ?? 'تم تحديث المعلومات بنجاح',
-                                        type: SnackBarType.success,
-                                      );
+                ModernSnackbar.show(
+                  context: context,
+                  message: message ?? 'تم تحديث المعلومات بنجاح',
+                  type: SnackBarType.success,
+                );
                                     }
                                   } catch (e) {
                                     if (!context.mounted) return;
@@ -473,7 +473,7 @@ class UserInfoScreen extends StatelessWidget {
                                       type: SnackBarType.error,
                                     );
                                   }
-                                },
+              },
                                 child: const Text(
                                   'حفظ التغييرات',
                                   style: TextStyle(fontFamily: 'Cairo'),
@@ -483,8 +483,8 @@ class UserInfoScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                    ),
-                  ],
+            ),
+          ],
                 ),
               ),
             ),
@@ -512,33 +512,33 @@ class UserInfoScreen extends StatelessWidget {
               'هل أنت متأكد أنك تريد حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء.',
               style: TextStyle(fontFamily: 'Cairo'),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
                 child: const Text(
                   'إلغاء',
                   style: TextStyle(fontFamily: 'Cairo'),
                 ),
-              ),
-              ElevatedButton(
+            ),
+            ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () async {
-                  final message = await userViewModel.deleteUser();
-                  Navigator.pop(context);
-                  ModernSnackbar.show(
-                    context: context,
-                    message: message ?? 'تم حذف الحساب بنجاح',
-                    type: SnackBarType.success,
-                  );
-                  // Optionally, log out and navigate to login screen
-                  await userViewModel.logout();
-                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-                },
+              onPressed: () async {
+                final message = await userViewModel.deleteUser();
+                Navigator.pop(context);
+                ModernSnackbar.show(
+                  context: context,
+                  message: message ?? 'تم حذف الحساب بنجاح',
+                  type: SnackBarType.success,
+                );
+                // Optionally, log out and navigate to login screen
+                await userViewModel.logout();
+                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+              },
                 child: const Text(
                   'حذف',
                   style: TextStyle(
@@ -546,8 +546,8 @@ class UserInfoScreen extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-              ),
-            ],
+            ),
+          ],
           ),
         );
       },

@@ -44,7 +44,11 @@ class AddressViewModel extends ChangeNotifier {
       
       final response = await _repository.createAddress(address);
       if (response.data != null) {
-        await loadAddresses(); // Refresh the entire list after creating
+        // Add to local list immediately for better UX
+        _addresses.add(response.data!);
+        notifyListeners(); // Notify immediately for instant UI update
+        // Then refresh from server to ensure consistency
+        await loadAddresses();
       }
       return response.message;
     } catch (e) {
@@ -65,7 +69,14 @@ class AddressViewModel extends ChangeNotifier {
       
       final response = await _repository.updateAddress(addressId, address);
       if (response.data != null) {
-        await loadAddresses(); // Refresh the entire list after updating
+        // Update the local list immediately for better UX
+        final index = _addresses.indexWhere((addr) => addr.id == addressId);
+        if (index != -1) {
+          _addresses[index] = address;
+          notifyListeners(); // Notify immediately for instant UI update
+        }
+        // Then refresh from server to ensure consistency
+        await loadAddresses();
       }
       return response.message;
     } catch (e) {
@@ -85,7 +96,11 @@ class AddressViewModel extends ChangeNotifier {
       notifyListeners();
       
       final response = await _repository.deleteAddress(addressId);
-      await loadAddresses(); // Always refresh the list after deletion
+      // Remove from local list immediately for better UX
+      _addresses.removeWhere((addr) => addr.id == addressId);
+      notifyListeners(); // Notify immediately for instant UI update
+      // Then refresh from server to ensure consistency
+      await loadAddresses();
       return response.message;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
