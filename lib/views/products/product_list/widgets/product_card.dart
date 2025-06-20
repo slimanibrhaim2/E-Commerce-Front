@@ -41,7 +41,7 @@ class ProductCard extends StatelessWidget {
                     create: (context) => ProductDetailsViewModel(
                       context.read<ProductsViewModel>().repository,
                     ),
-                    child: ProductDetailScreen(productId: product.id),
+                    child: ProductDetailScreen(productId: int.parse(product.id!)),
                   ),
                 ),
               );
@@ -56,30 +56,51 @@ class ProductCard extends StatelessWidget {
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                       child: Stack(
                         children: [
-                          Image.network(
-                            product.imageUrl,
+                          Container(
                             height: imageHeight,
                             width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                            ),
+                            child: product.media.isNotEmpty
+                                ? ClipRRect(
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                              child: Image.network(
+                                product.media.first.url,
                                 height: imageHeight,
-                                color: Colors.grey[200],
-                                child: const Icon(
-                                  Icons.image_not_supported,
-                                  color: Colors.grey,
-                                  size: 40,
-                                ),
-                              );
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                height: imageHeight,
-                                color: Colors.grey[200],
-                                child: const ModernLoader(),
-                              );
-                            },
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    height: imageHeight,
+                                    color: Colors.grey[200],
+                                    child: const Icon(
+                                      Icons.image_not_supported,
+                                      color: Colors.grey,
+                                      size: 40,
+                                    ),
+                                  );
+                                },
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Container(
+                                    height: imageHeight,
+                                    color: Colors.grey[200],
+                                    child: const ModernLoader(),
+                                  );
+                                },
+                              ),
+                            )
+                                : Container(
+                              height: imageHeight,
+                              color: Colors.grey[200],
+                              child: const Icon(
+                                Icons.image_not_supported,
+                                color: Colors.grey,
+                                size: 40,
+                              ),
+                            ),
                           ),
                           // Gradient overlay
                           Positioned.fill(
@@ -187,7 +208,7 @@ class ProductCard extends StatelessWidget {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () async {
-                            final message = await viewModel.toggleFavorite(product.id, context);
+                            final message = await viewModel.toggleFavorite(int.parse(product.id!), context);
                             if (message != null && context.mounted) {
                               ModernSnackbar.show(
                                 context: context,
@@ -223,7 +244,7 @@ class ProductCard extends StatelessWidget {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () async {
-                        final message = await context.read<CartViewModel>().addToCart(product.id, 1, context);
+                        final message = await context.read<CartViewModel>().addToCart(int.parse(product.id!), 1, context);
                         if (message != null && context.mounted) {
                           ModernSnackbar.show(
                             context: context,

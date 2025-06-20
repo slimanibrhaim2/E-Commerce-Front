@@ -64,7 +64,7 @@ class FavoritesViewModel extends ChangeNotifier {
 
       // Clear favorites in the API
       for (final product in _favorites) {
-        await _repository.toggleFavorite(product.id);
+//        await _repository.toggleFavorite(product.id);
       }
 
       _favorites.clear();

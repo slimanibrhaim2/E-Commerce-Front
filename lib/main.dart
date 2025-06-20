@@ -33,15 +33,15 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final ApiClient apiClient;
+
   const MyApp({super.key, required this.apiClient});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<ApiClient>(
-          create: (_) => apiClient,
-        ),
+        Provider<ApiClient>.value(value: apiClient),
+        // Repositories
         Provider<ProductRepository>(
           create: (context) => ProductRepository(context.read<ApiClient>()),
         ),
@@ -54,42 +54,37 @@ class MyApp extends StatelessWidget {
         Provider<CartRepository>(
           create: (context) => CartRepository(context.read<ApiClient>()),
         ),
+        Provider<UserRepository>(
+          create: (context) => UserRepository(context.read<ApiClient>()),
+        ),
         Provider<AddressRepository>(
           create: (context) => AddressRepository(context.read<ApiClient>()),
         ),
-        ChangeNotifierProvider(
-          create: (context) => CartViewModel(
-            context.read<CartRepository>(),
-          ),
+        // ViewModels
+        ChangeNotifierProvider<ProductsViewModel>(
+          create: (context) =>
+              ProductsViewModel(context.read<ProductRepository>())..loadProducts(),
         ),
-        ChangeNotifierProvider(
-          create: (context) => ProductsViewModel(
-            context.read<ProductRepository>(),
-          )..loadProducts(),
-        ),
-        ChangeNotifierProvider(
+        ChangeNotifierProvider<CategoriesViewModel>(
           create: (context) => CategoriesViewModel(
             context.read<CategoryRepository>(),
-              context.read<ApiClient>()
+            context.read<ApiClient>(),
           )..loadCategories(),
         ),
-        ChangeNotifierProvider(
-          create: (context) => FavoritesViewModel(
-            context.read<FavoritesRepository>(),
-          ),
+        ChangeNotifierProvider<FavoritesViewModel>(
+          create: (context) =>
+              FavoritesViewModel(context.read<FavoritesRepository>()),
         ),
-        ChangeNotifierProvider(
+        ChangeNotifierProvider<CartViewModel>(
+          create: (context) => CartViewModel(context.read<CartRepository>()),
+        ),
+        ChangeNotifierProvider<AddressViewModel>(
           create: (context) => AddressViewModel(
             context.read<AddressRepository>(),
             context.read<ApiClient>(),
           ),
         ),
-        Provider<UserRepository>(
-          create: (context) => UserRepository(
-              context.read<ApiClient>()
-          ),
-        ),
-        ChangeNotifierProvider(
+        ChangeNotifierProvider<UserViewModel>(
           create: (context) => UserViewModel(
             context.read<UserRepository>(),
             context.read<ApiClient>(),

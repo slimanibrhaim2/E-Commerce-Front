@@ -1,39 +1,71 @@
 import '../core/api/api_endpoints.dart';
 import '../core/api/api_base_repository.dart' as api;
+import '../core/api/api_client.dart';
 import '../repositories/base_repository.dart';
 import '../models/product.dart';
 
 class ProductRepository extends api.ApiRepositoryBase<Product> implements BaseRepository<Product> {
   ProductRepository(super.apiClient);
 
+  Future<bool> handleBooleanApiCall(Future<bool> Function() apiCall) async {
+    try {
+      return await apiCall();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<List<Product>> getProducts() async {
     return handleListApiCall(() async {
       final response = await apiClient.get(ApiEndpoints.products);
-      if (response is List) {
+      if (response is Map<String, dynamic> &&
+          response.containsKey('data') &&
+          response['data'] is Map<String, dynamic> &&
+          response['data'].containsKey('data') &&
+          response['data']['data'] is List) {
+        final List<dynamic> productListJson = response['data']['data'];
+        return productListJson.map((json) => Product.fromJson(json)).toList();
+      } else if (response is List) {
         return response.map((json) => Product.fromJson(json)).toList();
       }
-      throw Exception('Invalid response format');
+      throw Exception('Invalid response format for getProducts');
     });
   }
 
   @override
   Future<Product?> getById(int id) async {
-    return handleApiCall(() async {
+    try {
       final response = await apiClient.get('${ApiEndpoints.productDetail}$id');
       if (response is Map<String, dynamic>) {
+        if (response.containsKey('data')) {
+          if (response['data'] is Map<String, dynamic>) {
+            return Product.fromJson(response['data']);
+          } else {
+            return null; // Product not found, data is null
+          }
+        }
+        // Unwrapped response support
         return Product.fromJson(response);
       }
-      throw Exception('Invalid response format');
-    });
+      return null;
+    } catch (e) {
+      rethrow;
+    }
   }
 
-  Future<List<Product>> getProductsByCategory(String category) async {
+  Future<List<Product>> getProductsByCategory(String categoryId) async {
     return handleListApiCall(() async {
-      final response = await apiClient.get('${ApiEndpoints.categoryProducts}$category');
-      if (response is List) {
-        return response.map((json) => Product.fromJson(json)).toList();
+      final endpoint = '${ApiEndpoints.categoryProducts}$categoryId';
+      final response = await apiClient.get(endpoint);
+      if (response is Map<String, dynamic> &&
+          response.containsKey('data') &&
+          response['data'] is Map<String, dynamic> &&
+          response['data'].containsKey('data') &&
+          response['data']['data'] is List) {
+        final List<dynamic> productListJson = response['data']['data'];
+        return productListJson.map((json) => Product.fromJson(json)).toList();
       }
-      throw Exception('Invalid response format');
+      throw Exception('Invalid response format for getProductsByCategory');
     });
   }
 
@@ -43,8 +75,17 @@ class ProductRepository extends api.ApiRepositoryBase<Product> implements BaseRe
   }
 
   @override
-  Future<Product> create(Product item) {
-    throw UnimplementedError('Create not implemented yet');
+  Future<Product> create(Product item) async {
+    return handleApiCall(() async {
+      final response = await apiClient.post(
+        ApiEndpoints.products,
+        item.toJson(),
+      );
+      if (response is Map<String, dynamic>) {
+        return Product.fromJson(response);
+      }
+      throw Exception('Invalid response format');
+    });
   }
 
   @override
@@ -62,7 +103,12 @@ class ProductRepository extends api.ApiRepositoryBase<Product> implements BaseRe
   }
 
   @override
-  Future<bool> delete(int id) {
-    throw UnimplementedError('Delete not implemented yet');
+  Future<bool> delete(int id) async {
+    try {
+      await apiClient.delete('${ApiEndpoints.productDetail}$id');
+      return true;
+    } catch (e) {
+      rethrow;
+    }
   }
 } 

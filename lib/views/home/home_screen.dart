@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../view_models/products_view_model.dart';
 import '../products/product_list/product_list_screen.dart';
 import '../products/product_list/widgets/product_card.dart';
+import '../../widgets/modern_loader.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -91,11 +92,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             Consumer<ProductsViewModel>(
                               builder: (context, viewModel, child) {
                                 if (viewModel.isLoading) {
-                                  return const SizedBox(
-                                    height: 260,
-                                    child: Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
+                                  return const Center(
+                                    child: ModernLoader(),
                                   );
                                 }
 

@@ -160,23 +160,23 @@ class CartScreen extends StatelessWidget {
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  item.product.imageUrl,
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      width: 80,
-                                      height: 80,
-                                      color: Colors.grey[200],
-                                      child: const Icon(
-                                        Icons.image_not_supported,
-                                        color: Colors.grey,
-                                      ),
-                                    );
-                                  },
-                                ),
+                                // child: Image.network(
+                                //   item.product.imageUrl,
+                                //   width: 80,
+                                //   height: 80,
+                                //   fit: BoxFit.cover,
+                                //   errorBuilder: (context, error, stackTrace) {
+                                //     return Container(
+                                //       width: 80,
+                                //       height: 80,
+                                //       color: Colors.grey[200],
+                                //       child: const Icon(
+                                //         Icons.image_not_supported,
+                                //         color: Colors.grey,
+                                //       ),
+                                //     );
+                                //   },
+                                // ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(

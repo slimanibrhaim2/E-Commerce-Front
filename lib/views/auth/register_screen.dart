@@ -10,6 +10,7 @@ import '../../core/api/api_exception.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../main_navigation_screen.dart';
 import 'package:e_commerce/views/auth/widgets/otp_dialog.dart';
+import 'package:e_commerce/widgets/modern_loader.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -254,8 +255,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('تسجيل', style: TextStyle(fontSize: 18)),
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: ModernLoader(),
+                                )
+                              : const Text('إنشاء حساب', style: TextStyle(fontSize: 18)),
                         ),
                       ),
                     ],

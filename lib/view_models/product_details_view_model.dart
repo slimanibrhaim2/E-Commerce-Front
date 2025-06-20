@@ -80,7 +80,7 @@ class ProductDetailsViewModel extends ChangeNotifier {
 
       // Get CartViewModel and add product to cart
       final cartViewModel = context.read<CartViewModel>();
-      await cartViewModel.addToCart(_product!.id, 1, context);
+      await cartViewModel.addToCart(int.parse(_product!.id!), 1, context);
     } catch (e) {
       _error = 'حدث خطأ أثناء إضافة المنتج إلى السلة';
       notifyListeners();

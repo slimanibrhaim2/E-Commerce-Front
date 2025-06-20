@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/categories_view_model.dart';
+import '../../widgets/modern_loader.dart';
 import 'widgets/category_card.dart';
 import '../services/widgets/services_tab.dart';
 
@@ -64,9 +65,7 @@ class CategoriesScreen extends StatelessWidget {
               builder: (context, viewModel, child) {
                 if (viewModel.isLoading) {
                   return const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.pink,
-                    ),
+                    child: ModernLoader(),
                   );
                 }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../widgets/modern_loader.dart';
+
 class OtpDialog extends StatefulWidget {
   final bool isLoading;
   final void Function(String otp) onSubmit;
@@ -118,14 +120,7 @@ class _OtpDialogState extends State<OtpDialog> {
                 ),
               ),
             if (widget.isLoading)
-              const Padding(
-                padding: EdgeInsets.only(top: 16.0),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
+              const ModernLoader()
           ],
         ),
         actions: [
@@ -142,20 +137,14 @@ class _OtpDialogState extends State<OtpDialog> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            onPressed: widget.isLoading
-                ? null
-                : () {
-                    final otp = _controllers.map((c) => c.text).join();
-                    if (otp.length == 4) {
-                      widget.onSubmit(otp);
-                    }
-                  },
+            onPressed: widget.isLoading ? null : () {
+              final otp = _controllers.map((c) => c.text).join();
+              if (otp.length == 4) {
+                widget.onSubmit(otp);
+              }
+            },
             child: widget.isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                ? const SizedBox(height: 20, width: 20, child: ModernLoader())
                 : const Text(
                     'تحقق',
                     style: TextStyle(

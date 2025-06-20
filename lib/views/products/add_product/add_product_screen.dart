@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
+import '../../../models/product.dart';
+import '../../../view_models/products_view_model.dart';
+import '../../../widgets/modern_snackbar.dart';
+import '../../../view_models/categories_view_model.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({Key? key}) : super(key: key);
@@ -124,14 +129,51 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement product creation with images and features
-      // For now, just show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إضافة المنتج بنجاح')),
-      );
-      Navigator.pop(context);
+      try {
+        // Create media list from selected images
+        final media = _selectedImages.map((file) => Media(
+          url: file.path, // In a real app, you'd upload this to a server
+          mediaTypeId: '1', // Assuming 1 is for images
+        )).toList();
+
+        // Create product object
+        final product = Product(
+          name: _nameController.text,
+          description: _descriptionController.text,
+          price: double.parse(_priceController.text),
+          sku: DateTime.now().millisecondsSinceEpoch.toString(), // Generate SKU
+          stockQuantity: int.parse(_quantityController.text),
+          isAvailable: true,
+          categoryId: _selectedCategory ?? '1', // Default category
+          media: media,
+        );
+
+        // Add product using view model
+        final viewModel = context.read<ProductsViewModel>();
+        final message = await viewModel.addProduct(product);
+        
+        if (message != null && context.mounted) {
+          ModernSnackbar.show(
+            context: context,
+            message: message,
+            type: viewModel.error != null ? SnackBarType.error : SnackBarType.success,
+          );
+          
+          if (viewModel.error == null) {
+            Navigator.pop(context);
+          }
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ModernSnackbar.show(
+            context: context,
+            message: 'حدث خطأ أثناء إضافة المنتج',
+            type: SnackBarType.error,
+          );
+        }
+      }
     }
   }
 
@@ -229,29 +271,38 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedCategory,
-                  decoration: const InputDecoration(
-                    labelText: 'التصنيف',
-                    labelStyle: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'electronics', child: Align(alignment: Alignment.centerRight, child: Text('إلكترونيات', textAlign: TextAlign.right))),
-                    DropdownMenuItem(value: 'clothing', child: Align(alignment: Alignment.centerRight, child: Text('ملابس', textAlign: TextAlign.right))),
-                    DropdownMenuItem(value: 'home', child: Align(alignment: Alignment.centerRight, child: Text('منزل', textAlign: TextAlign.right))),
-                    DropdownMenuItem(value: 'other', child: Align(alignment: Alignment.centerRight, child: Text('أخرى', textAlign: TextAlign.right))),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCategory = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'الرجاء اختيار التصنيف';
-                    }
-                    return null;
+                // Category Dropdown
+                Consumer<CategoriesViewModel>(
+                  builder: (context, categoriesViewModel, child) {
+                    return DropdownButtonFormField<String>(
+                      value: _selectedCategory,
+                      decoration: const InputDecoration(
+                        labelText: 'التصنيف',
+                        labelStyle: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+                        border: OutlineInputBorder(),
+                      ),
+                      items: categoriesViewModel.categories.map((category) {
+                        return DropdownMenuItem<String>(
+                          value: category.id,
+                          child: Text(
+                            category.name,
+                            style: const TextStyle(fontFamily: 'Cairo'),
+                            textAlign: TextAlign.right,
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedCategory = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'الرجاء اختيار التصنيف';
+                        }
+                        return null;
+                      },
+                    );
                   },
                 ),
                 const SizedBox(height: 16),

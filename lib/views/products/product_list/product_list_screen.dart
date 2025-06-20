@@ -5,6 +5,7 @@ import '../../../view_models/products_view_model.dart';
 import '../../cart/cart_screen.dart';
 import '../../favorites/favorites_screen.dart';
 import '../../../models/category.dart';
+import '../../../widgets/modern_loader.dart';
 
 class ProductListScreen extends StatefulWidget {
   final Category? category;
@@ -25,7 +26,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     // Load products when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductsViewModel>().loadProducts(
-            category: widget.category?.name,
+            category: widget.category?.id,
           );
     });
   }
@@ -78,7 +79,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           builder: (context, viewModel, child) {
             if (viewModel.isLoading) {
               return const Center(
-                child: CircularProgressIndicator(),
+                child: ModernLoader(),
               );
             }
 
@@ -97,7 +98,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => viewModel.loadProducts(
-                        category: widget.category?.name,
+                        category: widget.category?.id,
                       ),
                       child: const Text(
                         'إعادة المحاولة',
@@ -134,7 +135,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
                 return RefreshIndicator(
                   onRefresh: () => viewModel.loadProducts(
-                    category: widget.category?.name,
+                    category: widget.category?.id,
                   ),
                   child: GridView.builder(
                     padding: EdgeInsets.all(padding),

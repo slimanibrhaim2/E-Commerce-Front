@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:e_commerce/widgets/modern_loader.dart';
 
 class AddressSelectionScreen extends StatefulWidget {
   const AddressSelectionScreen({Key? key}) : super(key: key);
@@ -16,6 +17,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   String? _address;
   bool _isLoading = false;
   String? _locationName;
+  String? _errorMessage;
 
   // Default center (you can change this to your app's default location)
   final LatLng _defaultCenter = LatLng(33.5138, 36.2765); // Damascus coordinates
@@ -41,9 +43,10 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
+        _errorMessage = 'حدث خطأ أثناء جلب العنوان';
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('حدث خطأ أثناء جلب العنوان')),
+        SnackBar(content: Text(_errorMessage!)),
       );
     }
   }
@@ -144,7 +147,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
           ),
           centerTitle: true,
         ),
-        body: Column(
+        body: Stack(
           children: [
             Expanded(
               child: FlutterMap(
@@ -183,6 +186,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                 ],
               ),
             ),
+            if (_isLoading)
+              const Center(child: ModernLoader()),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -199,7 +204,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (_isLoading)
-                    const Center(child: CircularProgressIndicator())
+                    const Center(child: ModernLoader())
                   else if (_address != null)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -251,6 +256,26 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                 ],
               ),
             ),
+            if (_errorMessage != null)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  color: Colors.black.withOpacity(0.5),
+                  child: Center(
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

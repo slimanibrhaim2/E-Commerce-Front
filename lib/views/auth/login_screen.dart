@@ -5,6 +5,7 @@ import '../../view_models/user_view_model.dart';
 import '../../widgets/modern_snackbar.dart';
 import '../main_navigation_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../widgets/modern_loader.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? initialPhoneNumber;
@@ -204,12 +205,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _isLoading ? null : _sendOtp,
                       child: _isLoading
                           ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              width: 24,
+                              height: 24,
+                              child: ModernLoader(),
                             )
                           : const Text(
-                              'إرسال رمز التحقق',
+                              'إرسال الرمز',
                               style: TextStyle(
                                 fontFamily: 'Cairo',
                                 fontSize: 16,
