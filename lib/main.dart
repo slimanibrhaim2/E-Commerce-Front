@@ -70,6 +70,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => CategoriesViewModel(
             context.read<CategoryRepository>(),
+              context.read<ApiClient>()
           )..loadCategories(),
         ),
         ChangeNotifierProvider(
@@ -84,7 +85,9 @@ class MyApp extends StatelessWidget {
           ),
         ),
         Provider<UserRepository>(
-          create: (context) => UserRepository(context.read<ApiClient>()),
+          create: (context) => UserRepository(
+              context.read<ApiClient>()
+          ),
         ),
         ChangeNotifierProvider(
           create: (context) => UserViewModel(

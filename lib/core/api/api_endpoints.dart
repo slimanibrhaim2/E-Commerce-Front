@@ -8,7 +8,7 @@ class ApiEndpoints {
   static const String productDetail = '/products/'; // Append product ID
   
   // Category endpoints
-  static const String categories = '/products/categories';
+  static const String categories = '/api/Category';
   static const String categoryProducts = '/products/category/'; // Append category name
 
   // Favorites endpoints

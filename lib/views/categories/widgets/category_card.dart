@@ -52,14 +52,14 @@ class CategoryCard extends StatelessWidget {
   }
 
   Widget _buildCategoryImage() {
-    if (category.image.isEmpty || !category.image.startsWith('http')) {
+    if (category.imageUrl.isEmpty || !category.imageUrl.startsWith('http')) {
       return const Icon(Icons.category, size: 50);
     }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Image.network(
-        category.image,
+        category.imageUrl,
         width: 50,
         height: 50,
         fit: BoxFit.cover,

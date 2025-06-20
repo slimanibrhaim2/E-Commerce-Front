@@ -1,6 +1,6 @@
 import '../core/api/api_client.dart';
 import '../models/address.dart';
-import '../models/api_response.dart';
+import '../core/api/api_response.dart';
 import '../core/api/api_endpoints.dart';
 
 class AddressRepository {

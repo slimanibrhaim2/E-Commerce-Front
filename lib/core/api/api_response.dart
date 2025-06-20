@@ -1,4 +1,4 @@
-import 'user.dart';
+import '../../models/user.dart';
 
 class ApiResponse<T> {
   final T? data;
@@ -22,4 +22,4 @@ class ApiResponse<T> {
       resultStatus: json['resultStatus'] as int?,
     );
   }
-} 
+}
