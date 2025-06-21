@@ -9,10 +9,13 @@ import 'home/home_screen.dart';
 import 'categories/categories_screen.dart';
 import 'profile/profile_screen.dart';
 import 'products/add_product/add_product_screen.dart';
+import '../view_models/user_view_model.dart';
+import '../widgets/modern_snackbar.dart';
 
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({Key? key}) : super(key: key);
+  final int initialIndex;
+  const MainNavigationScreen({Key? key, this.initialIndex = 4}) : super(key: key);
 
   static void setTab(int index) {
     _MainNavigationScreenState.currentIndex = index;
@@ -24,6 +27,12 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   static int currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    currentIndex = widget.initialIndex;
+  }
 
   void _setTab(int index) {
     setState(() {
@@ -70,12 +79,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AddProductScreen(),
-                      ),
-                    );
+                    final userViewModel = context.read<UserViewModel>();
+                    
+                    if (userViewModel.isLoggedIn) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddProductScreen(),
+                        ),
+                      );
+                    } else {
+                      ModernSnackbar.show(
+                        context: context,
+                        message: 'الرجاء تسجيل الدخول أولاً للمتابعة',
+                        type: SnackBarType.error,
+                      );
+                      Navigator.of(context).pushNamed('/login');
+                    }
                   },
                 ),
                 const SizedBox(height: 8),

@@ -28,6 +28,7 @@ class UserViewModel extends ChangeNotifier {
   String? get phoneNumber => _phoneNumber;
   String? get jwt => _jwt;
   LoginStep get loginStep => _loginStep;
+  bool get isLoggedIn => _jwt != null;
 
   Future<String?> loadUserProfile() async {
     try {
@@ -211,5 +212,16 @@ class UserViewModel extends ChangeNotifier {
     notifyListeners();
     // Also clear from secure storage if needed
     // (Handled in UI for now)
+  }
+
+  void setJwt(String? token) {
+    _jwt = token;
+    _repository.setToken(token);
+    notifyListeners();
+  }
+
+  // Load JWT from storage and set it
+  Future<void> loadJwt() async {
+    // ... existing code ...
   }
 } 

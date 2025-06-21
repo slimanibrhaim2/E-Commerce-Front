@@ -3,8 +3,9 @@ import '../core/api/api_base_repository.dart' as api;
 import '../core/api/api_client.dart';
 import '../repositories/base_repository.dart';
 import '../models/product.dart';
+import '../core/api/api_response.dart';
 
-class ProductRepository extends api.ApiRepositoryBase<Product> implements BaseRepository<Product> {
+class ProductRepository extends api.ApiRepositoryBase<Product> {
   ProductRepository(super.apiClient);
 
   Future<bool> handleBooleanApiCall(Future<bool> Function() apiCall) async {
@@ -69,26 +70,25 @@ class ProductRepository extends api.ApiRepositoryBase<Product> implements BaseRe
     });
   }
 
-  @override
   Future<List<Product>> getAll() async {
     return getProducts();
   }
 
-  @override
-  Future<Product> create(Product item) async {
-    return handleApiCall(() async {
-      final response = await apiClient.post(
-        ApiEndpoints.products,
-        item.toJson(),
-      );
-      if (response is Map<String, dynamic>) {
-        return Product.fromJson(response);
-      }
-      throw Exception('Invalid response format');
-    });
+  Future<ApiResponse<Product>> create(Product item) async {
+    final response = await apiClient.post(
+      ApiEndpoints.aggregateProduct,
+      item.toJson(),
+    );
+
+    final newProduct = item.copyWith(id: response['data']);
+    
+    return ApiResponse(
+      data: newProduct,
+      success: response['success'],
+      message: response['message'],
+    );
   }
 
-  @override
   Future<Product> update(Product item) async {
     return handleApiCall(() async {
       final response = await apiClient.post(
@@ -102,7 +102,6 @@ class ProductRepository extends api.ApiRepositoryBase<Product> implements BaseRe
     });
   }
 
-  @override
   Future<bool> delete(int id) async {
     try {
       await apiClient.delete('${ApiEndpoints.productDetail}$id');

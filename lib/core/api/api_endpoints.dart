@@ -4,8 +4,8 @@ class ApiEndpoints {
   static const String baseUrl = ApiConfig.baseUrl;
   
   // Product endpoints
-  static const String products = '/products';
-  static const String productDetail = '/products/'; // Append product ID
+  static const String products = '/api/products';
+  static const String productDetail = '/api/products/'; // Append product ID
   
   // Category endpoints
   static const String categories = '/api/Category';
@@ -33,7 +33,7 @@ class ApiEndpoints {
   static const String addressDetail = '/api/addresses/'; // Append address ID
 
   // Aggregate product endpoint
-  static const String aggregateProduct = '/products/aggregate';
+  static const String aggregateProduct = '/api/products/aggregate';
 
   // New endpoints for register and verify-otp
   static const String register = '/api/Auth/register';

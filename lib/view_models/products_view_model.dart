@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../repositories/product_repository.dart';
+import '../core/api/api_response.dart';
 
 class ProductsViewModel extends ChangeNotifier {
   final ProductRepository _repository;
@@ -71,18 +72,24 @@ class ProductsViewModel extends ChangeNotifier {
     }
   }
 
-  Future<String?> addProduct(Product product) async {
+  Future<ApiResponse<Product?>> addProduct(Product product) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
 
-      await _repository.create(product);
-      await loadProducts();
-      return 'تم إضافة المنتج بنجاح';
+      final response = await _repository.create(product);
+
+      if (response.success) {
+        await loadProducts(); 
+      } else {
+        _error = response.message;
+      }
+      return response;
     } catch (e) {
+      print('ProductsViewModel addProduct Exception: $e');
       _error = e.toString().replaceAll('Exception: ', '');
-      return _error;
+      return ApiResponse(success: false, message: _error);
     } finally {
       _isLoading = false;
       notifyListeners();

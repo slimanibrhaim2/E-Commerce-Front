@@ -68,8 +68,10 @@ class ApiClient {
       );
       return _handleResponse(response);
     } on http.ClientException catch (e) {
+      print('ApiClient POST ClientException: $e');
       throw ApiException.connectionError();
     } catch (e) {
+      print('ApiClient POST Generic Exception: $e');
       if (e is ApiException) rethrow;
       throw ApiException.serverError('فشل في إرسال البيانات. يرجى المحاولة مرة أخرى لاحقاً.');
     }

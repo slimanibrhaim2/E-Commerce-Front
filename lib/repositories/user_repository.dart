@@ -9,6 +9,10 @@ class UserRepository {
 
   UserRepository(this.apiClient);
 
+  void setToken(String? token) {
+    apiClient.setToken(token);
+  }
+
   // Upload profile image
   Future<ApiResponse<String>> uploadProfileImage(File imageFile) async {
     try {

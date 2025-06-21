@@ -6,6 +6,7 @@ import '../../../models/product.dart';
 import '../../../view_models/products_view_model.dart';
 import '../../../widgets/modern_snackbar.dart';
 import '../../../view_models/categories_view_model.dart';
+import '../../../views/main_navigation_screen.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({Key? key}) : super(key: key);
@@ -132,11 +133,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       try {
-        // Create media list from selected images
-        final media = _selectedImages.map((file) => Media(
-          url: file.path, // In a real app, you'd upload this to a server
-          mediaTypeId: '1', // Assuming 1 is for images
-        )).toList();
+        // TODO: Implement image upload and use the returned URLs.
+        // For now, we send an empty list of media.
+        final List<Media> media = [];
 
         // Create product object
         final product = Product(
@@ -152,17 +151,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
         // Add product using view model
         final viewModel = context.read<ProductsViewModel>();
-        final message = await viewModel.addProduct(product);
+        final response = await viewModel.addProduct(product);
         
-        if (message != null && context.mounted) {
+        if (context.mounted) {
           ModernSnackbar.show(
             context: context,
-            message: message,
-            type: viewModel.error != null ? SnackBarType.error : SnackBarType.success,
+            message: response.message ?? 'An unknown error occurred.',
+            type: response.success ? SnackBarType.success : SnackBarType.error,
           );
           
-          if (viewModel.error == null) {
-            Navigator.pop(context);
+          if (response.success) {
+            // Navigate to home screen and remove all previous routes
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => MainNavigationScreen(initialIndex: 4)), // 4 is the index for Home
+              (Route<dynamic> route) => false,
+            );
           }
         }
       } catch (e) {
