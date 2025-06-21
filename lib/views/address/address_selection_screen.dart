@@ -149,111 +149,116 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
         ),
         body: Stack(
           children: [
-            Expanded(
-              child: FlutterMap(
-                mapController: _mapController,
-                options: MapOptions(
-                  center: _defaultCenter,
-                  zoom: 13.0,
-                  onTap: (tapPosition, point) {
-                    setState(() {
-                      _selectedLocation = point;
-                    });
-                    _getAddressFromLatLng(point);
-                  },
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.example.e_commerce',
-                  ),
-                  if (_selectedLocation != null)
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: _selectedLocation!,
-                          width: 40,
-                          height: 40,
-                          alignment: Alignment.center,
-                          child: const Icon(
-                            Icons.location_on,
-                            color: Colors.red,
-                            size: 40,
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
+            FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                center: _defaultCenter,
+                zoom: 13.0,
+                onTap: (tapPosition, point) {
+                  setState(() {
+                    _selectedLocation = point;
+                  });
+                  _getAddressFromLatLng(point);
+                },
               ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.example.e_commerce',
+                ),
+                if (_selectedLocation != null)
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: _selectedLocation!,
+                        width: 40,
+                        height: 40,
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.location_on,
+                          color: Colors.red,
+                          size: 40,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
             ),
             if (_isLoading)
               const Center(child: ModernLoader()),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (_isLoading)
-                    const Center(child: ModernLoader())
-                  else if (_address != null)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          _address!,
-                          style: const TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        if (_selectedLocation != null)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (_isLoading)
+                      const Center(child: ModernLoader())
+                    else if (_address != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
                           Text(
-                            'خط العرض: ${_selectedLocation!.latitude.toStringAsFixed(6)}\nخط الطول: ${_selectedLocation!.longitude.toStringAsFixed(6)}',
+                            _address!,
                             style: const TextStyle(
                               fontFamily: 'Cairo',
-                              fontSize: 14,
-                              color: Colors.grey,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                      ],
-                    ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _selectedLocation != null && _address != null
-                          ? _promptForNameAndSave
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pink,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          const SizedBox(height: 8),
+                          if (_selectedLocation != null)
+                            Text(
+                              'خط العرض: ${_selectedLocation!.latitude.toStringAsFixed(6)}\nخط الطول: ${_selectedLocation!.longitude.toStringAsFixed(6)}',
+                              style: const TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                        ],
+                      ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _selectedLocation != null && _address != null
+                            ? _promptForNameAndSave
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.pink,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'حفظ العنوان',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontFamily: 'Cairo',
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        'حفظ العنوان',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontFamily: 'Cairo',
-                          color: Colors.white,
-                        ),
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             if (_errorMessage != null)

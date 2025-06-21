@@ -6,6 +6,7 @@ import '../../widgets/modern_snackbar.dart';
 import 'address_selection_screen.dart';
 import 'view_address_on_map_screen.dart';
 import '../../widgets/modern_loader.dart';
+import '../../view_models/user_view_model.dart';
 
 class AddressesScreen extends StatefulWidget {
   const AddressesScreen({Key? key}) : super(key: key);
@@ -21,7 +22,9 @@ class _AddressesScreenState extends State<AddressesScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final addressViewModel = context.watch<AddressViewModel>();
-    if (!_didFetch && !addressViewModel.isLoading) {
+    final userViewModel = context.watch<UserViewModel>();
+    
+    if (!_didFetch && !addressViewModel.isLoading && userViewModel.isLoggedIn) {
       _didFetch = true;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final message = await addressViewModel.loadAddresses();
@@ -75,6 +78,8 @@ class _AddressesScreenState extends State<AddressesScreen> {
   Widget build(BuildContext context) {
     final addressViewModel = context.watch<AddressViewModel>();
     final addresses = addressViewModel.addresses;
+    final userViewModel = context.watch<UserViewModel>();
+    final isLoggedIn = userViewModel.isLoggedIn;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -88,6 +93,26 @@ class _AddressesScreenState extends State<AddressesScreen> {
         ),
         body: Consumer<AddressViewModel>(
           builder: (context, viewModel, child) {
+            if (!isLoggedIn) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.login, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'الرجاء تسجيل الدخول لعرض عناوينك',
+                      style: TextStyle(fontSize: 18, fontFamily: 'Cairo'),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pushNamed('/login'),
+                      child: const Text('تسجيل الدخول'),
+                    ),
+                  ],
+                ),
+              );
+            }
             if (viewModel.isLoading && viewModel.addresses.isEmpty) {
               return const Center(child: ModernLoader());
             }

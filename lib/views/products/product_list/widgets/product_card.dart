@@ -17,6 +17,48 @@ class ProductCard extends StatelessWidget {
     required this.product,
   });
 
+  String _formatPrice(double price) {
+    String priceString = price.toStringAsFixed(0);
+    if (priceString.length > 7) {
+      priceString = '${priceString.substring(0, 7)}...';
+    }
+    return '$priceString ل.س';
+  }
+
+  Widget _buildStockInfo(BuildContext context) {
+    final textStyle = const TextStyle(fontSize: 10, fontFamily: 'Cairo', fontWeight: FontWeight.bold);
+    
+    if (!product.isAvailable || product.stockQuantity <= 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.red.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          'نفذت الكمية',
+          style: textStyle.copyWith(color: Colors.red),
+        ),
+      );
+    }
+
+    final String stockText = product.stockQuantity > 20 
+      ? 'متوفر +20' 
+      : 'متوفر ${product.stockQuantity}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.green.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        stockText,
+        style: textStyle.copyWith(color: Colors.green),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -128,18 +170,28 @@ class ProductCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              product.name,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Cairo',
-                                color: Color(0xFF2D3436),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.right,
-                              textDirection: TextDirection.rtl,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    product.name,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Cairo',
+                                      color: Color(0xFF2D3436),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.right,
+                                    textDirection: TextDirection.rtl,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                _buildStockInfo(context),
+                              ],
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -158,29 +210,27 @@ class ProductCard extends StatelessWidget {
                             const Spacer(),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    'متوفر',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 10,
-                                      fontFamily: 'Cairo',
-                                    ),
-                                    textAlign: TextAlign.right,
-                                    textDirection: TextDirection.rtl,
+                                InkWell(
+                                  onTap: () async {
+                                    final message = await context.read<CartViewModel>().addToCart(int.parse(product.id!), 1, context);
+                                    if (message != null && context.mounted) {
+                                      ModernSnackbar.show(
+                                        context: context,
+                                        message: message,
+                                        type: context.read<CartViewModel>().error != null ? SnackBarType.error : SnackBarType.success,
+                                      );
+                                    }
+                                  },
+                                  child: const Icon(
+                                    Icons.add_shopping_cart,
+                                    color: Colors.grey,
+                                    size: 22,
                                   ),
                                 ),
                                 Text(
-                                  '${product.price} ل.س',
+                                  _formatPrice(product.price),
                                   style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
@@ -235,38 +285,6 @@ class ProductCard extends StatelessWidget {
                         ),
                       );
                     },
-                  ),
-                ),
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () async {
-                        final message = await context.read<CartViewModel>().addToCart(int.parse(product.id!), 1, context);
-                        if (message != null && context.mounted) {
-                          ModernSnackbar.show(
-                            context: context,
-                            message: message,
-                            type: context.read<CartViewModel>().error != null ? SnackBarType.error : SnackBarType.success,
-                          );
-                        }
-                      },
-                      customBorder: const CircleBorder(),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.shopping_cart,
-                          color: Colors.black,
-                          size: 18,
-                        ),
-                      ),
-                    ),
                   ),
                 ),
               ],
