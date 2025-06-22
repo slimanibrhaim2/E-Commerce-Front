@@ -8,6 +8,7 @@ class Product {
   final bool isAvailable;
   final String categoryId;
   final List<Media> media;
+  final List<Feature> features;
 
   // Optional UI-only fields
   final String? imageUrl;
@@ -24,6 +25,7 @@ class Product {
     required this.isAvailable,
     required this.categoryId,
     required this.media,
+    required this.features,
     this.imageUrl,
     this.category,
     this.isFavorite = false,
@@ -39,9 +41,12 @@ class Product {
       stockQuantity: json['stockQuantity'],
       isAvailable: json['isAvailable'],
       categoryId: json['categoryId'],
-      media: (json['media'] as List)
-          .map((m) => Media.fromJson(m))
-          .toList(),
+      media: (json['media'] as List?)
+          ?.map((m) => Media.fromJson(m))
+          .toList() ?? [],
+      features: (json['features'] as List?)
+          ?.map((f) => Feature.fromJson(f))
+          .toList() ?? [],
       imageUrl: json['imageUrl'], // Optional
       category: json['category'], // Optional
       isFavorite: json['isFavorite'] ?? false,
@@ -57,6 +62,7 @@ class Product {
     'isAvailable': isAvailable,
     'categoryId': categoryId,
     'media': media.map((m) => m.toJson()).toList(),
+    'features': features.map((f) => f.toJson()).toList(),
   };
 
   Product copyWith({
@@ -69,6 +75,7 @@ class Product {
     bool? isAvailable,
     String? categoryId,
     List<Media>? media,
+    List<Feature>? features,
     String? imageUrl,
     String? category,
     bool? isFavorite,
@@ -83,6 +90,7 @@ class Product {
       isAvailable: isAvailable ?? this.isAvailable,
       categoryId: categoryId ?? this.categoryId,
       media: media ?? this.media,
+      features: features ?? this.features,
       imageUrl: imageUrl ?? this.imageUrl,
       category: category ?? this.category,
       isFavorite: isFavorite ?? this.isFavorite,
@@ -106,4 +114,60 @@ class Media {
     url: json['url'],
     mediaTypeId: json['mediaTypeId'],
   );
+}
+
+class Feature {
+  final String? id;
+  final String name;
+  final String value;
+  final String? productId;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  Feature({
+    this.id,
+    required this.name,
+    required this.value,
+    this.productId,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory Feature.fromJson(Map<String, dynamic> json) {
+    return Feature(
+      id: json['id'],
+      name: json['name'],
+      value: json['value'],
+      productId: json['productId'],
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
+      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    if (id != null) 'id': id,
+    'name': name,
+    'value': value,
+    if (productId != null) 'productId': productId,
+    if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
+    if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+  };
+
+  Feature copyWith({
+    String? id,
+    String? name,
+    String? value,
+    String? productId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Feature(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      value: value ?? this.value,
+      productId: productId ?? this.productId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }

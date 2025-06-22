@@ -147,6 +147,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
           isAvailable: true,
           categoryId: _selectedCategory ?? '1', // Default category
           media: media,
+          features: _features.map((f) => Feature(
+            name: f['name']!,
+            value: f['value']!,
+          )).toList(),
         );
 
         // Add product using view model

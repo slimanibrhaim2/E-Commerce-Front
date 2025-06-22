@@ -34,7 +34,7 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
   }
 
   @override
-  Future<Product?> getById(int id) async {
+  Future<Product?> getById(String id) async {
     try {
       final response = await apiClient.get('${ApiEndpoints.productDetail}$id');
       if (response is Map<String, dynamic>) {

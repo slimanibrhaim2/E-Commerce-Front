@@ -24,7 +24,7 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
     });
   }
 
-  Future<CartItem> addToCart(int productId, int quantity) async {
+  Future<CartItem> addToCart(String productId, int quantity) async {
     return handleApiCall(() async {
       final response = await apiClient.post(
         ApiEndpoints.cart,

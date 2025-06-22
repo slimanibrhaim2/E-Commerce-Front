@@ -83,7 +83,7 @@ class ProductCard extends StatelessWidget {
                     create: (context) => ProductDetailsViewModel(
                       context.read<ProductsViewModel>().repository,
                     ),
-                    child: ProductDetailScreen(productId: int.parse(product.id!)),
+                    child: ProductDetailScreen(productId: product.id!),
                   ),
                 ),
               );
@@ -214,7 +214,7 @@ class ProductCard extends StatelessWidget {
                               children: [
                                 InkWell(
                                   onTap: () async {
-                                    final message = await context.read<CartViewModel>().addToCart(int.parse(product.id!), 1, context);
+                                    final message = await context.read<CartViewModel>().addToCart(product.id!, 1, context);
                                     if (message != null && context.mounted) {
                                       ModernSnackbar.show(
                                         context: context,
@@ -258,7 +258,7 @@ class ProductCard extends StatelessWidget {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () async {
-                            final message = await viewModel.toggleFavorite(int.parse(product.id!), context);
+                            final message = await viewModel.toggleFavorite(product.id!, context);
                             if (message != null && context.mounted) {
                               ModernSnackbar.show(
                                 context: context,

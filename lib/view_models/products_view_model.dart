@@ -40,7 +40,7 @@ class ProductsViewModel extends ChangeNotifier {
     }
   }
 
-  Future<String?> toggleFavorite(int productId, BuildContext context) async {
+  Future<String?> toggleFavorite(String productId, BuildContext context) async {
     try {
       final product = _products.firstWhere((p) => p.id == productId);
       final updatedProduct = product.copyWith(isFavorite: !product.isFavorite);

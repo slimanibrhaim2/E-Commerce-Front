@@ -39,7 +39,7 @@ class CartViewModel extends ChangeNotifier {
     }
   }
 
-  Future<String?> addToCart(int productId, int quantity, BuildContext context) async {
+  Future<String?> addToCart(String productId, int quantity, BuildContext context) async {
     try {
       _isLoading = true;
       notifyListeners();
@@ -107,11 +107,11 @@ class CartViewModel extends ChangeNotifier {
     }
   }
 
-  bool isInCart(int productId) {
+  bool isInCart(String productId) {
     return _cartItems.any((item) => item.product.id == productId);
   }
 
-  int getItemQuantity(int productId) {
+  int getItemQuantity(String productId) {
     final item = _cartItems.firstWhere(
       (item) => item.product.id == productId,
       orElse: () => CartItem(
@@ -121,15 +121,12 @@ class CartViewModel extends ChangeNotifier {
           name: '',
           description: '',
           price: 0,
-          imageUrl: '',
-          category: '',
-          isFavorite: false,
           sku: '',
           stockQuantity: 0,
           isAvailable: false,
           categoryId: '',
           media: [],
-//          features: [],
+          features: [],
         ),
         quantity: 0,
         totalPrice: 0,
