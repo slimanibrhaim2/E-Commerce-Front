@@ -46,9 +46,8 @@ class CartViewModel extends ChangeNotifier {
 
       final cartItem = await _repository.addToCart(productId, quantity);
       _cartItems.add(cartItem);
-      
-      // Return success message from backend or default
-      return 'تمت إضافة المنتج إلى السلة بنجاح';
+      // No backend message available here
+      return null;
     } catch (e) {
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       _error = errorMessage;
@@ -67,7 +66,8 @@ class CartViewModel extends ChangeNotifier {
         _cartItems[index] = updatedItem;
         notifyListeners();
       }
-      return 'تم تحديث الكمية بنجاح';
+      // No backend message available here
+      return null;
     } catch (e) {
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       _error = errorMessage;
@@ -80,30 +80,12 @@ class CartViewModel extends ChangeNotifier {
       await _repository.removeFromCart(itemId);
       _cartItems.removeWhere((item) => item.id == itemId);
       notifyListeners();
-      return 'تمت إزالة المنتج من السلة بنجاح';
+      // No backend message for delete, return null
+      return null;
     } catch (e) {
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       _error = errorMessage;
       return errorMessage;
-    }
-  }
-
-  Future<String?> clearCart(BuildContext context) async {
-    try {
-      _isLoading = true;
-      notifyListeners();
-
-      await _repository.clearCart();
-      _cartItems.clear();
-      
-      return 'تم تفريغ السلة بنجاح';
-    } catch (e) {
-      final errorMessage = e.toString().replaceAll('Exception: ', '');
-      _error = errorMessage;
-      return errorMessage;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 
@@ -133,5 +115,26 @@ class CartViewModel extends ChangeNotifier {
       ),
     );
     return item.quantity;
+  }
+
+  Future<Map<String, dynamic>> addItemToCart(String itemId, int quantity, BuildContext context) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final response = await _repository.addItemToCart(itemId, quantity);
+      if (response.success) {
+        // Optionally reload cart items here if needed
+        await loadCart();
+      }
+      return {'message': response.message, 'success': response.success};
+    } catch (e) {
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = errorMessage;
+      return {'message': errorMessage, 'success': false};
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 } 

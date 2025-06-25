@@ -2,6 +2,7 @@ import '../core/api/api_endpoints.dart';
 import '../core/api/api_base_repository.dart' as api;
 import '../repositories/base_repository.dart';
 import '../models/cart_item.dart';
+import '../core/api/api_response.dart';
 
 class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepository<CartItem> {
   CartRepository(super.apiClient);
@@ -16,7 +17,7 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
 
   Future<List<CartItem>> getCart() async {
     return handleListApiCall(() async {
-      final response = await apiClient.get(ApiEndpoints.cart);
+      final response = await apiClient.get(ApiEndpoints.myCart);
       if (response is List) {
         return response.map((json) => CartItem.fromJson(json)).toList();
       }
@@ -27,7 +28,7 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
   Future<CartItem> addToCart(String productId, int quantity) async {
     return handleApiCall(() async {
       final response = await apiClient.post(
-        ApiEndpoints.cart,
+        ApiEndpoints.addCartItem,
         {
           'productId': productId,
           'quantity': quantity,
@@ -42,9 +43,10 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
 
   Future<CartItem> updateCartItem(int itemId, int quantity) async {
     return handleApiCall(() async {
-      final response = await apiClient.post(
-        '${ApiEndpoints.updateCartItem}$itemId',
+      final response = await apiClient.put(
+        ApiEndpoints.updateCartItem,
         {
+          'itemId': itemId,
           'quantity': quantity,
         },
       );
@@ -52,24 +54,6 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
         return CartItem.fromJson(response);
       }
       throw Exception('Invalid response format');
-    });
-  }
-
-  Future<void> removeFromCart(int itemId) async {
-    await handleVoidApiCall(() async {
-      await apiClient.post(
-        '${ApiEndpoints.removeCartItem}$itemId',
-        {},
-      );
-    });
-  }
-
-  Future<void> clearCart() async {
-    await handleVoidApiCall(() async {
-      await apiClient.post(
-        ApiEndpoints.clearCart,
-        {},
-      );
     });
   }
 
@@ -96,5 +80,25 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
   @override
   Future<bool> delete(int id) {
     throw UnimplementedError('Use removeFromCart instead');
+  }
+
+  Future<ApiResponse<String>> addItemToCart(String itemId, int quantity) async {
+    final response = await apiClient.post(
+      ApiEndpoints.addCartItem,
+      {
+        'itemId': itemId,
+        'quantity': quantity,
+      },
+    );
+    return ApiResponse<String>(
+      data: response['data'] as String?,
+      message: response['message'] as String?,
+      success: response['success'] ?? false,
+      resultStatus: response['resultStatus'] as int?,
+    );
+  }
+
+  Future<void> removeFromCart(int itemId) async {
+    await apiClient.delete('${ApiEndpoints.removeCartItem}$itemId');
   }
 } 

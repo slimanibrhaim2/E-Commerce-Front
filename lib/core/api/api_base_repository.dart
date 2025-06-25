@@ -1,5 +1,5 @@
 import 'api_client.dart';
-
+//abstract class for a reusable and sturctured way to handle api call
 abstract class ApiRepositoryBase<T> {
   final ApiClient apiClient;
 

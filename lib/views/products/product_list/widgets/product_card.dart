@@ -7,6 +7,7 @@ import '../../../../view_models/products_view_model.dart';
 import '../../../../widgets/modern_loader.dart';
 import '../../../../widgets/modern_snackbar.dart';
 import '../../product_detail/product_detail_screen.dart';
+import '../../../../view_models/user_view_model.dart';
 
 
 class ProductCard extends StatelessWidget {
@@ -214,12 +215,23 @@ class ProductCard extends StatelessWidget {
                               children: [
                                 InkWell(
                                   onTap: () async {
-                                    final message = await context.read<CartViewModel>().addToCart(product.id!, 1, context);
+                                    final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+                                    if (!userViewModel.isLoggedIn) {
+                                      ModernSnackbar.show(
+                                        context: context,
+                                        message: 'يجب تسجيل الدخول لإضافة منتجات إلى السلة',
+                                        type: SnackBarType.error,
+                                      );
+                                      return;
+                                    }
+                                    final result = await context.read<CartViewModel>().addItemToCart(product.id!, 1, context);
+                                    final message = result['message'] as String?;
+                                    final success = result['success'] as bool? ?? false;
                                     if (message != null && context.mounted) {
                                       ModernSnackbar.show(
                                         context: context,
                                         message: message,
-                                        type: context.read<CartViewModel>().error != null ? SnackBarType.error : SnackBarType.success,
+                                        type: success ? SnackBarType.success : SnackBarType.error,
                                       );
                                     }
                                   },

@@ -6,7 +6,7 @@ class Address {
   final String? address;
   final double? latitude;
   final double? longitude;
-  final String? userId;
+//  final String? userId;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -16,7 +16,7 @@ class Address {
     this.address,
     this.latitude,
     this.longitude,
-    this.userId,
+//    this.userId,
     this.createdAt,
     this.updatedAt,
   });
@@ -28,7 +28,7 @@ class Address {
       address: json['address'] as String?,
       latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
       longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
-      userId: json['userId'] as String?,
+//      userId: json['userId'] as String?,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
     );
@@ -41,7 +41,7 @@ class Address {
       if (address != null) 'address': address,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
-      if (userId != null) 'userId': userId,
+//      if (userId != null) 'userId': userId,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
     };
@@ -63,7 +63,7 @@ class Address {
       address: address ?? this.address,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
-      userId: userId ?? this.userId,
+//      userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

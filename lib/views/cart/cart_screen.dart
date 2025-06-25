@@ -25,56 +25,7 @@ class CartScreen extends StatelessWidget {
             Consumer<CartViewModel>(
               builder: (context, cart, child) {
                 if (cart.cartItems.isEmpty) return const SizedBox.shrink();
-                return IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => Directionality(
-                        textDirection: TextDirection.rtl,
-                        child: AlertDialog(
-                          title: const Text(
-                            'تفريغ السلة',
-                            style: TextStyle(fontFamily: 'Cairo'),
-                          ),
-                          content: const Text(
-                            'هل أنت متأكد من رغبتك في تفريغ السلة؟',
-                            style: TextStyle(fontFamily: 'Cairo'),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text(
-                                'إلغاء',
-                                style: TextStyle(fontFamily: 'Cairo'),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.pop(context);
-                                final message = await cart.clearCart(context);
-                                if (message != null && context.mounted) {
-                                  ModernSnackbar.show(
-                                    context: context,
-                                    message: message,
-                                    type: cart.error != null ? SnackBarType.error : SnackBarType.success,
-                                  );
-                                }
-                              },
-                              child: const Text(
-                                'تفريغ',
-                                style: TextStyle(
-                                  fontFamily: 'Cairo',
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
+                return SizedBox.shrink();
               },
             ),
           ],

@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../../../view_models/product_details_view_model.dart';
 import '../../../widgets/modern_loader.dart';
+import '../../../view_models/cart_view_model.dart';
+import '../../../widgets/modern_snackbar.dart';
+import '../../../view_models/user_view_model.dart';
 
 
 class ProductDetailScreen extends StatefulWidget {
@@ -162,28 +165,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             color: Color(0xFF2D3436),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        // Rating Section
-                        Row(
-                          children: [
-                            Row(
-                              children: List.generate(5, (index) => Icon(
-                                index < 4 ? Icons.star : Icons.star_border, // 4 stars for demo
-                                color: Colors.amber,
-                                size: 20,
-                              )),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '4.0 (12 تقييم)', // Demo rating
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                                fontFamily: 'Cairo',
-                              ),
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 16),
                         // Price and Stock Row
                         Row(
@@ -341,7 +322,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: () => viewModel.addToCart(context),
+                            onPressed: () async {
+                              final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+                              if (!userViewModel.isLoggedIn) {
+                                ModernSnackbar.show(
+                                  context: context,
+                                  message: 'يجب تسجيل الدخول لإضافة منتجات إلى السلة',
+                                  type: SnackBarType.error,
+                                );
+                                return;
+                              }
+                              final cartViewModel = Provider.of<CartViewModel>(context, listen: false);
+                              final result = await cartViewModel.addItemToCart(product.id!.toString(), 1, context);
+                              final message = result['message'] as String?;
+                              final success = result['success'] as bool? ?? false;
+                              if (message != null && message.isNotEmpty) {
+                                ModernSnackbar.show(
+                                  context: context,
+                                  message: message,
+                                  type: success ? SnackBarType.success : SnackBarType.error,
+                                );
+                              }
+                            },
                             icon: const Icon(Icons.shopping_cart),
                             label: const Text(
                               'إضافة إلى السلة',

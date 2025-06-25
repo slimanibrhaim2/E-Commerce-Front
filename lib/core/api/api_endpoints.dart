@@ -16,11 +16,10 @@ class ApiEndpoints {
   static const String toggleFavorite = '/favorites/toggle/'; // Append product ID
 
   // Cart endpoints
-  static const String cart = '/api/cart';
-  static const String cartItem = '/api/cart/item/'; // Append item ID
-  static const String updateCartItem = '/api/cart/update/'; // Append item ID
-  static const String removeCartItem = '/api/cart/remove/'; // Append item ID
-  static const String clearCart = '/api/cart/clear';
+  static const String myCart = '/api/Cart/my-cart';
+  static const String addCartItem = '/api/Cart/add-item';
+  static const String updateCartItem = '/api/Cart/update-item';
+  static const String removeCartItem = '/api/Cart/remove-item/'; // Append itemId
 
   // User endpoints
   static const String userProfile = '/api/users/me';
