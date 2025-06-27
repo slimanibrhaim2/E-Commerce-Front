@@ -40,14 +40,8 @@ class ProductDetailsViewModel extends ChangeNotifier {
 
     try {
       final favoritesViewModel = context.read<FavoritesViewModel>();
-      final isCurrentlyFavorite = favoritesViewModel.isFavorite(_product!.id!);
       
-      Map<String, dynamic> result;
-      if (isCurrentlyFavorite) {
-        result = await favoritesViewModel.removeFromFavorites(_product!.id!, context);
-      } else {
-        result = await favoritesViewModel.addToFavorites(_product!.id!, context);
-      }
+      final result = await favoritesViewModel.toggleFavorite(_product!.id!, context);
       
       final message = result['message'] as String?;
       final success = result['success'] as bool? ?? false;

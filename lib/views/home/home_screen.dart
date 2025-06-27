@@ -2,6 +2,8 @@ import 'package:e_commerce/views/home/widgets/search_and_favorite_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/products_view_model.dart';
+import '../../view_models/favorites_view_model.dart';
+import '../../view_models/user_view_model.dart';
 import '../products/product_list/product_list_screen.dart';
 import '../products/product_list/widgets/product_card.dart';
 import '../../widgets/modern_loader.dart';
@@ -20,6 +22,12 @@ class _HomeScreenState extends State<HomeScreen> {
     // Load products when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductsViewModel>().loadProducts();
+      
+      // Load favorites if user is logged in
+      final userViewModel = context.read<UserViewModel>();
+      if (userViewModel.isLoggedIn) {
+        context.read<FavoritesViewModel>().loadFavorites();
+      }
     });
   }
 
@@ -32,13 +40,17 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               // Search and Favorite Bar
-              SearchAndFavoriteBar(
-                favoriteCount: 0,
-                onSearch: (query) {
-                  print('Searching for: $query');
-                },
-                onFavoriteTap: () {
-                  print('Favorite tapped');
+              Consumer2<FavoritesViewModel, UserViewModel>(
+                builder: (context, favoritesViewModel, userViewModel, child) {
+                  return SearchAndFavoriteBar(
+                    favoriteCount: userViewModel.isLoggedIn ? favoritesViewModel.favoritesCount : 0,
+                    onSearch: (query) {
+                      print('Searching for: $query');
+                    },
+                    onFavoriteTap: () {
+                      print('Favorite tapped');
+                    },
+                  );
                 },
               ),
               // Products Section

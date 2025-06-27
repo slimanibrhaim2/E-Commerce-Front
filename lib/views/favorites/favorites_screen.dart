@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/favorites_view_model.dart';
+import '../../view_models/user_view_model.dart';
 import '../../widgets/modern_loader.dart';
 import '../products/product_list/widgets/product_card.dart';
-import '../../widgets/modern_snackbar.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -16,7 +16,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   void initState() {
     super.initState();
-    // Favorites are already loaded in main.dart, no need to load again
+    // Load favorites when screen opens if user is logged in
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userViewModel = context.read<UserViewModel>();
+      if (userViewModel.isLoggedIn) {
+        context.read<FavoritesViewModel>().loadFavorites();
+      }
+    });
   }
 
   @override
@@ -33,81 +39,45 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
           ),
           centerTitle: true,
-          actions: [
-            Consumer<FavoritesViewModel>(
-              builder: (context, viewModel, child) {
-                if (viewModel.favoriteProducts.isEmpty) return const SizedBox.shrink();
-                
-                return IconButton(
-                  icon: const Icon(Icons.delete_sweep),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text(
-                          'إزالة جميع المفضلة',
-                          style: TextStyle(
-                            fontFamily: 'Cairo',
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        content: const Text(
-                          'هل أنت متأكد من إزالة جميع المنتجات من المفضلة؟',
-                          style: TextStyle(fontFamily: 'Cairo'),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text(
-                              'إلغاء',
-                              style: TextStyle(fontFamily: 'Cairo'),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              Navigator.pop(context);
-                              final result = await viewModel.removeAllFavorites(context);
-                              final message = result['message'] as String?;
-                              final success = result['success'] as bool? ?? false;
-                              
-                              if (message != null && context.mounted) {
-                                ModernSnackbar.show(
-                                  context: context,
-                                  message: message,
-                                  type: success ? SnackBarType.success : SnackBarType.error,
-                                );
-                              }
-                            },
-                            child: const Text(
-                              'إزالة',
-                              style: TextStyle(
-                                fontFamily: 'Cairo',
-                                color: Colors.red,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ],
         ),
-        body: Consumer<FavoritesViewModel>(
-          builder: (context, viewModel, child) {
-            if (viewModel.isLoading) {
+        body: Consumer2<FavoritesViewModel, UserViewModel>(
+          builder: (context, favoritesViewModel, userViewModel, child) {
+            // Check if user is logged in
+            if (!userViewModel.isLoggedIn) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.favorite_border,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'يجب تسجيل الدخول لعرض المفضلة',
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (favoritesViewModel.isLoading) {
               return const Center(child: ModernLoader());
             }
 
-            if (viewModel.error != null) {
+            if (favoritesViewModel.error != null) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      viewModel.error!,
+                      favoritesViewModel.error!,
                       style: const TextStyle(
                         fontFamily: 'Cairo',
                         fontSize: 16,
@@ -115,7 +85,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => viewModel.loadFavorites(),
+                      onPressed: () => favoritesViewModel.loadFavorites(),
                       child: const Text(
                         'إعادة المحاولة',
                         style: TextStyle(fontFamily: 'Cairo'),
@@ -126,7 +96,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               );
             }
 
-            if (viewModel.favoriteProducts.isEmpty) {
+            if (favoritesViewModel.favoriteProducts.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -160,7 +130,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 final padding = 16.0;
 
                 return RefreshIndicator(
-                  onRefresh: () => viewModel.loadFavorites(),
+                  onRefresh: () => favoritesViewModel.loadFavorites(),
                   child: GridView.builder(
                     padding: EdgeInsets.all(padding),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -169,9 +139,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       crossAxisSpacing: crossAxisSpacing,
                       mainAxisSpacing: mainAxisSpacing,
                     ),
-                    itemCount: viewModel.favoriteProducts.length,
+                    itemCount: favoritesViewModel.favoriteProducts.length,
                     itemBuilder: (context, index) {
-                      return ProductCard(product: viewModel.favoriteProducts[index]);
+                      return ProductCard(product: favoritesViewModel.favoriteProducts[index]);
                     },
                   ),
                 );

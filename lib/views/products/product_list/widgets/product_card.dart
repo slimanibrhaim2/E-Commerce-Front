@@ -272,12 +272,7 @@ class ProductCard extends StatelessWidget {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () async {
-                            Map<String, dynamic> result;
-                            if (isFavorite) {
-                              result = await favoritesViewModel.removeFromFavorites(product.id!, context);
-                            } else {
-                              result = await favoritesViewModel.addToFavorites(product.id!, context);
-                            }
+                            final result = await favoritesViewModel.toggleFavorite(product.id!, context);
                             
                             final message = result['message'] as String?;
                             final success = result['success'] as bool? ?? false;

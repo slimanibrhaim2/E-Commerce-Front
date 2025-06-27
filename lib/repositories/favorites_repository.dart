@@ -62,7 +62,9 @@ class FavoritesRepository extends api.ApiRepositoryBase<Favorite> implements Bas
 
   Future<ApiResponse<String>> removeFromFavorites(String itemId) async {
     try {
-      final response = await apiClient.delete('${ApiEndpoints.favorites}/$itemId');
+      final endpoint = '${ApiEndpoints.favorites}/$itemId';
+      
+      final response = await apiClient.delete(endpoint);
       
       return ApiResponse<String>(
         data: response['data'] as String?,
