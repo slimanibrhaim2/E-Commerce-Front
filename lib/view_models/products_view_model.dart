@@ -40,38 +40,6 @@ class ProductsViewModel extends ChangeNotifier {
     }
   }
 
-  Future<String?> toggleFavorite(String productId, BuildContext context) async {
-    try {
-      final product = _products.firstWhere((p) => p.id == productId);
-      final updatedProduct = product.copyWith(isFavorite: !product.isFavorite);
-      
-      // Optimistic update
-      final index = _products.indexWhere((p) => p.id == productId);
-      if (index != -1) {
-        _products[index] = updatedProduct;
-        notifyListeners();
-      }
-
-      await _repository.update(updatedProduct);
-      
-      return updatedProduct.isFavorite 
-        ? 'تمت إضافة ${updatedProduct.name} إلى المفضلة بنجاح'
-        : 'تمت إزالة ${updatedProduct.name} من المفضلة بنجاح';
-    } catch (e) {
-      // Revert optimistic update
-      final product = _products.firstWhere((p) => p.id == productId);
-      final index = _products.indexWhere((p) => p.id == productId);
-      if (index != -1) {
-        _products[index] = product.copyWith(isFavorite: !product.isFavorite);
-        notifyListeners();
-      }
-      
-      final errorMessage = e.toString().replaceAll('Exception: ', '');
-      _error = errorMessage;
-      return errorMessage;
-    }
-  }
-
   Future<ApiResponse<Product?>> addProduct(Product product) async {
     try {
       _isLoading = true;

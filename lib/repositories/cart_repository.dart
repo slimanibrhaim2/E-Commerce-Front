@@ -15,14 +15,52 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
     }
   }
 
-  Future<List<CartItem>> getCart() async {
-    return handleListApiCall(() async {
-      final response = await apiClient.get(ApiEndpoints.myCart);
-      if (response is List) {
-        return response.map((json) => CartItem.fromJson(json)).toList();
+  Future<ApiResponse<List<CartItem>>> getCart() async {
+    try {
+      final response = await apiClient.get(ApiEndpoints.myCartItems);
+      
+      List<CartItem> cartItems = [];
+      
+      // Handle wrapped response structure
+      if (response is Map<String, dynamic>) {
+        if (response.containsKey('data')) {
+          final data = response['data'];
+          if (data is Map<String, dynamic> && data.containsKey('data')) {
+            final cartItemsData = data['data'];
+            if (cartItemsData is List) {
+              cartItems = cartItemsData.map((json) => CartItem.fromJson(json)).toList();
+            }
+          }
+          
+          // Fallback: if data is directly a list
+          if (data is List) {
+            cartItems = data.map((json) => CartItem.fromJson(json)).toList();
+          }
+        }
+        
+        return ApiResponse<List<CartItem>>(
+          data: cartItems,
+          message: response['message'] as String?,
+          success: response['success'] ?? false,
+          resultStatus: response['resultStatus'] as int?,
+        );
       }
+      
+      // Handle direct list response (fallback)
+      if (response is List) {
+        cartItems = response.map((json) => CartItem.fromJson(json)).toList();
+        return ApiResponse<List<CartItem>>(
+          data: cartItems,
+          message: null,
+          success: true,
+          resultStatus: null,
+        );
+      }
+      
       throw Exception('Invalid response format');
-    });
+    } catch (e) {
+      throw Exception('Failed to load cart: $e');
+    }
   }
 
   Future<CartItem> addToCart(String productId, int quantity) async {
@@ -41,7 +79,7 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
     });
   }
 
-  Future<CartItem> updateCartItem(int itemId, int quantity) async {
+  Future<CartItem> updateCartItem(String itemId, int quantity) async {
     return handleApiCall(() async {
       final response = await apiClient.put(
         ApiEndpoints.updateCartItem,
@@ -59,7 +97,8 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
 
   @override
   Future<List<CartItem>> getAll() async {
-    return getCart();
+    final response = await getCart();
+    return response.data ?? [];
   }
 
   @override
@@ -98,7 +137,7 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
     );
   }
 
-  Future<void> removeFromCart(int itemId) async {
+  Future<void> removeFromCart(String itemId) async {
     await apiClient.delete('${ApiEndpoints.removeCartItem}$itemId');
   }
 } 

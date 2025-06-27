@@ -8,6 +8,7 @@ import '../../../../widgets/modern_loader.dart';
 import '../../../../widgets/modern_snackbar.dart';
 import '../../product_detail/product_detail_screen.dart';
 import '../../../../view_models/user_view_model.dart';
+import '../../../../view_models/favorites_view_model.dart';
 
 
 class ProductCard extends StatelessWidget {
@@ -264,18 +265,28 @@ class ProductCard extends StatelessWidget {
                 Positioned(
                   top: 8,
                   left: 8,
-                  child: Consumer<ProductsViewModel>(
-                    builder: (context, viewModel, child) {
+                  child: Consumer<FavoritesViewModel>(
+                    builder: (context, favoritesViewModel, child) {
+                      final isFavorite = favoritesViewModel.isFavorite(product.id!);
                       return Material(
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () async {
-                            final message = await viewModel.toggleFavorite(product.id!, context);
+                            Map<String, dynamic> result;
+                            if (isFavorite) {
+                              result = await favoritesViewModel.removeFromFavorites(product.id!, context);
+                            } else {
+                              result = await favoritesViewModel.addToFavorites(product.id!, context);
+                            }
+                            
+                            final message = result['message'] as String?;
+                            final success = result['success'] as bool? ?? false;
+                            
                             if (message != null && context.mounted) {
                               ModernSnackbar.show(
                                 context: context,
                                 message: message,
-                                type: viewModel.error != null ? SnackBarType.error : SnackBarType.success,
+                                type: success ? SnackBarType.success : SnackBarType.error,
                               );
                             }
                           },
@@ -287,10 +298,10 @@ class ProductCard extends StatelessWidget {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              product.isFavorite
+                              isFavorite
                                   ? Icons.favorite
                                   : Icons.favorite_border,
-                              color: product.isFavorite ? const Color(0xFFE84393) : Colors.grey,
+                              color: isFavorite ? const Color(0xFFE84393) : Colors.grey,
                               size: 18,
                             ),
                           ),

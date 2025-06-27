@@ -20,7 +20,7 @@ class CartViewModel extends ChangeNotifier {
   int get totalItems => _cartItems.fold(0, (sum, item) => sum + item.quantity);
 
   // Calculate total price of cart
-  double get totalPrice => _cartItems.fold(0, (sum, item) => sum + item.totalPrice);
+  double get totalPrice => _cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
 
   Future<String?> loadCart() async {
     try {
@@ -28,8 +28,11 @@ class CartViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      _cartItems = await _repository.getCart();
-      return null; // Success
+      final response = await _repository.getCart();
+      _cartItems = response.data ?? [];
+      
+      // Return backend message if available
+      return response.message;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
       return _error;
@@ -58,15 +61,12 @@ class CartViewModel extends ChangeNotifier {
     }
   }
 
-  Future<String?> updateQuantity(int itemId, int quantity, BuildContext context) async {
+  Future<String?> updateQuantity(String itemId, int quantity, BuildContext context) async {
     try {
       final updatedItem = await _repository.updateCartItem(itemId, quantity);
-      final index = _cartItems.indexWhere((item) => item.id == itemId);
-      if (index != -1) {
-        _cartItems[index] = updatedItem;
-        notifyListeners();
-      }
-      // No backend message available here
+      // Always refresh cart after update
+      await loadCart();
+      // No backend message available here, but could return null
       return null;
     } catch (e) {
       final errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -75,11 +75,11 @@ class CartViewModel extends ChangeNotifier {
     }
   }
 
-  Future<String?> removeFromCart(int itemId, BuildContext context) async {
+  Future<String?> removeFromCart(String itemId, BuildContext context) async {
     try {
       await _repository.removeFromCart(itemId);
-      _cartItems.removeWhere((item) => item.id == itemId);
-      notifyListeners();
+      // Always refresh cart after delete
+      await loadCart();
       // No backend message for delete, return null
       return null;
     } catch (e) {
@@ -90,28 +90,18 @@ class CartViewModel extends ChangeNotifier {
   }
 
   bool isInCart(String productId) {
-    return _cartItems.any((item) => item.product.id == productId);
+    return _cartItems.any((item) => item.itemId == productId);
   }
 
   int getItemQuantity(String productId) {
     final item = _cartItems.firstWhere(
-      (item) => item.product.id == productId,
+      (item) => item.itemId == productId,
       orElse: () => CartItem(
-        id: -1,
-        product: Product(
-          id: null,
-          name: '',
-          description: '',
-          price: 0,
-          sku: '',
-          stockQuantity: 0,
-          isAvailable: false,
-          categoryId: '',
-          media: [],
-          features: [],
-        ),
+        itemId: '',
+        name: '',
+        price: 0.0,
+        totalPrice: 0.0,
         quantity: 0,
-        totalPrice: 0,
       ),
     );
     return item.quantity;

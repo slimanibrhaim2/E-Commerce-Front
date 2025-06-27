@@ -6,6 +6,7 @@ import '../../../widgets/modern_loader.dart';
 import '../../../view_models/cart_view_model.dart';
 import '../../../widgets/modern_snackbar.dart';
 import '../../../view_models/user_view_model.dart';
+import '../../../view_models/favorites_view_model.dart';
 
 
 class ProductDetailScreen extends StatefulWidget {
@@ -124,28 +125,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       Positioned(
                         top: 16,
                         left: 16,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => viewModel.toggleFavorite(context),
-                            customBorder: const CircleBorder(),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.9),
-                                shape: BoxShape.circle,
+                        child: Consumer<FavoritesViewModel>(
+                          builder: (context, favoritesViewModel, child) {
+                            final isFavorite = favoritesViewModel.isFavorite(product.id!);
+                            return Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => viewModel.toggleFavorite(context),
+                                customBorder: const CircleBorder(),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    isFavorite
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color: isFavorite
+                                        ? const Color(0xFFE84393)
+                                        : Colors.grey,
+                                    size: 24,
+                                  ),
+                                ),
                               ),
-                              child: Icon(
-                                product.isFavorite
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: product.isFavorite
-                                    ? const Color(0xFFE84393)
-                                    : Colors.grey,
-                                size: 24,
-                              ),
-                            ),
-                          ),
+                            );
+                          },
                         ),
                       ),
                     ],

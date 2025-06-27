@@ -34,13 +34,13 @@ class Product {
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      price: (json['price'] as num).toDouble(),
-      sku: json['sku'],
-      stockQuantity: json['stockQuantity'],
-      isAvailable: json['isAvailable'],
-      categoryId: json['categoryId'],
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      sku: json['sku'] ?? '',
+      stockQuantity: json['stockQuantity'] ?? 0,
+      isAvailable: json['isAvailable'] ?? true,
+      categoryId: json['categoryId'] ?? '',
       media: (json['media'] as List?)
           ?.map((m) => Media.fromJson(m))
           .toList() ?? [],
@@ -111,8 +111,8 @@ class Media {
   };
 
   factory Media.fromJson(Map<String, dynamic> json) => Media(
-    url: json['url'],
-    mediaTypeId: json['mediaTypeId'],
+    url: json['url'] ?? '',
+    mediaTypeId: json['mediaTypeId'] ?? '',
   );
 }
 
@@ -136,8 +136,8 @@ class Feature {
   factory Feature.fromJson(Map<String, dynamic> json) {
     return Feature(
       id: json['id'],
-      name: json['name'],
-      value: json['value'],
+      name: json['name'] ?? '',
+      value: json['value'] ?? '',
       productId: json['productId'],
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,

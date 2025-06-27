@@ -1,47 +1,59 @@
 import 'product.dart';
 
 class CartItem {
-  final int id;
-  final Product product;
-  final int quantity;
+  final String itemId;
+  final String? imageUrl;
+  final String name;
+  final double price;
   final double totalPrice;
+  final int quantity;
 
   CartItem({
-    required this.id,
-    required this.product,
-    required this.quantity,
+    required this.itemId,
+    this.imageUrl,
+    required this.name,
+    required this.price,
     required this.totalPrice,
+    required this.quantity,
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
     return CartItem(
-      id: json['id'] as int,
-      product: Product.fromJson(json['product'] as Map<String, dynamic>),
-      quantity: json['quantity'] as int,
+      itemId: json['itemId'] as String,
+      imageUrl: json['imageUrl'] as String?,
+      name: json['name'] as String,
+      price: (json['price'] as num).toDouble(),
       totalPrice: (json['totalPrice'] as num).toDouble(),
+      quantity: json['quantity'] as int,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'product': product.toJson(),
-      'quantity': quantity,
+      'itemId': itemId,
+      'imageUrl': imageUrl,
+      'name': name,
+      'price': price,
       'totalPrice': totalPrice,
+      'quantity': quantity,
     };
   }
 
   CartItem copyWith({
-    int? id,
-    Product? product,
-    int? quantity,
+    String? itemId,
+    String? imageUrl,
+    String? name,
+    double? price,
     double? totalPrice,
+    int? quantity,
   }) {
     return CartItem(
-      id: id ?? this.id,
-      product: product ?? this.product,
-      quantity: quantity ?? this.quantity,
+      itemId: itemId ?? this.itemId,
+      imageUrl: imageUrl ?? this.imageUrl,
+      name: name ?? this.name,
+      price: price ?? this.price,
       totalPrice: totalPrice ?? this.totalPrice,
+      quantity: quantity ?? this.quantity,
     );
   }
 } 

@@ -73,7 +73,7 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<FavoritesViewModel>(
           create: (context) =>
-              FavoritesViewModel(context.read<FavoritesRepository>()),
+              FavoritesViewModel(context.read<FavoritesRepository>())..loadFavorites(),
         ),
         ChangeNotifierProvider<CartViewModel>(
           create: (context) => CartViewModel(context.read<CartRepository>()),

@@ -2,22 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../repositories/product_repository.dart';
-import 'cart_view_model.dart';
+import '../view_models/cart_view_model.dart';
+import '../view_models/favorites_view_model.dart';
 import '../widgets/modern_snackbar.dart';
 
 class ProductDetailsViewModel extends ChangeNotifier {
   final ProductRepository _repository;
   Product? _product;
   bool _isLoading = false;
-  String? _error;
   bool _isInCart = false;
+  String? _error;
 
   ProductDetailsViewModel(this._repository);
 
   Product? get product => _product;
   bool get isLoading => _isLoading;
-  String? get error => _error;
   bool get isInCart => _isInCart;
+  String? get error => _error;
 
   Future<void> loadProduct(String productId) async {
     try {
@@ -26,12 +27,8 @@ class ProductDetailsViewModel extends ChangeNotifier {
       notifyListeners();
 
       _product = await _repository.getById(productId);
-      
-      if (_product == null) {
-        _error = 'المنتج غير موجود';
-      }
     } catch (e) {
-      _error = 'حدث خطأ أثناء تحميل تفاصيل المنتج';
+      _error = e.toString().replaceAll('Exception: ', '');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -42,32 +39,34 @@ class ProductDetailsViewModel extends ChangeNotifier {
     if (_product == null) return;
 
     try {
-      // Optimistic update - update UI immediately
-      final updatedProduct = _product!.copyWith(isFavorite: !_product!.isFavorite);
-      _product = updatedProduct;
-      notifyListeners();
-
-      // Make API call in background
-      await _repository.update(updatedProduct);
+      final favoritesViewModel = context.read<FavoritesViewModel>();
+      final isCurrentlyFavorite = favoritesViewModel.isFavorite(_product!.id!);
       
-      ModernSnackbar.show(
-        context: context,
-        message: _product!.isFavorite 
-          ? 'تمت إضافة ${_product!.name} إلى المفضلة'
-          : 'تمت إزالة ${_product!.name} من المفضلة',
-        type: _product!.isFavorite ? SnackBarType.success : SnackBarType.info,
-      );
+      Map<String, dynamic> result;
+      if (isCurrentlyFavorite) {
+        result = await favoritesViewModel.removeFromFavorites(_product!.id!, context);
+      } else {
+        result = await favoritesViewModel.addToFavorites(_product!.id!, context);
+      }
+      
+      final message = result['message'] as String?;
+      final success = result['success'] as bool? ?? false;
+      
+      if (message != null && context.mounted) {
+        ModernSnackbar.show(
+          context: context,
+          message: message,
+          type: success ? SnackBarType.success : SnackBarType.error,
+        );
+      }
     } catch (e) {
-      // Revert changes if API call fails
-      _product = _product!.copyWith(isFavorite: !_product!.isFavorite);
-      notifyListeners();
-      
-      // Only show snackbar, do not set _error
-      ModernSnackbar.show(
-        context: context,
-        message: 'حدث خطأ أثناء تحديث حالة المفضلة',
-        type: SnackBarType.error,
-      );
+      if (context.mounted) {
+        ModernSnackbar.show(
+          context: context,
+          message: 'حدث خطأ أثناء تحديث حالة المفضلة',
+          type: SnackBarType.error,
+        );
+      }
     }
   }
 

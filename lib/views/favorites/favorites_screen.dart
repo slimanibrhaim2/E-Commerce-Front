@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../view_models/favorites_view_model.dart';
 import '../../widgets/modern_loader.dart';
 import '../products/product_list/widgets/product_card.dart';
+import '../../widgets/modern_snackbar.dart';
+
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
 
@@ -14,9 +16,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => 
-      context.read<FavoritesViewModel>().loadFavorites()
-    );
+    // Favorites are already loaded in main.dart, no need to load again
   }
 
   @override
@@ -36,7 +36,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           actions: [
             Consumer<FavoritesViewModel>(
               builder: (context, viewModel, child) {
-                if (viewModel.favorites.isEmpty) return const SizedBox.shrink();
+                if (viewModel.favoriteProducts.isEmpty) return const SizedBox.shrink();
                 
                 return IconButton(
                   icon: const Icon(Icons.delete_sweep),
@@ -64,9 +64,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.pop(context);
-                              //viewModel.removeAllFavorites(context);
+                              final result = await viewModel.removeAllFavorites(context);
+                              final message = result['message'] as String?;
+                              final success = result['success'] as bool? ?? false;
+                              
+                              if (message != null && context.mounted) {
+                                ModernSnackbar.show(
+                                  context: context,
+                                  message: message,
+                                  type: success ? SnackBarType.success : SnackBarType.error,
+                                );
+                              }
                             },
                             child: const Text(
                               'إزالة',
@@ -116,7 +126,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               );
             }
 
-            if (viewModel.favorites.isEmpty) {
+            if (viewModel.favoriteProducts.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -159,9 +169,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       crossAxisSpacing: crossAxisSpacing,
                       mainAxisSpacing: mainAxisSpacing,
                     ),
-                    itemCount: viewModel.favorites.length,
+                    itemCount: viewModel.favoriteProducts.length,
                     itemBuilder: (context, index) {
-                      return ProductCard(product: viewModel.favorites[index]);
+                      return ProductCard(product: viewModel.favoriteProducts[index]);
                     },
                   ),
                 );

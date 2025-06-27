@@ -12,11 +12,12 @@ class ApiEndpoints {
   static const String categoryProducts = '/api/products/category/'; // Append category ID
 
   // Favorites endpoints
-  static const String favorites = '/favorites';
-  static const String toggleFavorite = '/favorites/toggle/'; // Append product ID
+  static const String favorites = '/api/Favorite';
+  static const String addToFavorites = '/api/Favorite';
 
   // Cart endpoints
   static const String myCart = '/api/Cart/my-cart';
+  static const String myCartItems = '/api/Cart/my-cart-items';
   static const String addCartItem = '/api/Cart/add-item';
   static const String updateCartItem = '/api/Cart/update-item';
   static const String removeCartItem = '/api/Cart/remove-item/'; // Append itemId
@@ -33,6 +34,7 @@ class ApiEndpoints {
 
   // Aggregate product endpoint
   static const String aggregateProduct = '/api/products/aggregate';
+
 
   // New endpoints for register and verify-otp
   static const String register = '/api/Auth/register';

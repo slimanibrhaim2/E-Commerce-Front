@@ -11,6 +11,7 @@ import 'profile/profile_screen.dart';
 import 'products/add_product/add_product_screen.dart';
 import '../view_models/user_view_model.dart';
 import '../widgets/modern_snackbar.dart';
+import '../view_models/cart_view_model.dart';
 
 
 class MainNavigationScreen extends StatefulWidget {
@@ -149,29 +150,72 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             setState(() {
               currentIndex = index;
             });
+            
+            // Refresh cart when cart tab is selected
+            if (index == 1) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final cartViewModel = context.read<CartViewModel>();
+                cartViewModel.loadCart();
+              });
+            }
           }
         },
         selectedItemColor: Colors.pink,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'حسابي',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
+            icon: Stack(
+              children: [
+                const Icon(Icons.shopping_cart),
+                Consumer2<UserViewModel, CartViewModel>(
+                  builder: (context, user, cart, child) {
+                    if (user.isLoggedIn && cart.totalItems > 0) {
+                      return Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            '${cart.totalItems}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
+            ),
             label: 'السلة',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.add),
             label: 'إضافة إعلان',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.category),
             label: 'التصنيفات',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'الرئيسية',
           ),
