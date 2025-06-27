@@ -45,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final userViewModel = context.watch<UserViewModel>();
     final isLoggedIn = userViewModel.jwt != null;
-    final _storage = const FlutterSecureStorage();
+    final storage = const FlutterSecureStorage();
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -150,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: () async {
                   // Clear JWT and user info
                   await Provider.of<UserViewModel>(context, listen: false).logout();
-                  await _storage.delete(key: 'auth_token');
+                  await storage.delete(key: 'auth_token');
                   ModernSnackbar.show(
                     context: context,
                     message: 'تم تسجيل الخروج بنجاح',

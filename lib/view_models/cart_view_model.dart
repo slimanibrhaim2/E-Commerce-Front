@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/cart_item.dart';
-import '../models/product.dart';
 import '../repositories/cart_repository.dart';
-import '../widgets/modern_snackbar.dart';
 
 class CartViewModel extends ChangeNotifier {
   final CartRepository _repository;
@@ -61,31 +59,53 @@ class CartViewModel extends ChangeNotifier {
     }
   }
 
-  Future<String?> updateQuantity(String itemId, int quantity, BuildContext context) async {
+  Future<Map<String, dynamic>> updateQuantity(String itemId, int quantity, BuildContext context) async {
     try {
-      final updatedItem = await _repository.updateCartItem(itemId, quantity);
-      // Always refresh cart after update
-      await loadCart();
-      // No backend message available here, but could return null
-      return null;
+      final response = await _repository.updateCartItem(itemId, quantity);
+      
+      // Update the specific item in the list without triggering loading state
+      final index = _cartItems.indexWhere((item) => item.itemId == itemId);
+      if (index != -1) {
+        _cartItems[index] = _cartItems[index].copyWith(
+          quantity: quantity,
+          totalPrice: _cartItems[index].price * quantity,
+        );
+        notifyListeners();
+      }
+      
+      return {
+        'message': response.message,
+        'success': response.success,
+      };
     } catch (e) {
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       _error = errorMessage;
-      return errorMessage;
+      return {
+        'message': errorMessage,
+        'success': false,
+      };
     }
   }
 
-  Future<String?> removeFromCart(String itemId, BuildContext context) async {
+  Future<Map<String, dynamic>> removeFromCart(String itemId, BuildContext context) async {
     try {
-      await _repository.removeFromCart(itemId);
-      // Always refresh cart after delete
-      await loadCart();
-      // No backend message for delete, return null
-      return null;
+      final response = await _repository.removeFromCart(itemId);
+      
+      // Remove the specific item from the list without triggering loading state
+      _cartItems.removeWhere((item) => item.itemId == itemId);
+      notifyListeners();
+      
+      return {
+        'message': response.message,
+        'success': response.success,
+      };
     } catch (e) {
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       _error = errorMessage;
-      return errorMessage;
+      return {
+        'message': errorMessage,
+        'success': false,
+      };
     }
   }
 

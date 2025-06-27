@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 
 class Address {
   final String? id;

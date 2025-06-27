@@ -36,7 +36,7 @@ class UserRepository {
   // Fetch current user profile
   Future<ApiResponse<User>> fetchUserProfile() async {
     final response = await apiClient.get(ApiEndpoints.userProfile);
-    print('User profile response: ' + response.toString());
+    print('User profile response: $response');
     return ApiResponse(
       data: User.fromJson(response['data'] as Map<String, dynamic>),
       message: response['message'] as String?,
@@ -47,7 +47,7 @@ class UserRepository {
   Future<ApiResponse<User>> updateCurrentUserProfile(User user) async {
     try {
       final response = await apiClient.put(ApiEndpoints.userProfile, user.toJson());
-      print('Update profile response: ' + response.toString());
+      print('Update profile response: $response');
       
       if (response == null) {
         throw Exception('Failed to update profile: No response from server');

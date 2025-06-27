@@ -5,7 +5,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:e_commerce/widgets/modern_loader.dart';
 
 class AddressSelectionScreen extends StatefulWidget {
-  const AddressSelectionScreen({Key? key}) : super(key: key);
+  const AddressSelectionScreen({super.key});
 
   @override
   State<AddressSelectionScreen> createState() => _AddressSelectionScreenState();

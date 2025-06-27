@@ -47,19 +47,19 @@ class ProductDetailsViewModel extends ChangeNotifier {
       final success = result['success'] as bool? ?? false;
       
       if (message != null && context.mounted) {
-        ModernSnackbar.show(
-          context: context,
+      ModernSnackbar.show(
+        context: context,
           message: message,
           type: success ? SnackBarType.success : SnackBarType.error,
-        );
+      );
       }
     } catch (e) {
       if (context.mounted) {
-        ModernSnackbar.show(
-          context: context,
-          message: 'حدث خطأ أثناء تحديث حالة المفضلة',
-          type: SnackBarType.error,
-        );
+      ModernSnackbar.show(
+        context: context,
+        message: 'حدث خطأ أثناء تحديث حالة المفضلة',
+        type: SnackBarType.error,
+      );
       }
     }
   }

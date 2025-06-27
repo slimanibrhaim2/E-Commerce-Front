@@ -265,14 +265,16 @@ class ProductCard extends StatelessWidget {
                 Positioned(
                   top: 8,
                   left: 8,
-                  child: Consumer<FavoritesViewModel>(
-                    builder: (context, favoritesViewModel, child) {
-                      final isFavorite = favoritesViewModel.isFavorite(product.id!);
+                  child: Selector<FavoritesViewModel, bool>(
+                    selector: (context, favoritesViewModel) {
+                      return favoritesViewModel.isFavorite(product.id!);
+                    },
+                    builder: (context, isFavorite, child) {
                       return Material(
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () async {
-                            final result = await favoritesViewModel.toggleFavorite(product.id!, context);
+                            final result = await context.read<FavoritesViewModel>().toggleFavorite(product.id!, context);
                             
                             final message = result['message'] as String?;
                             final success = result['success'] as bool? ?? false;

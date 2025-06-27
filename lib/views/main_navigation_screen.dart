@@ -16,7 +16,7 @@ import '../view_models/cart_view_model.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
-  const MainNavigationScreen({Key? key, this.initialIndex = 4}) : super(key: key);
+  const MainNavigationScreen({super.key, this.initialIndex = 4});
 
   static void setTab(int index) {
     _MainNavigationScreenState.currentIndex = index;
@@ -226,7 +226,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -303,7 +303,7 @@ class HomePage extends StatelessWidget {
 }
 
 class CategoriesPage extends StatelessWidget {
-  const CategoriesPage({Key? key}) : super(key: key);
+  const CategoriesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -312,7 +312,7 @@ class CategoriesPage extends StatelessWidget {
 }
 
 class AccountScreen extends StatelessWidget {
-  const AccountScreen({Key? key}) : super(key: key);
+  const AccountScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

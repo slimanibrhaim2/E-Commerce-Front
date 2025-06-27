@@ -4,10 +4,10 @@ import '../../view_models/cart_view_model.dart';
 import '../../view_models/user_view_model.dart';
 import '../../widgets/modern_loader.dart';
 import '../../widgets/modern_snackbar.dart';
-import '../main_navigation_screen.dart';
 import '../products/product_detail/product_detail_screen.dart';
 import '../../view_models/product_details_view_model.dart';
 import '../../view_models/products_view_model.dart';
+import '../../models/cart_item.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -20,25 +20,13 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     super.initState();
-    // Only refresh cart if user is logged in
+    // Load cart when screen opens if user is logged in
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = context.read<UserViewModel>();
-      if (user.isLoggedIn) {
-        _refreshCart();
+      final userViewModel = context.read<UserViewModel>();
+      if (userViewModel.isLoggedIn) {
+        context.read<CartViewModel>().loadCart();
       }
     });
-  }
-
-  Future<void> _refreshCart() async {
-    final cartViewModel = context.read<CartViewModel>();
-    final message = await cartViewModel.loadCart();
-    if (message != null && mounted) {
-      ModernSnackbar.show(
-        context: context,
-        message: message,
-        type: SnackBarType.success,
-      );
-    }
   }
 
   @override
@@ -48,65 +36,50 @@ class _CartScreenState extends State<CartScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text(
-            'سلة التسوق',
+            'السلة',
             style: TextStyle(
               fontFamily: 'Cairo',
               fontWeight: FontWeight.bold,
             ),
           ),
-          actions: [
-            Consumer2<UserViewModel, CartViewModel>(
-              builder: (context, user, cart, child) {
-                if (user.isLoggedIn && cart.cartItems.isNotEmpty) {
-                  return Container(
-                    margin: const EdgeInsets.only(left: 16),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.pink,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${cart.totalItems}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-            Consumer<UserViewModel>(
-              builder: (context, user, child) {
-                if (!user.isLoggedIn) return const SizedBox.shrink();
-                return IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: _refreshCart,
-                );
-              },
-            ),
-          ],
+          centerTitle: true,
         ),
-        body: Consumer<UserViewModel>(
-          builder: (context, user, child) {
-            if (!user.isLoggedIn) {
-              return const Center(
+        body: Selector2<CartViewModel, UserViewModel, Map<String, dynamic>>(
+          selector: (context, cartViewModel, userViewModel) {
+            return {
+              'isLoggedIn': userViewModel.isLoggedIn,
+              'isLoading': cartViewModel.isLoading,
+              'error': cartViewModel.error,
+              'cartItemsCount': cartViewModel.cartItems.length,
+              'totalItems': cartViewModel.totalItems,
+              'totalPrice': cartViewModel.totalPrice,
+            };
+          },
+          builder: (context, data, child) {
+            final isLoggedIn = data['isLoggedIn'] as bool;
+            final isLoading = data['isLoading'] as bool;
+            final error = data['error'] as String?;
+            final cartItemsCount = data['cartItemsCount'] as int;
+            final totalItems = data['totalItems'] as int;
+            final totalPrice = data['totalPrice'] as double;
+
+            // Check if user is logged in
+            if (!isLoggedIn) {
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.lock_outline,
+                      Icons.shopping_cart_outlined,
                       size: 64,
-                      color: Colors.grey,
+                      color: Colors.grey[400],
                     ),
-                    SizedBox(height: 16),
-                    Text(
-                      'الرجاء تسجيل الدخول لعرض سلة التسوق',
+                    const SizedBox(height: 16),
+                    const Text(
+                      'يجب تسجيل الدخول لعرض السلة',
                       style: TextStyle(
                         fontFamily: 'Cairo',
-                        fontSize: 18,
+                        fontSize: 16,
                         color: Colors.grey,
                       ),
                     ),
@@ -114,347 +87,425 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               );
             }
-            return Consumer<CartViewModel>(
-              builder: (context, cart, child) {
-                if (cart.isLoading) {
-                  return const Center(child: ModernLoader());
-                }
-                if (cart.error != null) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          cart.error!,
-                          style: const TextStyle(
-                            fontFamily: 'Cairo',
-                            color: Colors.red,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () async {
-                            final message = await cart.loadCart();
-                            if (message != null && context.mounted && message.isNotEmpty) {
-                              ModernSnackbar.show(
-                                context: context,
-                                message: message,
-                                type: SnackBarType.error,
-                              );
-                            }
-                          },
-                          child: const Text(
-                            'إعادة المحاولة',
-                            style: TextStyle(fontFamily: 'Cairo'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                if (cart.cartItems.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.shopping_cart_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'سلة التسوق فارغة',
-                          style: TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                      ],
-                    ),
-                  );
-                }
-                return Column(
+
+            if (isLoading) {
+              return const Center(child: ModernLoader());
+            }
+
+            if (error != null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: cart.cartItems.length,
-                        itemBuilder: (context, index) {
-                          final item = cart.cartItems[index];
-                          return InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChangeNotifierProvider(
-                                    create: (context) => ProductDetailsViewModel(
-                                      context.read<ProductsViewModel>().repository,
-                                    ),
-                                    child: ProductDetailScreen(productId: item.itemId),
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Card(
-                              margin: const EdgeInsets.only(bottom: 16),
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Container(
-                                        width: 60,
-                                        height: 60,
-                                        color: Colors.grey[200],
-                                        child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                                            ? Image.network(
-                                                item.imageUrl!,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (context, error, stackTrace) {
-                                                  return const Icon(
-                                                    Icons.image_not_supported,
-                                                    color: Colors.grey,
-                                                  );
-                                                },
-                                              )
-                                            : const Icon(
-                                                Icons.image_not_supported,
-                                                color: Colors.grey,
-                                              ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item.name,
-                                            style: const TextStyle(
-                                              fontFamily: 'Cairo',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Row(
-                                            children: [
-                                              SizedBox(
-                                                width: 28,
-                                                height: 28,
-                                                child: IconButton(
-                                                  padding: EdgeInsets.zero,
-                                                  icon: const Icon(Icons.remove, size: 18),
-                                                  onPressed: () async {
-                                                    if (item.quantity > 1) {
-                                                      final message = await cart.updateQuantity(
-                                                        item.itemId,
-                                                        item.quantity - 1,
-                                                        context,
-                                                      );
-                                                      if (message != null && context.mounted && message.isNotEmpty) {
-                                                        ModernSnackbar.show(
-                                                          context: context,
-                                                          message: message,
-                                                          type: cart.error != null ? SnackBarType.error : SnackBarType.success,
-                                                        );
-                                                      }
-                                                    } else {
-                                                      final message = await cart.removeFromCart(item.itemId, context);
-                                                      if (message != null && context.mounted && message.isNotEmpty) {
-                                                        ModernSnackbar.show(
-                                                          context: context,
-                                                          message: message,
-                                                          type: cart.error != null ? SnackBarType.error : SnackBarType.success,
-                                                        );
-                                                      }
-                                                    }
-                                                  },
-                                                ),
-                                              ),
-                                              Container(
-                                                width: 32,
-                                                alignment: Alignment.center,
-                                                child: Text(
-                                                  '${item.quantity}',
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.pink,
-                                                  ),
-                                                ),
-                                              ),
-                                              SizedBox(
-                                                width: 28,
-                                                height: 28,
-                                                child: IconButton(
-                                                  padding: EdgeInsets.zero,
-                                                  icon: const Icon(Icons.add, size: 18),
-                                                  onPressed: () async {
-                                                    final message = await cart.updateQuantity(
-                                                      item.itemId,
-                                                      item.quantity + 1,
-                                                      context,
-                                                    );
-                                                    if (message != null && context.mounted && message.isNotEmpty) {
-                                                      ModernSnackbar.show(
-                                                        context: context,
-                                                        message: message,
-                                                        type: cart.error != null ? SnackBarType.error : SnackBarType.success,
-                                                      );
-                                                    }
-                                                  },
-                                                ),
-                                              ),
-                                              IconButton(
-                                                icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                                                padding: EdgeInsets.zero,
-                                                constraints: const BoxConstraints(),
-                                                onPressed: () async {
-                                                  final message = await cart.removeFromCart(item.itemId, context);
-                                                  if (message != null && context.mounted && message.isNotEmpty) {
-                                                    ModernSnackbar.show(
-                                                      context: context,
-                                                      message: message,
-                                                      type: cart.error != null ? SnackBarType.error : SnackBarType.success,
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Center(
-                                            child: Text(
-                                              'المجموع: ${item.totalPrice.toStringAsFixed(0)} ل.س',
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.green,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Cairo',
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                    Text(
+                      error,
+                      style: const TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 16,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, -2),
-                          ),
-                        ],
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => context.read<CartViewModel>().loadCart(),
+                      child: const Text(
+                        'إعادة المحاولة',
+                        style: TextStyle(fontFamily: 'Cairo'),
                       ),
-                      child: SafeArea(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (cartItemsCount == 0) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.shopping_cart_outlined,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'السلة فارغة',
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return Column(
+              children: [
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () => context.read<CartViewModel>().loadCart(),
+                    child: Selector<CartViewModel, List<CartItem>>(
+                      selector: (context, cartViewModel) => cartViewModel.cartItems,
+                      builder: (context, cartItems, child) {
+                        return ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: cartItems.length,
+                          itemBuilder: (context, index) {
+                            final item = cartItems[index];
+                            return Selector<CartViewModel, CartItem?>(
+                              selector: (context, cartViewModel) {
+                                try {
+                                  return cartViewModel.cartItems[index];
+                                } catch (e) {
+                                  return null;
+                                }
+                              },
+                              builder: (context, item, child) {
+                                if (item == null) return const SizedBox.shrink();
+                                return CartItemWidget(
+                                  item: item,
+                                  index: index,
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'عدد المنتجات:',
-                                      style: TextStyle(
-                                        fontFamily: 'Cairo',
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    Text(
-                                      '${cart.totalItems} منتج',
-                                      style: const TextStyle(
-                                        fontFamily: 'Cairo',
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      'المجموع الكلي:',
-                                      style: TextStyle(
-                                        fontFamily: 'Cairo',
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    Text(
-                                      '${cart.totalPrice.toStringAsFixed(0)} ل.س',
-                                      style: const TextStyle(
-                                        fontFamily: 'Cairo',
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: cart.cartItems.isNotEmpty ? () {
-                                  // TODO: Implement checkout
-                                } : null,
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  backgroundColor: cart.cartItems.isNotEmpty ? Colors.blue : Colors.grey,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                Text(
+                                  'عدد المنتجات:',
+                                  style: TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
                                   ),
                                 ),
-                                child: Text(
-                                  cart.cartItems.isNotEmpty ? 'إتمام الطلب' : 'السلة فارغة',
+                                Text(
+                                  '$totalItems منتج',
                                   style: const TextStyle(
                                     fontFamily: 'Cairo',
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
                                   ),
                                 ),
-                              ),
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'المجموع الكلي:',
+                                  style: TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  '${totalPrice.toStringAsFixed(0)} ل.س',
+                                  style: const TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: cartItemsCount > 0 ? () {
+                              // TODO: Implement checkout
+                            } : null,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: cartItemsCount > 0 ? Colors.blue : Colors.grey,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              cartItemsCount > 0 ? 'إتمام الطلب' : 'السلة فارغة',
+                              style: const TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                );
-              },
+                  ),
+                ),
+              ],
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class CartItemWidget extends StatelessWidget {
+  final CartItem item;
+  final int index;
+
+  const CartItemWidget({
+    super.key,
+    required this.item,
+    required this.index,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Product Image
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.grey[200],
+              ),
+              child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        item.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.grey[200],
+                            ),
+                            child: const Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey,
+                              size: 30,
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.grey[200],
+                      ),
+                      child: const Icon(
+                        Icons.image_not_supported,
+                        color: Colors.grey,
+                        size: 30,
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 12),
+            // Product Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Cairo',
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${item.price.toStringAsFixed(0)} ل.س',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      fontFamily: 'Cairo',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Quantity Controls
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.remove, size: 18),
+                          onPressed: () async {
+                            if (item.quantity > 1) {
+                              final result = await context.read<CartViewModel>().updateQuantity(
+                                item.itemId,
+                                item.quantity - 1,
+                                context,
+                              );
+                              final message = result['message'] as String?;
+                              final success = result['success'] as bool? ?? false;
+                              if (message != null && context.mounted && message.isNotEmpty) {
+                                ModernSnackbar.show(
+                                  context: context,
+                                  message: message,
+                                  type: success ? SnackBarType.success : SnackBarType.error,
+                                );
+                              }
+                            } else {
+                              final result = await context.read<CartViewModel>().removeFromCart(item.itemId, context);
+                              final message = result['message'] as String?;
+                              final success = result['success'] as bool? ?? false;
+                              if (message != null && context.mounted && message.isNotEmpty) {
+                                ModernSnackbar.show(
+                                  context: context,
+                                  message: message,
+                                  type: success ? SnackBarType.success : SnackBarType.error,
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                      Container(
+                        width: 32,
+                        alignment: Alignment.center,
+                        child: Selector<CartViewModel, int>(
+                          selector: (context, cartViewModel) {
+                            try {
+                              final cartItem = cartViewModel.cartItems.firstWhere(
+                                (cartItem) => cartItem.itemId == item.itemId,
+                              );
+                              return cartItem.quantity;
+                            } catch (e) {
+                              return item.quantity;
+                            }
+                          },
+                          builder: (context, quantity, child) {
+                            return Text(
+                              '$quantity',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.pink,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.add, size: 18),
+                          onPressed: () async {
+                            final result = await context.read<CartViewModel>().updateQuantity(
+                              item.itemId,
+                              item.quantity + 1,
+                              context,
+                            );
+                            final message = result['message'] as String?;
+                            final success = result['success'] as bool? ?? false;
+                            if (message != null && context.mounted && message.isNotEmpty) {
+                              ModernSnackbar.show(
+                                context: context,
+                                message: message,
+                                type: success ? SnackBarType.success : SnackBarType.error,
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () async {
+                          final result = await context.read<CartViewModel>().removeFromCart(item.itemId, context);
+                          final message = result['message'] as String?;
+                          final success = result['success'] as bool? ?? false;
+                          if (message != null && context.mounted && message.isNotEmpty) {
+                            ModernSnackbar.show(
+                              context: context,
+                              message: message,
+                              type: success ? SnackBarType.success : SnackBarType.error,
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Selector<CartViewModel, double>(
+                      selector: (context, cartViewModel) {
+                        try {
+                          final cartItem = cartViewModel.cartItems.firstWhere(
+                            (cartItem) => cartItem.itemId == item.itemId,
+                          );
+                          return cartItem.totalPrice;
+                        } catch (e) {
+                          return item.totalPrice;
+                        }
+                      },
+                      builder: (context, totalPrice, child) {
+                        return Text(
+                          'المجموع: ${totalPrice.toStringAsFixed(0)} ل.س',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Cairo',
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

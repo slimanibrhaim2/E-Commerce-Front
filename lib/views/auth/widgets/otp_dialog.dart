@@ -10,12 +10,12 @@ class OtpDialog extends StatefulWidget {
   final String? errorMessage;
 
   const OtpDialog({
-    Key? key,
+    super.key,
     required this.isLoading,
     required this.onSubmit,
     this.onCancel,
     this.errorMessage,
-  }) : super(key: key);
+  });
 
   @override
   State<OtpDialog> createState() => _OtpDialogState();

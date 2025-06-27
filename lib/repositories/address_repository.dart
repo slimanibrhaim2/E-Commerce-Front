@@ -11,7 +11,7 @@ class AddressRepository {
   // Fetch all addresses for current user
   Future<ApiResponse<List<Address>>> fetchAddresses() async {
     final response = await apiClient.get(ApiEndpoints.addresses);
-    print('Addresses response: ' + response.toString());
+    print('Addresses response: $response');
 
     List<Address> addresses = [];
     final outerData = response['data'];

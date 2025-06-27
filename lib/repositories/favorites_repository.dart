@@ -3,7 +3,6 @@ import '../core/api/api_base_repository.dart' as api;
 import '../core/api/api_response.dart';
 import '../repositories/base_repository.dart';
 import '../models/favorite.dart';
-import '../models/product.dart';
 
 class FavoritesRepository extends api.ApiRepositoryBase<Favorite> implements BaseRepository<Favorite> {
   FavoritesRepository(super.apiClient);
@@ -66,11 +65,39 @@ class FavoritesRepository extends api.ApiRepositoryBase<Favorite> implements Bas
       
       final response = await apiClient.delete(endpoint);
       
+      // Handle different response structures
+      String? message;
+      bool success = false;
+      int? resultStatus;
+      String? data;
+      
+      if (response is Map<String, dynamic>) {
+        message = response['message'] as String?;
+        success = response['success'] as bool? ?? false;
+        resultStatus = response['resultStatus'] as int?;
+        
+        // Handle different data types that might be returned
+        final responseData = response['data'];
+        if (responseData != null) {
+          if (responseData is String) {
+            data = responseData;
+          } else if (responseData is bool) {
+            data = responseData.toString();
+          } else {
+            data = responseData.toString();
+          }
+        }
+      } else {
+        // If response is not a map, try to convert it
+        message = response.toString();
+        success = false;
+      }
+      
       return ApiResponse<String>(
-        data: response['data'] as String?,
-        message: response['message'] as String?,
-        success: response['success'] ?? false,
-        resultStatus: response['resultStatus'] as int?,
+        data: data,
+        message: message,
+        success: success,
+        resultStatus: resultStatus,
       );
     } catch (e) {
       throw Exception('Failed to remove from favorites: $e');

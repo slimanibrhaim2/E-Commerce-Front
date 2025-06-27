@@ -1,4 +1,3 @@
-import '../../models/user.dart';
 
 class ApiResponse<T> {
   final T? data;

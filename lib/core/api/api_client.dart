@@ -46,7 +46,7 @@ class ApiClient {
         },
       );
       return _handleResponse(response);
-    } on http.ClientException catch (e) {
+    } on http.ClientException {
       throw ApiException.connectionError();
     } catch (e) {
       if (e is ApiException) rethrow;
@@ -90,7 +90,7 @@ class ApiClient {
         },
       );
       return _handleResponse(response);
-    } on http.ClientException catch (e) {
+    } on http.ClientException {
       throw ApiException.connectionError();
     } catch (e) {
       if (e is ApiException) rethrow;
@@ -110,7 +110,7 @@ class ApiClient {
         },
       );
       return _handleResponse(response);
-    } on http.ClientException catch (e) {
+    } on http.ClientException {
       throw ApiException.connectionError();
     } catch (e) {
       if (e is ApiException) rethrow;
@@ -148,7 +148,7 @@ class ApiClient {
 
       final response = await http.Response.fromStream(streamedResponse);
       return _handleResponse(response);
-    } on http.ClientException catch (e) {
+    } on http.ClientException {
       throw ApiException.connectionError();
     } catch (e) {
       if (e is ApiException) rethrow;

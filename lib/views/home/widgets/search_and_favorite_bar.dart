@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../favorites/favorites_screen.dart';
-import '../../../view_models/favorites_view_model.dart';
-import '../../../repositories/product_repository.dart';
-import 'package:provider/provider.dart';
 
 class SearchAndFavoriteBar extends StatelessWidget {
   final int favoriteCount;

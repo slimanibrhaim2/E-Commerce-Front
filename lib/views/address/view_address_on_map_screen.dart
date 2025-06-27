@@ -8,11 +8,11 @@ class ViewAddressOnMapScreen extends StatelessWidget {
   final String? name;
 
   const ViewAddressOnMapScreen({
-    Key? key,
+    super.key,
     required this.latitude,
     required this.longitude,
     this.name,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

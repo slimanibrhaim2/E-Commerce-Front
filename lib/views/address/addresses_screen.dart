@@ -9,7 +9,7 @@ import '../../widgets/modern_loader.dart';
 import '../../view_models/user_view_model.dart';
 
 class AddressesScreen extends StatefulWidget {
-  const AddressesScreen({Key? key}) : super(key: key);
+  const AddressesScreen({super.key});
 
   @override
   State<AddressesScreen> createState() => _AddressesScreenState();

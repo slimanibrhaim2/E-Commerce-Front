@@ -222,11 +222,11 @@ class UserInfoScreen extends StatelessWidget {
                                         radius: 60,
                                         backgroundImage: selectedImageFile != null
                                             ? FileImage(selectedImageFile!)
-                                            : (profilePhotoUrl != null && profilePhotoUrl!.isNotEmpty
-                                                ? NetworkImage(profilePhotoUrl!) as ImageProvider
+                                            : (profilePhotoUrl != null && profilePhotoUrl.isNotEmpty
+                                                ? NetworkImage(profilePhotoUrl) as ImageProvider
                                                 : null),
                                         child: (selectedImageFile == null && 
-                                                (profilePhotoUrl == null || profilePhotoUrl!.isEmpty))
+                                                (profilePhotoUrl == null || profilePhotoUrl.isEmpty))
                                             ? const Icon(Icons.person, size: 60, color: Colors.grey)
                                             : null,
                                       ),

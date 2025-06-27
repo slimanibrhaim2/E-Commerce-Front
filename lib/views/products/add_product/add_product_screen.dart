@@ -9,7 +9,7 @@ import '../../../view_models/categories_view_model.dart';
 import '../../../views/main_navigation_screen.dart';
 
 class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({Key? key}) : super(key: key);
+  const AddProductScreen({super.key});
 
   @override
   State<AddProductScreen> createState() => _AddProductScreenState();
@@ -22,8 +22,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _priceController = TextEditingController();
   final _quantityController = TextEditingController();
   String? _selectedCategory;
-  List<File> _selectedImages = [];
-  List<Map<String, String>> _features = [];
+  final List<File> _selectedImages = [];
+  final List<Map<String, String>> _features = [];
   final _featureNameController = TextEditingController();
   final _featureValueController = TextEditingController();
 

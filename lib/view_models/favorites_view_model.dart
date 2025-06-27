@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../models/favorite.dart';
 import '../models/product.dart';
 import '../repositories/favorites_repository.dart';
-import '../widgets/modern_snackbar.dart';
 import '../core/api/api_response.dart';
 import 'user_view_model.dart';
 
@@ -64,16 +63,22 @@ class FavoritesViewModel extends ChangeNotifier {
       if (isCurrentlyFavorite) {
         // Remove from favorites
         response = await _repository.removeFromFavorites(itemId);
+        
+        // Remove from local list without triggering loading state
+        if (response.success) {
+          _favorites.removeWhere((favorite) => favorite.itemId == itemId);
+          notifyListeners();
+        }
       } else {
         // Add to favorites
         response = await _repository.addToFavorites(itemId);
-      }
-      
-      // Only reload favorites if the API call was successful
-      if (response.success) {
-        _isLoading = true;
-        notifyListeners();
-        await loadFavorites();
+        
+        // Note: For add operation, we need to reload favorites to get the new item details
+        // But we can do it without showing loading state
+        if (response.success) {
+          // Reload favorites in background without setting loading state
+          _reloadFavoritesSilently();
+        }
       }
       
       return {
@@ -87,6 +92,18 @@ class FavoritesViewModel extends ChangeNotifier {
         'message': errorMessage,
         'success': false,
       };
+    }
+  }
+
+  // Private method to reload favorites without showing loading state
+  Future<void> _reloadFavoritesSilently() async {
+    try {
+      final response = await _repository.getFavorites();
+      _favorites = response.data ?? [];
+      notifyListeners();
+    } catch (e) {
+      // Silently handle errors for background reload
+      print('Silent favorites reload error: $e');
     }
   }
 
@@ -101,14 +118,11 @@ class FavoritesViewModel extends ChangeNotifier {
         };
       }
 
-      _isLoading = true;
-      notifyListeners();
-
       final response = await _repository.addToFavorites(itemId);
       
       if (response.success) {
-        // Reload favorites to get updated list
-        await loadFavorites();
+        // Reload favorites in background without showing loading state
+        _reloadFavoritesSilently();
       }
       
       return {
@@ -122,9 +136,6 @@ class FavoritesViewModel extends ChangeNotifier {
         'message': errorMessage,
         'success': false,
       };
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 
@@ -135,18 +146,16 @@ class FavoritesViewModel extends ChangeNotifier {
       if (!userViewModel.isLoggedIn) {
         return {
           'message': 'يجب تسجيل الدخول لإزالة منتجات من المفضلة',
-          'success': false,
+          'success': false, 
         };
       }
 
-      _isLoading = true;
-      notifyListeners();
-
       final response = await _repository.removeFromFavorites(itemId);
       
+      // Remove from local list without triggering loading state
       if (response.success) {
-        // Reload favorites to get updated list
-        await loadFavorites();
+        _favorites.removeWhere((favorite) => favorite.itemId == itemId);
+        notifyListeners();
       }
       
       return {
@@ -160,19 +169,16 @@ class FavoritesViewModel extends ChangeNotifier {
         'message': errorMessage,
         'success': false,
       };
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 
   bool isFavorite(String itemId) {
-    return _favorites.any((favorite) => favorite.baseItemId == itemId);
+    return _favorites.any((favorite) => favorite.itemId == itemId);
   }
 
   Favorite? getFavoriteByItemId(String itemId) {
     try {
-      return _favorites.firstWhere((favorite) => favorite.baseItemId == itemId);
+      return _favorites.firstWhere((favorite) => favorite.itemId == itemId);
     } catch (e) {
       return null;
     }

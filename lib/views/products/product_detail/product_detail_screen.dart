@@ -322,7 +322,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ),
                               ],
                             ),
-                          )).toList(),
+                          )),
                         ],
                         const SizedBox(height: 24),
                         SizedBox(

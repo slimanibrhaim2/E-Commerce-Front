@@ -79,8 +79,8 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
     });
   }
 
-  Future<CartItem> updateCartItem(String itemId, int quantity) async {
-    return handleApiCall(() async {
+  Future<ApiResponse<String>> updateCartItem(String itemId, int quantity) async {
+    try {
       final response = await apiClient.put(
         ApiEndpoints.updateCartItem,
         {
@@ -88,11 +88,16 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
           'quantity': quantity,
         },
       );
-      if (response is Map<String, dynamic>) {
-        return CartItem.fromJson(response);
-      }
-      throw Exception('Invalid response format');
-    });
+      
+      return ApiResponse<String>(
+        data: response['data'] as String?,
+        message: response['message'] as String?,
+        success: response['success'] ?? false,
+        resultStatus: response['resultStatus'] as int?,
+      );
+    } catch (e) {
+      throw Exception('Failed to update cart item: $e');
+    }
   }
 
   @override
@@ -137,7 +142,18 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
     );
   }
 
-  Future<void> removeFromCart(String itemId) async {
-    await apiClient.delete('${ApiEndpoints.removeCartItem}$itemId');
+  Future<ApiResponse<String>> removeFromCart(String itemId) async {
+    try {
+      final response = await apiClient.delete('${ApiEndpoints.removeCartItem}$itemId');
+      
+      return ApiResponse<String>(
+        data: response['data'] as String?,
+        message: response['message'] as String?,
+        success: response['success'] ?? false,
+        resultStatus: response['resultStatus'] as int?,
+      );
+    } catch (e) {
+      throw Exception('Failed to remove from cart: $e');
+    }
   }
 } 

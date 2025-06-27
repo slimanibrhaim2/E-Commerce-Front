@@ -40,10 +40,13 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               // Search and Favorite Bar
-              Consumer2<FavoritesViewModel, UserViewModel>(
-                builder: (context, favoritesViewModel, userViewModel, child) {
+              Selector2<FavoritesViewModel, UserViewModel, int>(
+                selector: (context, favoritesViewModel, userViewModel) {
+                  return userViewModel.isLoggedIn ? favoritesViewModel.favoritesCount : 0;
+                },
+                builder: (context, favoriteCount, child) {
                   return SearchAndFavoriteBar(
-                    favoriteCount: userViewModel.isLoggedIn ? favoritesViewModel.favoritesCount : 0,
+                    favoriteCount: favoriteCount,
                     onSearch: (query) {
                       print('Searching for: $query');
                     },

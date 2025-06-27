@@ -117,7 +117,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     message: message ?? '',
                     type: SnackBarType.success,
                   );
-                  print('JWT Token: \n' + userViewModel.jwt!);
+                  print('JWT Token: \n${userViewModel.jwt!}');
                   await _storage.write(key: 'auth_token', value: userViewModel.jwt!);
                   // Fetch user profile after registration
                   await userViewModel.loadUserProfile();
