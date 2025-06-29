@@ -5,10 +5,16 @@ import '../../models/user.dart';
 import '../../widgets/modern_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
 
-class UserInfoScreen extends StatelessWidget {
+class UserInfoScreen extends StatefulWidget {
   const UserInfoScreen({super.key});
 
+  @override
+  State<UserInfoScreen> createState() => _UserInfoScreenState();
+}
+
+class _UserInfoScreenState extends State<UserInfoScreen> {
   @override
   Widget build(BuildContext context) {
     final userViewModel = context.watch<UserViewModel>();
@@ -51,6 +57,7 @@ class UserInfoScreen extends StatelessWidget {
                 child: Stack(
                   children: [
                     CircleAvatar(
+                      key: ValueKey(user?.profilePhoto ?? 'no-image'),
                       radius: 50,
                       backgroundImage: user?.profilePhoto != null && user!.profilePhoto!.isNotEmpty
                           ? NetworkImage(context.read<UserViewModel>().apiClient.getUserFileUrl(user.profilePhoto!))
@@ -159,6 +166,24 @@ class UserInfoScreen extends StatelessWidget {
     );
   }
 
+  Future<bool> checkImagePermission() async {
+    if (Theme.of(context).platform == TargetPlatform.android) {
+      var status = await Permission.photos.status;
+      if (!status.isGranted) {
+        status = await Permission.photos.request();
+        if (!status.isGranted) {
+          ModernSnackbar.show(
+            context: context,
+            message: 'يجب السماح للتطبيق بالوصول إلى الصور لإكمال العملية',
+            type: SnackBarType.error,
+          );
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   void _showEditDialog(BuildContext context, UserViewModel userViewModel) {
     final user = userViewModel.user;
     final firstNameController = TextEditingController(text: user?.firstName ?? '');
@@ -219,11 +244,12 @@ class UserInfoScreen extends StatelessWidget {
                                   Stack(
                                     children: [
                                       CircleAvatar(
+                                        key: ValueKey(user?.profilePhoto ?? 'no-image'),
                                         radius: 60,
                                         backgroundImage: selectedImageFile != null
                                             ? FileImage(selectedImageFile!)
                                             : (profilePhotoUrl != null && profilePhotoUrl.isNotEmpty
-                                                ? NetworkImage(context.read<UserViewModel>().apiClient.getUserFileUrl(profilePhotoUrl)) as ImageProvider
+                                                ? NetworkImage(userViewModel.apiClient.getUserFileUrl(profilePhotoUrl))
                                                 : null),
                                         child: (selectedImageFile == null && 
                                                 (profilePhotoUrl == null || profilePhotoUrl.isEmpty))
@@ -241,6 +267,7 @@ class UserInfoScreen extends StatelessWidget {
                                           child: IconButton(
                                             icon: const Icon(Icons.camera_alt, color: Colors.white),
                                             onPressed: () async {
+                                              if (!await checkImagePermission()) return;
                                               final ImagePicker picker = ImagePicker();
                                               final XFile? image = await picker.pickImage(
                                                 source: ImageSource.gallery,
@@ -262,6 +289,7 @@ class UserInfoScreen extends StatelessWidget {
                                   const SizedBox(height: 8),
                                   TextButton(
                                     onPressed: () async {
+                                      if (!await checkImagePermission()) return;
                                       final ImagePicker picker = ImagePicker();
                                       final XFile? image = await picker.pickImage(
                                         source: ImageSource.gallery,
@@ -351,7 +379,7 @@ class UserInfoScreen extends StatelessWidget {
                                 labelText: 'الوصف الشخصي',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-            ),
+                                ),
                                 labelStyle: const TextStyle(fontFamily: 'Cairo'),
                                 hintText: 'اكتب وصفاً مختصراً عن نفسك...',
                                 hintStyle: const TextStyle(fontFamily: 'Cairo'),
@@ -370,109 +398,89 @@ class UserInfoScreen extends StatelessWidget {
                                   ),
                                 ),
               onPressed: () async {
-                                  try {
-                                    // First upload image if selected
-                                    String? finalProfilePhotoUrl = profilePhotoUrl;
-                                    if (selectedImageFile != null) {
-                                      final imageUploadMessage = await userViewModel.uploadProfileImage(selectedImageFile!);
-                                      if (userViewModel.error != null) {
-                                        ModernSnackbar.show(
-                                          context: context,
-                                          message: userViewModel.error!,
-                                          type: SnackBarType.error,
-                                        );
-                                        return;
-                                      }
-                                      // Show image upload success message if provided
-                                      if (imageUploadMessage != null && imageUploadMessage.isNotEmpty) {
-                                        ModernSnackbar.show(
-                                          context: context,
-                                          message: imageUploadMessage,
-                                          type: SnackBarType.success,
-                                        );
-                                      }
-                                      // Get the uploaded image URL from the updated user
-                                      finalProfilePhotoUrl = userViewModel.user?.profilePhoto;
-                                    }
+                try {
+                  final updatedUser = User(
+                    firstName: firstNameController.text.trim(),
+                    middleName: middleNameController.text.trim(),
+                    lastName: lastNameController.text.trim(),
+                    phoneNumber: phoneController.text.trim(),
+                    email: emailController.text.trim(),
+                    profilePhoto: profilePhotoUrl, // Keep existing or will be updated by backend
+                    description: descriptionController.text.trim(),
+                  );
 
-                final updatedUser = User(
-                  firstName: firstNameController.text.trim(),
-                  middleName: middleNameController.text.trim(),
-                  lastName: lastNameController.text.trim(),
-                                      phoneNumber: phoneController.text.trim(),
-                                      email: emailController.text.trim(),
-                                      profilePhoto: finalProfilePhotoUrl,
-                                      description: descriptionController.text.trim(),
-                );
+                  final response = await userViewModel.updateUserProfile(updatedUser, profileImage: selectedImageFile);
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
 
-                final message = await userViewModel.updateUserProfile(updatedUser);
-                                    if (!context.mounted) return;
-                Navigator.pop(context);
+                  // Refresh the user profile to get the latest data including new image
+                  if (response.success) {
+                    await userViewModel.refreshUserProfile();
+                  }
 
-                                    if (phoneChanged) {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: false,
-                                        builder: (context) => Directionality(
-                                          textDirection: TextDirection.rtl,
-                                          child: AlertDialog(
-                                            title: const Text(
-                                              'تنبيه',
-                                              style: TextStyle(
-                                                fontFamily: 'Cairo',
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            content: const Text(
-                                              'سيتم تسجيل خروجك الآن لتأكيد رقم هاتفك الجديد',
-                                              style: TextStyle(fontFamily: 'Cairo'),
-                                            ),
-                                            actions: [
-                                              ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: Theme.of(context).primaryColor,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(8),
-                                                  ),
-                                                ),
-                                                onPressed: () async {
-                                                  await userViewModel.logout();
-                                                  if (!context.mounted) return;
-                                                  // Navigate to login screen with phone number pre-filled
-                                                  Navigator.of(context).pushNamedAndRemoveUntil(
-                                                    '/login',
-                                                    (route) => false,
-                                                    arguments: phoneController.text.trim(),
-                                                  );
-                                                },
-                                                child: const Text(
-                                                  'موافق',
-                                                  style: TextStyle(
-                                                    fontFamily: 'Cairo',
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      // Show the actual backend message
-                ModernSnackbar.show(
-                  context: context,
-                  message: message ?? 'تم تحديث المعلومات بنجاح',
-                  type: SnackBarType.success,
-                );
-                                    }
-                                  } catch (e) {
-                                    if (!context.mounted) return;
-                                    ModernSnackbar.show(
-                                      context: context,
-                                      message: e.toString().replaceAll('Exception: ', ''),
-                                      type: SnackBarType.error,
-                                    );
-                                  }
+                  if (phoneChanged) {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: AlertDialog(
+                          title: const Text(
+                            'تنبيه',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          content: const Text(
+                            'سيتم تسجيل خروجك الآن لتأكيد رقم هاتفك الجديد',
+                            style: TextStyle(fontFamily: 'Cairo'),
+                          ),
+                          actions: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).primaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () async {
+                                await userViewModel.logout();
+                                if (!context.mounted) return;
+                                // Navigate to login screen with phone number pre-filled
+                                Navigator.of(context).pushNamedAndRemoveUntil(
+                                  '/login',
+                                  (route) => false,
+                                  arguments: phoneController.text.trim(),
+                                );
+                              },
+                              child: const Text(
+                                'موافق',
+                                style: TextStyle(
+                                  fontFamily: 'Cairo',
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else {
+                    ModernSnackbar.show(
+                      context: context,
+                      message: response.message ?? 'تم تحديث المعلومات بنجاح',
+                      type: (response.success) ? SnackBarType.success : SnackBarType.error,
+                    );
+                  }
+                } catch (e) {
+                  if (!context.mounted) return;
+                  ModernSnackbar.show(
+                    context: context,
+                    message: e.toString().replaceAll('Exception: ', ''),
+                    type: SnackBarType.error,
+                  );
+                }
               },
                                 child: const Text(
                                   'حفظ التغييرات',

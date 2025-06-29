@@ -3,6 +3,7 @@ import 'package:e_commerce/core/api/api_client.dart';
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import 'dart:io';
+import '../core/api/api_response.dart';
 
 
 enum RegistrationStep { none, registering, awaitingOtp, verifyingOtp, done }
@@ -48,14 +49,20 @@ class UserViewModel extends ChangeNotifier {
     }
   }
 
-  Future<String?> updateUserProfile(User user) async {
+  Future<ApiResponse<User>> updateUserProfile(User user, {File? profileImage}) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
-      final response = await _repository.updateCurrentUserProfile(user);
-      _user = response.data;
-      return response.message ?? 'تم تحديث المعلومات بنجاح';
+      final response = await _repository.updateCurrentUserProfile(user, profileImage: profileImage);
+      
+      // Update the user data with the response from backend
+      if (response.data != null) {
+        _user = response.data;
+        print('Updated user data: ${_user?.toJson()}');
+      }
+      
+      return response;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
       rethrow;
@@ -224,5 +231,23 @@ class UserViewModel extends ChangeNotifier {
   // Load JWT from storage and set it
   Future<void> loadJwt() async {
     // ... existing code ...
+  }
+
+  // Refresh user profile from backend
+  Future<void> refreshUserProfile() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+      final response = await _repository.fetchUserProfile();
+      _user = response.data;
+      print('Refreshed user data: ${_user?.toJson()}');
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      print('Error refreshing profile: $_error');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 } 

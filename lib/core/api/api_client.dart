@@ -37,13 +37,15 @@ class ApiClient {
     return '$baseUrl${ApiEndpoints.categoryImage}$cleanPath';
   }
 
-  /// Constructs a user file URL for accessing user files
+  /// Constructs a user file URL for accessing user files (like profile photos)
   String getUserFileUrl(String filePath) {
     if (filePath.isEmpty) return '';
     
     // Remove any leading slashes to avoid double slashes
     final cleanPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
-    return '$baseUrl${ApiEndpoints.userFile}$cleanPath';
+    // Add cache-busting parameter to ensure fresh images
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return '$baseUrl${ApiEndpoints.userFile}$cleanPath?t=$timestamp';
   }
 
   Map<String, String> _buildHeaders() {
@@ -54,7 +56,7 @@ class ApiClient {
     return headers;
   }
 
-  Map<String, String> _buildMultipartHeaders() {
+  Map<String, String> buildMultipartHeaders() {
     final headers = <String, String>{};
     if (_jwtToken != null && _jwtToken!.isNotEmpty) {
       headers['Authorization'] = 'Bearer $_jwtToken';
@@ -154,7 +156,7 @@ class ApiClient {
       );
 
       // Add headers
-      request.headers.addAll(_buildMultipartHeaders());
+      request.headers.addAll(buildMultipartHeaders());
 
       // Add file
       final fileStream = http.ByteStream(file.openRead());

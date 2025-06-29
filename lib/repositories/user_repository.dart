@@ -3,6 +3,9 @@ import '../models/user.dart';
 import '../core/api/api_response.dart';
 import '../core/api/api_endpoints.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 class UserRepository {
   final ApiClient apiClient;
@@ -44,31 +47,89 @@ class UserRepository {
   }
 
   // Update current user profile
-  Future<ApiResponse<User>> updateCurrentUserProfile(User user) async {
+  Future<ApiResponse<User>> updateCurrentUserProfile(User user, {File? profileImage}) async {
     try {
-      final response = await apiClient.put(ApiEndpoints.userProfile, user.toJson());
-      print('Update profile response: $response');
+      var uri = Uri.parse('${apiClient.baseUrl}${ApiEndpoints.userProfile}');
+      print('Updating profile at: $uri');
+      print('User data: ${user.toJson()}');
+      print('Profile image: ${profileImage?.path}');
       
-      if (response == null) {
-        throw Exception('Failed to update profile: No response from server');
+      var request = http.MultipartRequest('PUT', uri);
+
+      // Add headers (including auth if needed)
+      request.headers.addAll(apiClient.buildMultipartHeaders());
+      print('Request headers: ${request.headers}');
+
+      // Add text fields
+      request.fields['FirstName'] = user.firstName ?? '';
+      request.fields['MiddleName'] = user.middleName ?? '';
+      request.fields['LastName'] = user.lastName ?? '';
+      request.fields['PhoneNumber'] = user.phoneNumber ?? '';
+      request.fields['Email'] = user.email ?? '';
+      request.fields['Description'] = user.description ?? '';
+      if (profileImage != null) {
+        // If uploading a new image, ProfilePhoto should be empty
+        request.fields['ProfilePhoto'] = '';
+        print('Setting ProfilePhoto to empty for new image upload');
+      } else {
+        // If not uploading a new image, keep the current value
+        request.fields['ProfilePhoto'] = user.profilePhoto ?? '';
+        print('Keeping existing ProfilePhoto: ${user.profilePhoto}');
       }
 
-      final responseData = response['data'];
-      if (responseData == null) {
+      print('Request fields: ${request.fields}');
+
+      // Add image if present
+      if (profileImage != null) {
+        print('Adding image file: ${profileImage.path}');
+        
+        // Determine MIME type based on file extension
+        String mimeType = 'image/png'; // default
+        final extension = profileImage.path.split('.').last.toLowerCase();
+        switch (extension) {
+          case 'jpg':
+          case 'jpeg':
+            mimeType = 'image/jpeg';
+            break;
+          case 'png':
+            mimeType = 'image/png';
+            break;
+          case 'gif':
+            mimeType = 'image/gif';
+            break;
+        }
+        
+        print('Detected MIME type: $mimeType for file extension: $extension');
+        
+        request.files.add(await http.MultipartFile.fromPath(
+          'profileImage', 
+          profileImage.path,
+          contentType: MediaType.parse(mimeType),
+        ));
+        print('Image file added successfully with MIME type: $mimeType');
+      }
+
+      // Send request
+      print('Sending request...');
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+      print('Profile upload response: \nStatus: ${response.statusCode}\nBody: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final data = json.decode(response.body);
         return ApiResponse(
-          data: user, // Return the original user object if no data in response
-          message: response['message'] as String? ?? 'Profile updated successfully',
+          data: data['data'] != null && data['data'] is Map<String, dynamic>
+              ? User.fromJson(data['data'])
+              : user, // fallback to the user you sent
+          message: data['message'],
+          success: data['success'] ?? true,
+          resultStatus: data['resultStatus'] as int?,
         );
+      } else {
+        print('Request failed with status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        throw Exception('Failed to update profile: ${response.statusCode} - ${response.body}');
       }
-
-      if (responseData is! Map<String, dynamic>) {
-        throw Exception('Invalid response format from server');
-      }
-
-      return ApiResponse(
-        data: User.fromJson(responseData),
-        message: response['message'] as String?,
-      );
     } catch (e) {
       print('Error updating profile: $e');
       throw Exception(e.toString().replaceAll('Exception: ', ''));
