@@ -10,6 +10,11 @@ class ApiEndpoints {
   // Category endpoints
   static const String categories = '/api/Category';
   static const String categoryProducts = '/api/products/category/'; // Append category ID
+  static const String categoryImage = '/api/Category/image/'; // Append imagePath
+
+  // Media endpoints
+  static const String mediaFile = '/api/Media/file/'; // Append filePath
+  static const String userFile = '/api/files/'; // Append filePath
 
   // Favorites endpoints
   static const String favorites = '/api/Favorite';

@@ -15,6 +15,7 @@ class CategoriesViewModel extends ChangeNotifier {
   List<Category> get categories => _categories;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  ApiClient get apiClient => _apiClient;
 
   Future<String?> loadCategories() async {
     try {

@@ -147,7 +147,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ),
                     itemCount: viewModel.products.length,
                     itemBuilder: (context, index) {
-                      return ProductCard(product: viewModel.products[index]);
+                      return ProductCard(
+                        product: viewModel.products[index],
+                        apiClient: viewModel.apiClient,
+                      );
                     },
                   ),
                 );

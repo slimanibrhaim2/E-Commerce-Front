@@ -186,7 +186,7 @@ class _UserInfoHeader extends StatelessWidget {
               CircleAvatar(
                 radius: 30,
                 backgroundImage: (user != null && user.profilePhoto != null && user.profilePhoto!.isNotEmpty)
-                    ? NetworkImage(user.profilePhoto!)
+                    ? NetworkImage(context.read<UserViewModel>().apiClient.getUserFileUrl(user.profilePhoto!))
                     : null,
                 child: (user == null || user.profilePhoto == null || user.profilePhoto!.isEmpty)
                     ? const Icon(Icons.person, size: 30)

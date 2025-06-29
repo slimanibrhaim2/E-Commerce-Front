@@ -149,7 +149,10 @@ class CategoriesScreen extends StatelessWidget {
                     itemCount: viewModel.categories.length,
                     itemBuilder: (context, index) {
                       final category = viewModel.categories[index];
-                      return CategoryCard(category: category);
+                      return CategoryCard(
+                        category: category,
+                        apiClient: viewModel.apiClient,
+                      );
                     },
                   ),
                 );

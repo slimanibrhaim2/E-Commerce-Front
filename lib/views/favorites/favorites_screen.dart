@@ -252,6 +252,7 @@ class FavoriteCard extends StatelessWidget {
                   builder: (context) => ChangeNotifierProvider(
                     create: (context) => ProductDetailsViewModel(
                       context.read<ProductsViewModel>().repository,
+                      context.read<ProductsViewModel>().apiClient,
                     ),
                     child: ProductDetailScreen(productId: favorite.itemId), // Use itemId here
                   ),
@@ -279,10 +280,10 @@ class FavoriteCard extends StatelessWidget {
                                 ? ClipRRect(
                               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                               child: Image.network(
-                                favorite.baseItem.media.first.url,
+                                context.read<FavoritesViewModel>().apiClient.getMediaUrl(favorite.baseItem.media.first.url),
                                 height: imageHeight,
                                 width: double.infinity,
-                                fit: BoxFit.cover,
+                                fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Container(
                                     height: imageHeight,

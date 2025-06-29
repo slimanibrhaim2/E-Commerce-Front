@@ -53,7 +53,7 @@ class UserInfoScreen extends StatelessWidget {
                     CircleAvatar(
                       radius: 50,
                       backgroundImage: user?.profilePhoto != null && user!.profilePhoto!.isNotEmpty
-                          ? NetworkImage(user.profilePhoto!)
+                          ? NetworkImage(context.read<UserViewModel>().apiClient.getUserFileUrl(user.profilePhoto!))
                           : null,
                       child: user?.profilePhoto == null || user!.profilePhoto!.isEmpty
                           ? const Icon(Icons.person, size: 50, color: Colors.grey)
@@ -223,7 +223,7 @@ class UserInfoScreen extends StatelessWidget {
                                         backgroundImage: selectedImageFile != null
                                             ? FileImage(selectedImageFile!)
                                             : (profilePhotoUrl != null && profilePhotoUrl.isNotEmpty
-                                                ? NetworkImage(profilePhotoUrl) as ImageProvider
+                                                ? NetworkImage(context.read<UserViewModel>().apiClient.getUserFileUrl(profilePhotoUrl)) as ImageProvider
                                                 : null),
                                         child: (selectedImageFile == null && 
                                                 (profilePhotoUrl == null || profilePhotoUrl.isEmpty))

@@ -288,7 +288,10 @@ class HomePage extends StatelessWidget {
                           itemBuilder: (context, index) {
                             return SizedBox(
                               width: 180,
-                              child: ProductCard(product: products[index]),
+                              child: ProductCard(
+                                product: products[index],
+                                apiClient: viewModel.apiClient,
+                              ),
                             );
                           },
                         ),

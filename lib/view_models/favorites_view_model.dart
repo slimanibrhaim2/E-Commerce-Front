@@ -4,21 +4,24 @@ import '../models/favorite.dart';
 import '../models/product.dart';
 import '../repositories/favorites_repository.dart';
 import '../core/api/api_response.dart';
+import '../core/api/api_client.dart';
 import 'user_view_model.dart';
 
 class FavoritesViewModel extends ChangeNotifier {
   final FavoritesRepository _repository;
+  final ApiClient _apiClient;
   List<Favorite> _favorites = [];
   bool _isLoading = false;
   String? _error;
 
-  FavoritesViewModel(this._repository);
+  FavoritesViewModel(this._repository, this._apiClient);
 
   List<Favorite> get favorites => _favorites;
   List<Product> get favoriteProducts => _favorites.map((f) => f.baseItem).toList();
   bool get isLoading => _isLoading;
   String? get error => _error;
   int get favoritesCount => _favorites.length;
+  ApiClient get apiClient => _apiClient;
 
   Future<String?> loadFavorites() async {
     try {

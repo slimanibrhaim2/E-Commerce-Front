@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/product.dart';
+import '../../../../core/api/api_client.dart';
 import '../../../../view_models/cart_view_model.dart';
 import '../../../../view_models/product_details_view_model.dart';
 import '../../../../view_models/products_view_model.dart';
@@ -13,10 +14,12 @@ import '../../../../view_models/favorites_view_model.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
+  final ApiClient apiClient;
 
   const ProductCard({
     super.key,
     required this.product,
+    required this.apiClient,
   });
 
   String _formatPrice(double price) {
@@ -84,6 +87,7 @@ class ProductCard extends StatelessWidget {
                   builder: (context) => ChangeNotifierProvider(
                     create: (context) => ProductDetailsViewModel(
                       context.read<ProductsViewModel>().repository,
+                      context.read<ProductsViewModel>().apiClient,
                     ),
                     child: ProductDetailScreen(productId: product.id!),
                   ),
@@ -111,10 +115,10 @@ class ProductCard extends StatelessWidget {
                                 ? ClipRRect(
                               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                               child: Image.network(
-                                product.media.first.url,
+                                apiClient.getMediaUrl(product.media.first.url),
                                 height: imageHeight,
                                 width: double.infinity,
-                                fit: BoxFit.cover,
+                                fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Container(
                                     height: imageHeight,

@@ -159,7 +159,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                           itemBuilder: (context, index) {
                                             return SizedBox(
                                               width: 180,
-                                              child: ProductCard(product: products[index]),
+                                              child: ProductCard(
+                                                product: products[index],
+                                                apiClient: viewModel.apiClient,
+                                              ),
                                             );
                                           },
                                         ),

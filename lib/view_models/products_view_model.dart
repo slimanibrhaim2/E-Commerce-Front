@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../repositories/product_repository.dart';
 import '../core/api/api_response.dart';
+import '../core/api/api_client.dart';
 
 class ProductsViewModel extends ChangeNotifier {
   final ProductRepository _repository;
+  final ApiClient _apiClient;
   List<Product> _products = [];
   bool _isLoading = false;
   String? _error;
   String? _currentCategory;
 
-  ProductsViewModel(this._repository);
+  ProductsViewModel(this._repository, this._apiClient);
 
   ProductRepository get repository => _repository;
+  ApiClient get apiClient => _apiClient;
   List<Product> get products => _products;
   bool get isLoading => _isLoading;
   String? get error => _error;

@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import '../models/cart_item.dart';
 import '../repositories/cart_repository.dart';
+import '../core/api/api_client.dart';
 
 class CartViewModel extends ChangeNotifier {
   final CartRepository _repository;
+  final ApiClient _apiClient;
   List<CartItem> _cartItems = [];
   bool _isLoading = false;
   String? _error;
 
-  CartViewModel(this._repository);
+  CartViewModel(this._repository, this._apiClient);
 
   List<CartItem> get cartItems => _cartItems;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  ApiClient get apiClient => _apiClient;
 
   // Calculate total items in cart
   int get totalItems => _cartItems.fold(0, (sum, item) => sum + item.quantity);

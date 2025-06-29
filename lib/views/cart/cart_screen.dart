@@ -312,8 +312,8 @@ class CartItemWidget extends StatelessWidget {
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        item.imageUrl!,
-                        fit: BoxFit.cover,
+                        context.read<CartViewModel>().apiClient.getMediaUrl(item.imageUrl!),
+                        fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
                             decoration: BoxDecoration(

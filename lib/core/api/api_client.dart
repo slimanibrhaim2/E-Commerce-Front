@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import 'api_exception.dart';
+import 'api_endpoints.dart';
 import 'dart:io';
 
 class ApiClient {
@@ -16,6 +17,33 @@ class ApiClient {
 
   void setToken(String? token) {
     _jwtToken = token;
+  }
+
+  /// Constructs a media URL for accessing files through the media API
+  String getMediaUrl(String filePath) {
+    if (filePath.isEmpty) return '';
+    
+    // Remove any leading slashes to avoid double slashes
+    final cleanPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+    return '$baseUrl${ApiEndpoints.mediaFile}$cleanPath';
+  }
+
+  /// Constructs a category image URL for accessing category images
+  String getCategoryImageUrl(String imagePath) {
+    if (imagePath.isEmpty) return '';
+    
+    // Remove any leading slashes to avoid double slashes
+    final cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+    return '$baseUrl${ApiEndpoints.categoryImage}$cleanPath';
+  }
+
+  /// Constructs a user file URL for accessing user files
+  String getUserFileUrl(String filePath) {
+    if (filePath.isEmpty) return '';
+    
+    // Remove any leading slashes to avoid double slashes
+    final cleanPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+    return '$baseUrl${ApiEndpoints.userFile}$cleanPath';
   }
 
   Map<String, String> _buildHeaders() {

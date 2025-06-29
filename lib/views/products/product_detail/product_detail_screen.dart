@@ -100,8 +100,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       AspectRatio(
                         aspectRatio: 1,
                         child: Image.network(
-                          product.media.isNotEmpty ? product.media.first.url : '',
-                          fit: BoxFit.cover,
+                          product.media.isNotEmpty ? viewModel.apiClient.getMediaUrl(product.media.first.url) : '',
+                          fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
                               color: Colors.grey[200],

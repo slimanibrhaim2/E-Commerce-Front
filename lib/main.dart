@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
         // ViewModels
         ChangeNotifierProvider<ProductsViewModel>(
           create: (context) =>
-              ProductsViewModel(context.read<ProductRepository>())..loadProducts(),
+              ProductsViewModel(context.read<ProductRepository>(), context.read<ApiClient>())..loadProducts(),
         ),
         ChangeNotifierProvider<CategoriesViewModel>(
           create: (context) => CategoriesViewModel(
@@ -73,10 +73,10 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<FavoritesViewModel>(
           create: (context) =>
-              FavoritesViewModel(context.read<FavoritesRepository>()),
+              FavoritesViewModel(context.read<FavoritesRepository>(), context.read<ApiClient>()),
         ),
         ChangeNotifierProvider<CartViewModel>(
-          create: (context) => CartViewModel(context.read<CartRepository>()),
+          create: (context) => CartViewModel(context.read<CartRepository>(), context.read<ApiClient>()),
         ),
         ChangeNotifierProvider<AddressViewModel>(
           create: (context) => AddressViewModel(

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../../models/category.dart';
+import '../../../core/api/api_client.dart';
 import '../../products/product_list/product_list_screen.dart';
 
 class CategoryCard extends StatelessWidget {
   final Category category;
+  final ApiClient apiClient;
 
   const CategoryCard({
     super.key,
     required this.category,
+    required this.apiClient,
   });
 
   @override
@@ -52,14 +55,17 @@ class CategoryCard extends StatelessWidget {
   }
 
   Widget _buildCategoryImage() {
-    if (category.imageUrl.isEmpty || !category.imageUrl.startsWith('http')) {
+    if (category.imageUrl.isEmpty) {
       return const Icon(Icons.category, size: 50);
     }
+
+    // Use the API client to construct the category image URL
+    final mediaUrl = apiClient.getCategoryImageUrl(category.imageUrl);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Image.network(
-        category.imageUrl,
+        mediaUrl,
         width: 50,
         height: 50,
         fit: BoxFit.cover,

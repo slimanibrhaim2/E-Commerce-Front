@@ -2,23 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../repositories/product_repository.dart';
+import '../core/api/api_client.dart';
 import '../view_models/cart_view_model.dart';
 import '../view_models/favorites_view_model.dart';
 import '../widgets/modern_snackbar.dart';
 
 class ProductDetailsViewModel extends ChangeNotifier {
   final ProductRepository _repository;
+  final ApiClient _apiClient;
   Product? _product;
   bool _isLoading = false;
   bool _isInCart = false;
   String? _error;
 
-  ProductDetailsViewModel(this._repository);
+  ProductDetailsViewModel(this._repository, this._apiClient);
 
   Product? get product => _product;
   bool get isLoading => _isLoading;
   bool get isInCart => _isInCart;
   String? get error => _error;
+  ApiClient get apiClient => _apiClient;
 
   Future<void> loadProduct(String productId) async {
     try {

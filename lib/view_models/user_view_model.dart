@@ -29,6 +29,7 @@ class UserViewModel extends ChangeNotifier {
   String? get jwt => _jwt;
   LoginStep get loginStep => _loginStep;
   bool get isLoggedIn => _jwt != null;
+  ApiClient get apiClient => _apiClient;
 
   Future<String?> loadUserProfile() async {
     try {
