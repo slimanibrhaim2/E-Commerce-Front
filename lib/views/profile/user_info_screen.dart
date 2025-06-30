@@ -379,7 +379,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                                 labelText: 'الوصف الشخصي',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                ),
+            ),
                                 labelStyle: const TextStyle(fontFamily: 'Cairo'),
                                 hintText: 'اكتب وصفاً مختصراً عن نفسك...',
                                 hintStyle: const TextStyle(fontFamily: 'Cairo'),
@@ -398,89 +398,89 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                                   ),
                                 ),
               onPressed: () async {
-                try {
-                  final updatedUser = User(
-                    firstName: firstNameController.text.trim(),
-                    middleName: middleNameController.text.trim(),
-                    lastName: lastNameController.text.trim(),
-                    phoneNumber: phoneController.text.trim(),
-                    email: emailController.text.trim(),
+                                  try {
+                final updatedUser = User(
+                  firstName: firstNameController.text.trim(),
+                  middleName: middleNameController.text.trim(),
+                  lastName: lastNameController.text.trim(),
+                                      phoneNumber: phoneController.text.trim(),
+                                      email: emailController.text.trim(),
                     profilePhoto: profilePhotoUrl, // Keep existing or will be updated by backend
-                    description: descriptionController.text.trim(),
-                  );
+                                      description: descriptionController.text.trim(),
+                );
 
                   final response = await userViewModel.updateUserProfile(updatedUser, profileImage: selectedImageFile);
-                  if (!context.mounted) return;
-                  Navigator.pop(context);
+                                    if (!context.mounted) return;
+                Navigator.pop(context);
 
                   // Refresh the user profile to get the latest data including new image
                   if (response.success) {
                     await userViewModel.refreshUserProfile();
                   }
 
-                  if (phoneChanged) {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => Directionality(
-                        textDirection: TextDirection.rtl,
-                        child: AlertDialog(
-                          title: const Text(
-                            'تنبيه',
-                            style: TextStyle(
-                              fontFamily: 'Cairo',
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          content: const Text(
-                            'سيتم تسجيل خروجك الآن لتأكيد رقم هاتفك الجديد',
-                            style: TextStyle(fontFamily: 'Cairo'),
-                          ),
-                          actions: [
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).primaryColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: () async {
-                                await userViewModel.logout();
-                                if (!context.mounted) return;
-                                // Navigate to login screen with phone number pre-filled
-                                Navigator.of(context).pushNamedAndRemoveUntil(
-                                  '/login',
-                                  (route) => false,
-                                  arguments: phoneController.text.trim(),
-                                );
-                              },
-                              child: const Text(
-                                'موافق',
-                                style: TextStyle(
-                                  fontFamily: 'Cairo',
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  } else {
-                    ModernSnackbar.show(
-                      context: context,
+                                    if (phoneChanged) {
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (context) => Directionality(
+                                          textDirection: TextDirection.rtl,
+                                          child: AlertDialog(
+                                            title: const Text(
+                                              'تنبيه',
+                                              style: TextStyle(
+                                                fontFamily: 'Cairo',
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            content: const Text(
+                                              'سيتم تسجيل خروجك الآن لتأكيد رقم هاتفك الجديد',
+                                              style: TextStyle(fontFamily: 'Cairo'),
+                                            ),
+                                            actions: [
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Theme.of(context).primaryColor,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                ),
+                                                onPressed: () async {
+                                                  await userViewModel.logout();
+                                                  if (!context.mounted) return;
+                                                  // Navigate to login screen with phone number pre-filled
+                                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                                    '/login',
+                                                    (route) => false,
+                                                    arguments: phoneController.text.trim(),
+                                                  );
+                                                },
+                                                child: const Text(
+                                                  'موافق',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Cairo',
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                ModernSnackbar.show(
+                  context: context,
                       message: response.message ?? 'تم تحديث المعلومات بنجاح',
                       type: (response.success) ? SnackBarType.success : SnackBarType.error,
-                    );
-                  }
-                } catch (e) {
-                  if (!context.mounted) return;
-                  ModernSnackbar.show(
-                    context: context,
-                    message: e.toString().replaceAll('Exception: ', ''),
-                    type: SnackBarType.error,
-                  );
-                }
+                );
+                                    }
+                                  } catch (e) {
+                                    if (!context.mounted) return;
+                                    ModernSnackbar.show(
+                                      context: context,
+                                      message: e.toString().replaceAll('Exception: ', ''),
+                                      type: SnackBarType.error,
+                                    );
+                                  }
               },
                                 child: const Text(
                                   'حفظ التغييرات',

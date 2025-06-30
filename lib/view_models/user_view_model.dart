@@ -58,7 +58,7 @@ class UserViewModel extends ChangeNotifier {
       
       // Update the user data with the response from backend
       if (response.data != null) {
-        _user = response.data;
+      _user = response.data;
         print('Updated user data: ${_user?.toJson()}');
       }
       

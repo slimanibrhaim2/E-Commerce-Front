@@ -3,6 +3,7 @@ import '../models/product.dart';
 import '../repositories/product_repository.dart';
 import '../core/api/api_response.dart';
 import '../core/api/api_client.dart';
+import 'dart:io';
 
 class ProductsViewModel extends ChangeNotifier {
   final ProductRepository _repository;
@@ -43,13 +44,13 @@ class ProductsViewModel extends ChangeNotifier {
     }
   }
 
-  Future<ApiResponse<Product?>> addProduct(Product product) async {
+  Future<ApiResponse<Product?>> addProduct(Product product, {List<File>? images}) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
 
-      final response = await _repository.create(product);
+      final response = await _repository.create(product, images: images);
 
       if (response.success) {
         await loadProducts(); 

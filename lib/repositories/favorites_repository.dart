@@ -21,7 +21,7 @@ class FavoritesRepository extends api.ApiRepositoryBase<Favorite> implements Bas
             final favoritesData = data['data'];
             if (favoritesData is List) {
               favorites = favoritesData.map((json) => Favorite.fromJson(json)).toList();
-            }
+      }
           }
         }
         

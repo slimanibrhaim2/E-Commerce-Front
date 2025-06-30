@@ -7,6 +7,7 @@ import '../../../view_models/products_view_model.dart';
 import '../../../widgets/modern_snackbar.dart';
 import '../../../view_models/categories_view_model.dart';
 import '../../../views/main_navigation_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -38,7 +39,27 @@ class _AddProductScreenState extends State<AddProductScreen> {
     super.dispose();
   }
 
+  Future<bool> checkImagePermission() async {
+    if (Theme.of(context).platform == TargetPlatform.android) {
+      var status = await Permission.photos.status;
+      if (!status.isGranted) {
+        status = await Permission.photos.request();
+        if (!status.isGranted) {
+          ModernSnackbar.show(
+            context: context,
+            message: 'يجب السماح للتطبيق بالوصول إلى الصور لإكمال العملية',
+            type: SnackBarType.error,
+          );
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   Future<void> _pickImages() async {
+    if (!await checkImagePermission()) return;
+    
     final ImagePicker picker = ImagePicker();
     final List<XFile> images = await picker.pickMultiImage();
     if (images.isNotEmpty) {
@@ -133,10 +154,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       try {
-        // TODO: Implement image upload and use the returned URLs.
-        // For now, we send an empty list of media.
-        final List<Media> media = [];
-
         // Create product object
         final product = Product(
           name: _nameController.text,
@@ -146,16 +163,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
           stockQuantity: int.parse(_quantityController.text),
           isAvailable: true,
           categoryId: _selectedCategory ?? '1', // Default category
-          media: media,
+          media: [], // Will be handled by backend
           features: _features.map((f) => Feature(
             name: f['name']!,
             value: f['value']!,
           )).toList(),
         );
 
-        // Add product using view model
+        // Add product using view model with images
         final viewModel = context.read<ProductsViewModel>();
-        final response = await viewModel.addProduct(product);
+        final response = await viewModel.addProduct(product, images: _selectedImages.isNotEmpty ? _selectedImages : null);
         
         if (context.mounted) {
           ModernSnackbar.show(
