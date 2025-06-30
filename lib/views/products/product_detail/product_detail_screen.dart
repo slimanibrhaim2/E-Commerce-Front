@@ -22,6 +22,15 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  int _currentImageIndex = 0;
+  final PageController _pageController = PageController();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -94,33 +103,87 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Product Image
+                  // Product Images Gallery
                   Stack(
                     children: [
                       AspectRatio(
                         aspectRatio: 1,
-                        child: Image.network(
-                          product.media.isNotEmpty ? viewModel.apiClient.getMediaUrl(product.media.first.url) : '',
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey[200],
-                              child: const Icon(
-                                Icons.image_not_supported,
-                                color: Colors.grey,
-                                size: 40,
+                        child: product.media.isNotEmpty
+                            ? PageView.builder(
+                                controller: _pageController,
+                                onPageChanged: (index) {
+                                  setState(() {
+                                    _currentImageIndex = index;
+                                  });
+                                },
+                                itemCount: product.media.length,
+                                itemBuilder: (context, index) {
+                                  return GestureDetector(
+                                    onTap: () => _showImageGallery(context, product, index),
+                                    child: Image.network(
+                                      viewModel.apiClient.getMediaUrl(product.media[index].url),
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          color: Colors.grey[200],
+                                          child: const Icon(
+                                            Icons.image_not_supported,
+                                            color: Colors.grey,
+                                            size: 40,
+                                          ),
+                                        );
+                                      },
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Container(
+                                          color: Colors.grey[200],
+                                          child: const ModernLoader(),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              )
+                            : Container(
+                                color: Colors.grey[200],
+                                child: const Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.grey,
+                                  size: 40,
+                                ),
                               ),
-                            );
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              color: Colors.grey[200],
-                              child: const ModernLoader(),
-                            );
-                          },
-                        ),
                       ),
+                      // Image Indicators
+                      if (product.media.length > 1)
+                        Positioned(
+                          bottom: 20,
+                          left: 0,
+                          right: 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              product.media.length,
+                              (index) => Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 6),
+                                width: _currentImageIndex == index ? 12 : 8,
+                                height: _currentImageIndex == index ? 12 : 8,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: _currentImageIndex == index
+                                      ? Colors.black
+                                      : Colors.black.withOpacity(0.4),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.white.withOpacity(0.8),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       // Favorite Button
                       Positioned(
                         top: 16,
@@ -373,6 +436,48 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+
+  void _showImageGallery(BuildContext context, dynamic product, int initialIndex) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          body: PageView.builder(
+            controller: PageController(initialPage: initialIndex),
+            itemCount: product.media.length,
+            itemBuilder: (context, index) {
+              return InteractiveViewer(
+                child: Center(
+                  child: Image.network(
+                    context.read<ProductDetailsViewModel>().apiClient.getMediaUrl(product.media[index].url),
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[200],
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey,
+                          size: 40,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
