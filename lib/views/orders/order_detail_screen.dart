@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/order_view_model.dart';
 import '../../widgets/modern_loader.dart';
+import '../../widgets/modern_snackbar.dart';
 import '../../models/order.dart';
 import '../../view_models/cart_view_model.dart';
 
@@ -99,6 +100,126 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 },
                               ),
                             ),
+                            // Show delivery confirmation button only if order status is "تم الدفع"
+                            if (orderViewModel.selectedOrder!.orderStatus == 'تم الدفع') ...[
+                              const SizedBox(height: 20),
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.blue.shade200),
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'هل تم توصيل طلبك؟',
+                                      style: TextStyle(
+                                        fontFamily: 'Cairo',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'اضغط على الزر أدناه فقط إذا تم توصيل طلبك بالفعل',
+                                      style: TextStyle(
+                                        fontFamily: 'Cairo',
+                                        fontSize: 14,
+                                        color: Colors.blue,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          // Show confirmation dialog
+                                          final confirmed = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => Directionality(
+                                              textDirection: TextDirection.rtl,
+                                              child: AlertDialog(
+                                                title: const Text(
+                                                  'تأكيد التوصيل',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Cairo',
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                content: const Text(
+                                                  'هل أنت متأكد أن طلبك تم توصيله؟',
+                                                  style: TextStyle(fontFamily: 'Cairo'),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.pop(context, false),
+                                                    child: const Text(
+                                                      'إلغاء',
+                                                      style: TextStyle(fontFamily: 'Cairo'),
+                                                    ),
+                                                  ),
+                                                  ElevatedButton(
+                                                    onPressed: () => Navigator.pop(context, true),
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: Colors.green,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                    ),
+                                                    child: const Text(
+                                                      'تأكيد',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Cairo',
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+
+                                          if (confirmed == true && context.mounted) {
+                                            final message = await orderViewModel.markOrderDelivered(widget.orderId);
+                                            if (context.mounted) {
+                                              ModernSnackbar.show(
+                                                context: context,
+                                                message: message ?? 'تم تأكيد التوصيل بنجاح',
+                                                type: SnackBarType.success,
+                                              );
+                                              // Reload order details to update status
+                                              await orderViewModel.loadOrderById(widget.orderId);
+                                              // Also refresh the orders list when going back
+                                              await orderViewModel.loadMyOrders();
+                                            }
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 16),
+                                          backgroundColor: Colors.green,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'تم التوصيل',
+                                          style: TextStyle(
+                                            fontFamily: 'Cairo',
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),

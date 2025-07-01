@@ -75,4 +75,25 @@ class OrderViewModel extends ChangeNotifier {
       return e.toString();
     }
   }
+
+  Future<String?> markOrderDelivered(String orderId) async {
+    try {
+      final response = await repository.markOrderDelivered(orderId);
+      return response.message;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  // Refresh the current order (used in order summary screen)
+  Future<void> refreshCurrentOrder(String orderId) async {
+    try {
+      final response = await repository.getOrderById(orderId);
+      order = response.data;
+      notifyListeners();
+    } catch (e) {
+      // Handle error silently or log it
+      print('Error refreshing current order: $e');
+    }
+  }
 } 

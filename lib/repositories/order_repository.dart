@@ -51,4 +51,14 @@ class OrderRepository {
       resultStatus: response['resultStatus'] as int?,
     );
   }
+
+  Future<ApiResponse<bool>> markOrderDelivered(String orderId) async {
+    final response = await apiClient.post('${ApiEndpoints.markOrderDelivered}$orderId/mark-delivered', {});
+    return ApiResponse(
+      data: response['data'] as bool?,
+      message: response['message'] as String?,
+      success: response['success'] ?? true,
+      resultStatus: response['resultStatus'] as int?,
+    );
+  }
 } 

@@ -65,4 +65,7 @@ class ApiEndpoints {
 
   // New endpoint for payment process
   static const String paymentProcess = '/api/Payment/process';
+
+  // New endpoint for marking order as delivered
+  static const String markOrderDelivered = '/api/Order/'; // Append order ID + /mark-delivered
 } 
