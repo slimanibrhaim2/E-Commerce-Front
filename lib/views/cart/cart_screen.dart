@@ -4,10 +4,13 @@ import '../../view_models/cart_view_model.dart';
 import '../../view_models/user_view_model.dart';
 import '../../widgets/modern_loader.dart';
 import '../../widgets/modern_snackbar.dart';
-import '../products/product_detail/product_detail_screen.dart';
-import '../../view_models/product_details_view_model.dart';
-import '../../view_models/products_view_model.dart';
+
 import '../../models/cart_item.dart';
+import '../../view_models/order_view_model.dart';
+import '../../view_models/address_view_model.dart';
+import '../../models/address.dart';
+import '../../models/order.dart';
+import '../../views/address/address_selection_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -244,8 +247,48 @@ class _CartScreenState extends State<CartScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: cartItemsCount > 0 ? () {
-                              // TODO: Implement checkout
+                            onPressed: cartItemsCount > 0 ? () async {
+                              // Show address selection modal
+                              final addressViewModel = context.read<AddressViewModel>();
+                              final userViewModel = context.read<UserViewModel>();
+                              if (!userViewModel.isLoggedIn) {
+                                ModernSnackbar.show(
+                                  context: context,
+                                  message: 'يجب تسجيل الدخول لإتمام الطلب',
+                                  type: SnackBarType.error,
+                                );
+                                return;
+                              }
+                              await addressViewModel.loadAddresses();
+                              Address? selectedAddress = await showModalBottomSheet<Address?>(
+                                context: context,
+                                isScrollControlled: true,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                ),
+                                builder: (context) {
+                                  return _AddressSelectionSheet();
+                                },
+                              );
+                              if (selectedAddress == null) return;
+                              // Call checkout
+                              final orderViewModel = context.read<OrderViewModel>();
+                              final message = await orderViewModel.checkout(selectedAddress.id!);
+                              if (orderViewModel.error != null) {
+                                ModernSnackbar.show(
+                                  context: context,
+                                  message: orderViewModel.error!,
+                                  type: SnackBarType.error,
+                                );
+                                return;
+                              }
+                              if (orderViewModel.order != null && context.mounted) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => _OrderSummaryScreen(order: orderViewModel.order!),
+                                  ),
+                                );
+                              }
                             } : null,
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -312,7 +355,7 @@ class CartItemWidget extends StatelessWidget {
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        context.read<CartViewModel>().apiClient.getMediaUrl(item.imageUrl!),
+                        context.read<CartViewModel>().apiClient.getMediaUrl(item.imageUrl ?? ''),
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
@@ -348,7 +391,7 @@ class CartItemWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.name,
+                    item.name ?? '',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -359,7 +402,7 @@ class CartItemWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${item.price.toStringAsFixed(0)} ل.س',
+                    '${(item.price ?? 0).toStringAsFixed(0)} ل.س',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -506,6 +549,149 @@ class CartItemWidget extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// Address selection bottom sheet
+class _AddressSelectionSheet extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final addressViewModel = context.watch<AddressViewModel>();
+    final addresses = addressViewModel.addresses;
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Padding(
+        padding: MediaQuery.of(context).viewInsets,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            const Text('اختر عنوان التوصيل', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 16),
+            if (addresses.isEmpty)
+              const Text('لا يوجد عناوين محفوظة', style: TextStyle(fontFamily: 'Cairo')),
+            ...addresses.map((address) => ListTile(
+                  title: Text(address.name ?? 'بدون اسم', style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+                  subtitle: Text(address.address ?? '', style: const TextStyle(fontFamily: 'Cairo')),
+                  onTap: () => Navigator.pop(context, address),
+                )),
+            ListTile(
+              leading: const Icon(Icons.add_location_alt, color: Colors.blue),
+              title: const Text('إضافة عنوان جديد', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+              onTap: () async {
+                Navigator.pop(context);
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddressSelectionScreen()),
+                );
+                if (result != null) {
+                  final addressViewModel = context.read<AddressViewModel>();
+                  final address = Address(
+                    name: result['name'],
+                    address: result['address'],
+                    latitude: result['latitude'],
+                    longitude: result['longitude'],
+                  );
+                  final message = await addressViewModel.createAddress(address);
+                  if (addressViewModel.error != null && context.mounted) {
+                    ModernSnackbar.show(
+                      context: context,
+                      message: addressViewModel.error!,
+                      type: SnackBarType.error,
+                    );
+                  } else if (message != null && context.mounted) {
+                    ModernSnackbar.show(
+                      context: context,
+                      message: message,
+                      type: SnackBarType.success,
+                    );
+                    await addressViewModel.loadAddresses();
+                  }
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Order summary screen
+class _OrderSummaryScreen extends StatelessWidget {
+  final Order order;
+  const _OrderSummaryScreen({required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('ملخص الطلب', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+          centerTitle: true,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('الحالة:', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+                  Text(order.orderStatus ?? '', style: TextStyle(fontFamily: 'Cairo', color: Colors.blue)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('المبلغ الكلي:', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+                  Text('${(order.totalAmount ?? 0).toStringAsFixed(0)} ل.س', style: TextStyle(fontFamily: 'Cairo', color: Colors.green)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text('العناصر:', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: order.items.length,
+                  itemBuilder: (context, index) {
+                    final item = order.items[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      child: ListTile(
+                        leading: Image.network(
+                          context.read<CartViewModel>().apiClient.getMediaUrl(item.imageUrl ?? ''),
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported),
+                        ),
+                        title: Text(
+                          item.name ?? '',
+                          style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('السعر: ${(item.price ?? 0).toStringAsFixed(0)} ل.س', style: const TextStyle(fontFamily: 'Cairo')),
+                            Text('الكمية: ${item.quantity}', style: const TextStyle(fontFamily: 'Cairo')),
+                          ],
+                        ),
+                        trailing: Text('المجموع: ${(item.totalPrice ?? 0).toStringAsFixed(0)} ل.س', style: const TextStyle(fontFamily: 'Cairo', color: Colors.green)),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

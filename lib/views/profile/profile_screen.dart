@@ -10,6 +10,7 @@ import 'about_us_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../widgets/modern_snackbar.dart';
+import '../orders/my_orders_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -97,6 +98,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const AddressesScreen()),
+                );
+              },
+            ),
+            _ProfileOption(
+              icon: Icons.list_alt,
+              label: 'طلباتي',
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
                 );
               },
             ),

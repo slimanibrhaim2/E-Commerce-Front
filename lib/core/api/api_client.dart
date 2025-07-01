@@ -186,6 +186,29 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> postRaw(String endpoint, String rawBody) async {
+    try {
+      final response = await _client.post(
+        Uri.parse('$baseUrl$endpoint'),
+        headers: _buildHeaders(),
+        body: rawBody,
+      ).timeout(
+        Duration(milliseconds: ApiConfig.timeout),
+        onTimeout: () {
+          throw ApiException.timeout();
+        },
+      );
+      return _handleResponse(response);
+    } on http.ClientException catch (e) {
+      print('ApiClient POST RAW ClientException: $e');
+      throw ApiException.connectionError();
+    } catch (e) {
+      print('ApiClient POST RAW Generic Exception: $e');
+      if (e is ApiException) rethrow;
+      throw ApiException.serverError('فشل في إرسال البيانات. يرجى المحاولة مرة أخرى لاحقاً.');
+    }
+  }
+
   dynamic _handleResponse(http.Response response) {
     final decoded = json.decode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {

@@ -47,4 +47,10 @@ class ApiEndpoints {
 
   // Login endpoint
   static const String login = '/api/Auth/login';
+
+  // Order endpoints
+  static const String orderCheckout = '/api/Order/Checkout';
+
+  // New endpoint for fetching user orders
+  static const String myOrders = '/api/Order/my-orders';
 } 

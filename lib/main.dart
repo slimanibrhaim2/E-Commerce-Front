@@ -19,6 +19,8 @@ import 'views/auth/login_screen.dart';
 import 'views/home/home_screen.dart';
 import 'views/profile/profile_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'repositories/order_repository.dart';
+import 'view_models/order_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +62,9 @@ class MyApp extends StatelessWidget {
         Provider<AddressRepository>(
           create: (context) => AddressRepository(context.read<ApiClient>()),
         ),
+        Provider<OrderRepository>(
+          create: (context) => OrderRepository(context.read<ApiClient>()),
+        ),
         // ViewModels
         ChangeNotifierProvider<ProductsViewModel>(
           create: (context) =>
@@ -89,6 +94,9 @@ class MyApp extends StatelessWidget {
             context.read<UserRepository>(),
             context.read<ApiClient>(),
           ),
+        ),
+        ChangeNotifierProvider<OrderViewModel>(
+          create: (context) => OrderViewModel(context.read<OrderRepository>()),
         ),
       ],
       child: MaterialApp(
