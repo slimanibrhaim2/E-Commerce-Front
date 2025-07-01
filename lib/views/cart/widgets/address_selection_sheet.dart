@@ -31,7 +31,6 @@ class AddressSelectionSheet extends StatelessWidget {
               leading: const Icon(Icons.add_location_alt, color: Colors.blue),
               title: const Text('إضافة عنوان جديد', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
               onTap: () async {
-                Navigator.pop(context);
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const AddressSelectionScreen()),
@@ -58,6 +57,22 @@ class AddressSelectionSheet extends StatelessWidget {
                       type: SnackBarType.success,
                     );
                     await addressViewModel.loadAddresses();
+                    
+                    // Find the newly created address and return it
+                    final newAddresses = addressViewModel.addresses;
+                    if (newAddresses.isNotEmpty) {
+                      // Find the newly created address by matching the data
+                      final newAddress = newAddresses.firstWhere(
+                        (addr) => addr.name == result['name'] && 
+                                  addr.address == result['address'] &&
+                                  addr.latitude == result['latitude'] &&
+                                  addr.longitude == result['longitude'],
+                        orElse: () => newAddresses.last, // Fallback to last address if not found
+                      );
+                      
+                      // Return the address with ID to the cart screen
+                      Navigator.pop(context, newAddress);
+                    }
                   }
                 }
               },

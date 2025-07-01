@@ -40,7 +40,12 @@ class AddressRepository {
 
   // Create new address
   Future<ApiResponse<Address>> createAddress(Address address) async {
-    final response = await apiClient.post(ApiEndpoints.addresses, address.toJson());
+    final addressData = address.toJson();
+    print('Sending address data to API: $addressData');
+    
+    final response = await apiClient.post(ApiEndpoints.addresses, addressData);
+    print('API response for address creation: $response');
+    
     final data = response['data'];
     return ApiResponse(
       data: data != null ? Address.fromJson(data) : null,

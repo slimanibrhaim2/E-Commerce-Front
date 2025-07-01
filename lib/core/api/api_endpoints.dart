@@ -68,4 +68,7 @@ class ApiEndpoints {
 
   // New endpoint for marking order as delivered
   static const String markOrderDelivered = '/api/Order/'; // Append order ID + /mark-delivered
+
+  // New endpoint for reviews
+  static const String reviews = '/api/Review';
 } 

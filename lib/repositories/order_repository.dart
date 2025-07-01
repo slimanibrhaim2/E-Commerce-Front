@@ -10,7 +10,14 @@ class OrderRepository {
 
   Future<ApiResponse<Order>> checkout(String addressId) async {
     final response = await apiClient.postRaw(ApiEndpoints.orderCheckout, '"$addressId"');
-    return ApiResponse.fromJson(response, (data) => Order.fromJson(data));
+    print('Checkout API response: $response');
+    
+    return ApiResponse(
+      data: response['data'] != null ? Order.fromJson(response['data']) : null,
+      message: response['message'] as String?,
+      success: response['success'] ?? true,
+      resultStatus: response['resultStatus'] as int?,
+    );
   }
 
   Future<ApiResponse<List<Order>>> getMyOrders() async {

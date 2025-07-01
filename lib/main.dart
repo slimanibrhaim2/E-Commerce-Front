@@ -23,6 +23,8 @@ import 'repositories/order_repository.dart';
 import 'view_models/order_view_model.dart';
 import 'repositories/payment_repository.dart';
 import 'view_models/payment_view_model.dart';
+import 'repositories/review_repository.dart';
+import 'view_models/review_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,6 +72,9 @@ class MyApp extends StatelessWidget {
         Provider<PaymentRepository>(
           create: (context) => PaymentRepository(context.read<ApiClient>()),
         ),
+        Provider<ReviewRepository>(
+          create: (context) => ReviewRepository(context.read<ApiClient>()),
+        ),
         // ViewModels
         ChangeNotifierProvider<ProductsViewModel>(
           create: (context) =>
@@ -105,6 +110,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<PaymentViewModel>(
           create: (context) => PaymentViewModel(context.read<PaymentRepository>()),
+        ),
+        ChangeNotifierProvider<ReviewViewModel>(
+          create: (context) => ReviewViewModel(context.read<ReviewRepository>()),
         ),
       ],
       child: MaterialApp(

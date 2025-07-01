@@ -211,6 +211,19 @@ class ApiClient {
 
   dynamic _handleResponse(http.Response response) {
     final decoded = json.decode(response.body);
+    
+    // Check for business errors first, regardless of status code
+    if (decoded is Map && decoded['success'] == false) {
+      // Return backend business error as a response object
+      return {
+        'success': false,
+        'message': decoded['message'],
+        'data': decoded['data'],
+        'resultStatus': decoded['resultStatus'],
+        'errorType': decoded['errorType'],
+      };
+    }
+    
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return decoded;
     } else if (decoded is Map && decoded['message'] != null) {

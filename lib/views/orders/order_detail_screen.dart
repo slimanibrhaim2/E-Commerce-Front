@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/order_view_model.dart';
+import '../../view_models/cart_view_model.dart';
 import '../../widgets/modern_loader.dart';
 import '../../widgets/modern_snackbar.dart';
-import '../../models/order.dart';
-import '../../view_models/cart_view_model.dart';
+import '../reviews/review_form_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
-  const OrderDetailScreen({super.key, required this.orderId});
+
+  const OrderDetailScreen({
+    super.key,
+    required this.orderId,
+  });
 
   @override
   State<OrderDetailScreen> createState() => _OrderDetailScreenState();
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
-  bool _didFetch = false;
-
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_didFetch) {
-      _didFetch = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<OrderViewModel>().loadOrderById(widget.orderId);
-      });
-    }
+  void initState() {
+    super.initState();
+    // Load order details when the view is created
+    Future.microtask(() => 
+      context.read<OrderViewModel>().loadOrderById(widget.orderId)
+    );
   }
 
   @override
@@ -195,6 +195,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                               await orderViewModel.loadOrderById(widget.orderId);
                                               // Also refresh the orders list when going back
                                               await orderViewModel.loadMyOrders();
+                                              
+                                              // Show review form after successful delivery confirmation
+                                              if (context.mounted) {
+                                                await Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) => ReviewFormScreen(
+                                                      orderId: widget.orderId,
+                                                    ),
+                                                  ),
+                                                );
+                                              }
                                             }
                                           }
                                         },

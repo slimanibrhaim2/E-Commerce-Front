@@ -42,17 +42,22 @@ class AddressViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
       
+      print('Creating address: ${address.toJson()}');
       final response = await _repository.createAddress(address);
+      print('Address creation response: ${response.data?.toJson()}');
+      
       if (response.data != null) {
         // Add to local list immediately for better UX
         _addresses.add(response.data!);
         notifyListeners(); // Notify immediately for instant UI update
+        print('Address added to local list. Total addresses: ${_addresses.length}');
         // Then refresh from server to ensure consistency
         await loadAddresses();
       }
       return response.message;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
+      print('Error creating address: $_error');
       notifyListeners();
       rethrow;
     } finally {

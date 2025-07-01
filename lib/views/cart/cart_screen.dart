@@ -270,10 +270,17 @@ class _CartScreenState extends State<CartScreen> {
                                   return AddressSelectionSheet();
                                 },
                               );
+                              print('Selected address: ${selectedAddress?.toJson()}');
                               if (selectedAddress == null) return;
+                              
                               // Call checkout
                               final orderViewModel = context.read<OrderViewModel>();
+                              print('Calling checkout with address ID: ${selectedAddress.id}');
                               final message = await orderViewModel.checkout(selectedAddress.id!);
+                              print('Checkout message: $message');
+                              print('OrderViewModel error: ${orderViewModel.error}');
+                              print('OrderViewModel order: ${orderViewModel.order}');
+                              
                               if (orderViewModel.error != null) {
                                 ModernSnackbar.show(
                                   context: context,
