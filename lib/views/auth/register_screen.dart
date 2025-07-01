@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../../view_models/user_view_model.dart';
+import '../../view_models/cart_view_model.dart';
 import '../../models/user.dart';
 import '../../widgets/modern_snackbar.dart';
 import '../../core/api/api_exception.dart';
@@ -121,6 +122,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   await _storage.write(key: 'auth_token', value: userViewModel.jwt!);
                   // Fetch user profile after registration
                   await userViewModel.loadUserProfile();
+                  // Load cart after successful registration
+                  await context.read<CartViewModel>().loadCart();
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
                     (route) => false,

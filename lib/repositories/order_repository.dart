@@ -30,4 +30,25 @@ class OrderRepository {
       resultStatus: response['resultStatus'] as int?,
     );
   }
+
+  Future<ApiResponse<Order>> getOrderById(String orderId) async {
+    final response = await apiClient.get('${ApiEndpoints.orderDetail}$orderId');
+    final data = response['data'];
+    return ApiResponse(
+      data: data != null ? Order.fromJson(data) : null,
+      message: response['message'] as String?,
+      success: response['success'] ?? true,
+      resultStatus: response['resultStatus'] as int?,
+    );
+  }
+
+  Future<ApiResponse<bool>> cancelOrder(String orderId) async {
+    final response = await apiClient.post('${ApiEndpoints.orderCancel}$orderId/cancel', {});
+    return ApiResponse(
+      data: response['data'] as bool?,
+      message: response['message'] as String?,
+      success: response['success'] ?? true,
+      resultStatus: response['resultStatus'] as int?,
+    );
+  }
 } 

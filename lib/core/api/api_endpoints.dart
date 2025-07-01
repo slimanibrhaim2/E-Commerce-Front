@@ -53,4 +53,16 @@ class ApiEndpoints {
 
   // New endpoint for fetching user orders
   static const String myOrders = '/api/Order/my-orders';
+
+  // New endpoint for fetching a specific order by ID
+  static const String orderDetail = '/api/Order/'; // Append order ID
+
+  // New endpoint for order cancel
+  static const String orderCancel = '/api/Order/'; // Append order ID + /cancel
+
+  // New endpoint for payment methods
+  static const String paymentMethods = '/api/PaymentMethod';
+
+  // New endpoint for payment process
+  static const String paymentProcess = '/api/Payment/process';
 } 

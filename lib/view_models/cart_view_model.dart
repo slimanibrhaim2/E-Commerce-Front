@@ -150,4 +150,14 @@ class CartViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Clear cart after successful order
+  void clearCart() {
+    _cartItems.clear();
+    _error = null;
+    notifyListeners();
+  }
+
+  // Get cart count without loading full cart data
+  int get cartItemsCount => _cartItems.length;
 } 

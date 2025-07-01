@@ -11,6 +11,9 @@ class OrderViewModel extends ChangeNotifier {
   List<Order> myOrders = [];
   bool isLoadingOrders = false;
   String? ordersError;
+  Order? selectedOrder;
+  bool isLoadingOrderDetail = false;
+  String? orderDetailError;
 
   OrderViewModel(this.repository);
 
@@ -47,5 +50,29 @@ class OrderViewModel extends ChangeNotifier {
     }
     isLoadingOrders = false;
     notifyListeners();
+  }
+
+  Future<void> loadOrderById(String orderId) async {
+    isLoadingOrderDetail = true;
+    orderDetailError = null;
+    notifyListeners();
+    try {
+      final response = await repository.getOrderById(orderId);
+      selectedOrder = response.data;
+      orderDetailError = null;
+    } catch (e) {
+      orderDetailError = e.toString();
+    }
+    isLoadingOrderDetail = false;
+    notifyListeners();
+  }
+
+  Future<String?> cancelOrder(String orderId) async {
+    try {
+      final response = await repository.cancelOrder(orderId);
+      return response.message;
+    } catch (e) {
+      return e.toString();
+    }
   }
 } 

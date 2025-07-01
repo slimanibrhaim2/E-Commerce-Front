@@ -21,6 +21,8 @@ import 'views/profile/profile_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'repositories/order_repository.dart';
 import 'view_models/order_view_model.dart';
+import 'repositories/payment_repository.dart';
+import 'view_models/payment_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,6 +67,9 @@ class MyApp extends StatelessWidget {
         Provider<OrderRepository>(
           create: (context) => OrderRepository(context.read<ApiClient>()),
         ),
+        Provider<PaymentRepository>(
+          create: (context) => PaymentRepository(context.read<ApiClient>()),
+        ),
         // ViewModels
         ChangeNotifierProvider<ProductsViewModel>(
           create: (context) =>
@@ -97,6 +102,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<OrderViewModel>(
           create: (context) => OrderViewModel(context.read<OrderRepository>()),
+        ),
+        ChangeNotifierProvider<PaymentViewModel>(
+          create: (context) => PaymentViewModel(context.read<PaymentRepository>()),
         ),
       ],
       child: MaterialApp(

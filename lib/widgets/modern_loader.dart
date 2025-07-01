@@ -34,6 +34,7 @@ class _ModernLoaderState extends State<ModernLoader>
         builder: (context, child) {
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: List.generate(3, (index) {
               double t = (_controller.value + index / 3) % 1.0;
               return Opacity(

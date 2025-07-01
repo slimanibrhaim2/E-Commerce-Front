@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/user_view_model.dart';
+import '../../view_models/cart_view_model.dart';
 import '../../models/user.dart';
 import '../../widgets/modern_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
@@ -446,6 +447,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                                                 ),
                                                 onPressed: () async {
                                                   await userViewModel.logout();
+                                                  // Clear cart after logout
+                                                  context.read<CartViewModel>().clearCart();
                                                   if (!context.mounted) return;
                                                   // Navigate to login screen with phone number pre-filled
                                                   Navigator.of(context).pushNamedAndRemoveUntil(
@@ -545,6 +548,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 );
                 // Optionally, log out and navigate to login screen
                 await userViewModel.logout();
+                // Clear cart after logout
+                context.read<CartViewModel>().clearCart();
                 Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
               },
                 child: const Text(

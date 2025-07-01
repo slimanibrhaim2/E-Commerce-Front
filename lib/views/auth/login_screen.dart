@@ -2,6 +2,7 @@ import 'package:e_commerce/views/auth/widgets/otp_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/user_view_model.dart';
+import '../../view_models/cart_view_model.dart';
 import '../../widgets/modern_snackbar.dart';
 import '../main_navigation_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -103,6 +104,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       await _storage.write(key: 'auth_token', value: userViewModel.jwt!);
                       // Fetch user profile
                       await userViewModel.loadUserProfile();
+                      if (!mounted) return;
+                      
+                      // Load cart after successful login
+                      await context.read<CartViewModel>().loadCart();
                       if (!mounted) return;
                       
                       // Show success message

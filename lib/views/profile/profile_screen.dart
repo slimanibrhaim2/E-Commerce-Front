@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/user_view_model.dart';
+import '../../view_models/cart_view_model.dart';
 import '../auth/register_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../contact/contact_screen.dart';
@@ -160,6 +161,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: () async {
                   // Clear JWT and user info
                   await Provider.of<UserViewModel>(context, listen: false).logout();
+                  // Clear cart after logout
+                  context.read<CartViewModel>().clearCart();
                   await storage.delete(key: 'auth_token');
                   ModernSnackbar.show(
                     context: context,

@@ -33,6 +33,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void initState() {
     super.initState();
     currentIndex = widget.initialIndex;
+    
+    // Load cart if user is logged in when app starts
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userViewModel = context.read<UserViewModel>();
+      if (userViewModel.isLoggedIn) {
+        context.read<CartViewModel>().loadCart();
+      }
+    });
   }
 
   void _setTab(int index) {
