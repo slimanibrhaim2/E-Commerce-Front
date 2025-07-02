@@ -119,7 +119,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 itemCount: product.media.length,
                                 itemBuilder: (context, index) {
                                   return GestureDetector(
-                                    onTap: () => _showImageGallery(context, product, index),
+                                    onTap: () => _showImageGallery(context, product, index, viewModel.apiClient),
                                     child: Image.network(
                                       viewModel.apiClient.getMediaUrl(product.media[index].url),
                                       fit: BoxFit.contain,
@@ -441,7 +441,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  void _showImageGallery(BuildContext context, dynamic product, int initialIndex) {
+  void _showImageGallery(BuildContext context, dynamic product, int initialIndex, apiClient) {
+    try {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => Scaffold(
@@ -461,7 +462,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               return InteractiveViewer(
                 child: Center(
                   child: Image.network(
-                    context.read<ProductDetailsViewModel>().apiClient.getMediaUrl(product.media[index].url),
+                      apiClient.getMediaUrl(product.media[index].url),
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -481,5 +482,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       ),
     );
+    } catch (e) {
+      if (context.mounted) {
+        ModernSnackbar.show(
+          context: context,
+          message: 'حدث خطأ أثناء عرض معرض الصور: ${e.toString()}',
+          type: SnackBarType.error,
+        );
+      }
+    }
   }
 } 

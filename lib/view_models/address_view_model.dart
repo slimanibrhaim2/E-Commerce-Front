@@ -121,4 +121,23 @@ class AddressViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
+  // Fetch a single address by ID
+  Future<Address?> fetchAddressById(String addressId) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+      
+      final response = await _repository.fetchAddress(addressId);
+      return response.data;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 } 

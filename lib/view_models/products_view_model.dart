@@ -44,6 +44,23 @@ class ProductsViewModel extends ChangeNotifier {
     }
   }
 
+  Future<String?> loadMyProducts() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      _products = await _repository.getMyProducts();
+      return null; // Success
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      return _error;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<ApiResponse<Product?>> addProduct(Product product, {List<File>? images}) async {
     try {
       _isLoading = true;
@@ -86,14 +103,14 @@ class ProductsViewModel extends ChangeNotifier {
     }
   }
 
-  Future<String?> deleteProduct(int id) async {
+  Future<String?> deleteProduct(String id) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
 
       await _repository.delete(id);
-      await loadProducts();
+      await loadMyProducts();
       return 'تم حذف المنتج بنجاح';
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');

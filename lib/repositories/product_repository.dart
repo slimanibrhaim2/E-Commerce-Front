@@ -76,6 +76,23 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
     return getProducts();
   }
 
+  Future<List<Product>> getMyProducts() async {
+    return handleListApiCall(() async {
+      final response = await apiClient.get(ApiEndpoints.myProducts);
+      if (response is Map<String, dynamic> &&
+          response.containsKey('data') &&
+          response['data'] is Map<String, dynamic> &&
+          response['data'].containsKey('data') &&
+          response['data']['data'] is List) {
+        final List<dynamic> productListJson = response['data']['data'];
+        return productListJson.map((json) => Product.fromJson(json)).toList();
+      } else if (response is List) {
+        return response.map((json) => Product.fromJson(json)).toList();
+      }
+      throw Exception('Invalid response format for getMyProducts');
+    });
+  }
+
   Future<ApiResponse<Product>> create(Product item, {List<File>? images}) async {
     try {
       // Always use multipart form data, even if there are no images
@@ -179,9 +196,9 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
     });
   }
 
-  Future<bool> delete(int id) async {
+  Future<bool> delete(String id) async {
     try {
-      await apiClient.delete('${ApiEndpoints.productDetail}$id');
+      await apiClient.delete('${ApiEndpoints.deleteProduct}$id');
       return true;
     } catch (e) {
       rethrow;

@@ -12,6 +12,7 @@ import 'privacy_policy_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../widgets/modern_snackbar.dart';
 import '../orders/my_orders_screen.dart';
+import '../profile/my_products_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -108,6 +109,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
+                );
+              },
+            ),
+            if (isLoggedIn)
+              _ProfileOption(
+                icon: Icons.shopping_bag,
+                label: 'منتجاتي',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const MyProductsScreen()),
                 );
               },
             ),

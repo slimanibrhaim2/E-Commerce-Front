@@ -6,6 +6,7 @@ class ApiEndpoints {
   // Product endpoints
   static const String products = '/api/products';
   static const String productDetail = '/api/products/'; // Append product ID
+  static const String myProducts = '/api/products/my-products';
   
   // Category endpoints
   static const String categories = '/api/Category';
@@ -34,11 +35,12 @@ class ApiEndpoints {
   // static const String userSearch = '/api/users/search';
 
   // Address endpoints
-  static const String addresses = '/api/addresses';
-  static const String addressDetail = '/api/addresses/'; // Append address ID
+  static const String addresses = '/api/Addresses';
+  static const String addressDetail = '/api/Addresses/'; // Append address ID
 
   // Aggregate product endpoint
   static const String aggregateProduct = '/api/products/aggregate';
+  static const String deleteProduct = '/api/products/aggregate/'; // Append product ID for DELETE
 
 
   // New endpoints for register and verify-otp
