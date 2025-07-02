@@ -42,6 +42,7 @@ class ApiEndpoints {
   // Aggregate product endpoint
   static const String aggregateProduct = '/api/products/aggregate';
   static const String deleteProduct = '/api/products/aggregate/'; // Append product ID for DELETE
+  static const String updateProduct = '/api/products/aggregate/'; // Append product ID for PUT
 
 
   // New endpoints for register and verify-otp

@@ -238,4 +238,94 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
       }
     });
   }
+
+  Future<ApiResponse<Product>> updateProduct(Product item, {List<File>? images}) async {
+    try {
+      // Use multipart form data for update as well
+      var uri = Uri.parse('${apiClient.baseUrl}${ApiEndpoints.aggregateProduct}/${item.id}');
+      print('Updating product at: $uri');
+      print('Product data: ${item.toJson()}');
+      print('Number of images: ${images?.length ?? 0}');
+
+      var request = http.MultipartRequest('PUT', uri);
+
+      // Add headers
+      request.headers.addAll(apiClient.buildMultipartHeaders());
+      print('Request headers: ${request.headers}');
+
+      // Add text fields
+      request.fields['Name'] = item.name;
+      request.fields['Description'] = item.description;
+      request.fields['Price'] = item.price.toString();
+      request.fields['Sku'] = item.sku;
+      request.fields['StockQuantity'] = item.stockQuantity.toString();
+      request.fields['IsAvailable'] = item.isAvailable.toString();
+      request.fields['CategoryId'] = item.categoryId;
+
+      // Add features as JSON string
+      if (item.features.isNotEmpty) {
+        request.fields['Features'] = json.encode(item.features.map((f) => f.toJson()).toList());
+      }
+
+      print('Request fields: ${request.fields}');
+
+      // Add image files if any
+      if (images != null && images.isNotEmpty) {
+        for (int i = 0; i < images.length; i++) {
+          final image = images[i];
+          print('Adding image file ${i + 1}: ${image.path}');
+
+          // Determine MIME type based on file extension
+          String mimeType = 'image/png'; // default
+          final extension = image.path.split('.').last.toLowerCase();
+          switch (extension) {
+            case 'jpg':
+            case 'jpeg':
+              mimeType = 'image/jpeg';
+              break;
+            case 'png':
+              mimeType = 'image/png';
+              break;
+            case 'gif':
+              mimeType = 'image/gif';
+              break;
+          }
+
+          print('Detected MIME type: $mimeType for file extension: $extension');
+
+          request.files.add(await http.MultipartFile.fromPath(
+            'mediaFiles',
+            image.path,
+            contentType: MediaType.parse(mimeType),
+          ));
+          print('Image file ${i + 1} added successfully with MIME type: $mimeType');
+        }
+      }
+
+      // Send request
+      print('Sending product update request...');
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+      print('Product update response: \nStatus: ${response.statusCode}\nBody: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final data = json.decode(response.body);
+        final updatedProduct = item.copyWith(id: data['data']?.toString());
+
+        return ApiResponse(
+          data: updatedProduct,
+          success: data['success'] ?? true,
+          message: data['message'],
+          resultStatus: data['resultStatus'] as int?,
+        );
+      } else {
+        print('Request failed with status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        throw Exception('Failed to update product: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error updating product: $e');
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
 } 

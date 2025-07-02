@@ -10,7 +10,8 @@ import '../../../views/main_navigation_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({super.key});
+  final Product? productToEdit;
+  const AddProductScreen({super.key, this.productToEdit});
 
   @override
   State<AddProductScreen> createState() => _AddProductScreenState();
@@ -27,6 +28,22 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final List<Map<String, String>> _features = [];
   final _featureNameController = TextEditingController();
   final _featureValueController = TextEditingController();
+  bool get isEditMode => widget.productToEdit != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (isEditMode) {
+      final p = widget.productToEdit!;
+      _nameController.text = p.name;
+      _descriptionController.text = p.description;
+      _priceController.text = p.price.toString();
+      _quantityController.text = p.stockQuantity.toString();
+      _selectedCategory = p.categoryId;
+      _features.addAll(p.features.map((f) => {'name': f.name, 'value': f.value}));
+      // Note: Images are not prefilled for edit (backend should handle existing images)
+    }
+  }
 
   @override
   void dispose() {
@@ -154,37 +171,37 @@ class _AddProductScreenState extends State<AddProductScreen> {
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       try {
-        // Create product object
         final product = Product(
+          id: isEditMode ? widget.productToEdit!.id : null,
           name: _nameController.text,
           description: _descriptionController.text,
           price: double.parse(_priceController.text),
-          sku: DateTime.now().millisecondsSinceEpoch.toString(), // Generate SKU
+          sku: isEditMode ? widget.productToEdit!.sku : DateTime.now().millisecondsSinceEpoch.toString(),
           stockQuantity: int.parse(_quantityController.text),
           isAvailable: true,
-          categoryId: _selectedCategory ?? '1', // Default category
-          media: [], // Will be handled by backend
+          categoryId: _selectedCategory ?? '1',
+          media: [],
           features: _features.map((f) => Feature(
             name: f['name']!,
             value: f['value']!,
           )).toList(),
         );
 
-        // Add product using view model with images
         final viewModel = context.read<ProductsViewModel>();
-        final response = await viewModel.addProduct(product, images: _selectedImages.isNotEmpty ? _selectedImages : null);
-        
+        final response = isEditMode
+          ? await viewModel.editProduct(product, images: _selectedImages.isNotEmpty ? _selectedImages : null)
+          : await viewModel.addProduct(product, images: _selectedImages.isNotEmpty ? _selectedImages : null);
+
         if (context.mounted) {
           ModernSnackbar.show(
             context: context,
             message: response.message ?? 'An unknown error occurred.',
             type: response.success ? SnackBarType.success : SnackBarType.error,
           );
-          
+
           if (response.success) {
-            // Navigate to home screen and remove all previous routes
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => MainNavigationScreen(initialIndex: 4)), // 4 is the index for Home
+              MaterialPageRoute(builder: (context) => MainNavigationScreen(initialIndex: 4)),
               (Route<dynamic> route) => false,
             );
           }
@@ -193,7 +210,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         if (context.mounted) {
           ModernSnackbar.show(
             context: context,
-            message: 'حدث خطأ أثناء إضافة المنتج',
+            message: isEditMode ? 'حدث خطأ أثناء تعديل المنتج' : 'حدث خطأ أثناء إضافة المنتج',
             type: SnackBarType.error,
           );
         }
@@ -207,9 +224,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            'إضافة منتج جديد',
-            style: TextStyle(fontFamily: 'Cairo'),
+          title: Text(
+            isEditMode ? 'تعديل المنتج' : 'إضافة منتج جديد',
+            style: const TextStyle(fontFamily: 'Cairo'),
             textAlign: TextAlign.right,
           ),
           centerTitle: true,
@@ -436,9 +453,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     backgroundColor: Colors.pink,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: const Text(
-                    'إضافة المنتج',
-                    style: TextStyle(
+                  child: Text(
+                    isEditMode ? 'تعديل المنتج' : 'إضافة المنتج',
+                    style: const TextStyle(
                       fontSize: 18,
                       fontFamily: 'Cairo',
                       color: Colors.white

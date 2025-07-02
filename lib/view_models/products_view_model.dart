@@ -143,4 +143,28 @@ class ProductsViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<ApiResponse<Product?>> editProduct(Product product, {List<File>? images}) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final response = await _repository.updateProduct(product, images: images);
+
+      if (response.success) {
+        await loadProducts(); 
+      } else {
+        _error = response.message;
+      }
+      return response;
+    } catch (e) {
+      print('ProductsViewModel editProduct Exception: $e');
+      _error = e.toString().replaceAll('Exception: ', '');
+      return ApiResponse(success: false, message: _error);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 } 

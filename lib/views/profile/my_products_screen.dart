@@ -176,8 +176,14 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
                         try {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => ProductDetailScreen(
-                                productId: product.id!.toString(),
+                              builder: (context) => ChangeNotifierProvider(
+                                create: (context) => ProductDetailsViewModel(
+                                  context.read<ProductsViewModel>().repository,
+                                  context.read<ProductsViewModel>().apiClient,
+                                ),
+                                child: ProductDetailScreen(
+                                  productId: product.id!.toString(),
+                                ),
                               ),
                             ),
                           );
@@ -315,39 +321,11 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
                                   children: [
                                     Expanded(
                                       child: OutlinedButton.icon(
-                                        onPressed: () {
-                                          print('Navigating to product details with ID: ${product.id}');
+                                        onPressed: () async {
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
-                                              builder: (context) => ChangeNotifierProvider(
-                                                create: (context) => ProductDetailsViewModel(
-                                                  context.read<ProductsViewModel>().repository,
-                                                  context.read<ProductsViewModel>().apiClient,
-                                                ),
-                                                child: ProductDetailScreen(productId: product.id!),
-                                              ),
+                                              builder: (context) => AddProductScreen(productToEdit: product),
                                             ),
-                                          );
-                                        },
-                                        icon: const Icon(Icons.visibility, size: 16),
-                                        label: const Text(
-                                          'عرض',
-                                          style: TextStyle(fontFamily: 'Cairo'),
-                                        ),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(vertical: 8),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        onPressed: () async {
-                                          // TODO: Implement edit functionality
-                                          ModernSnackbar.show(
-                                            context: context,
-                                            message: 'سيتم إضافة ميزة التعديل قريباً',
-                                            type: SnackBarType.info,
                                           );
                                         },
                                         icon: const Icon(Icons.edit, size: 16),
