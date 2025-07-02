@@ -250,4 +250,18 @@ class UserViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Method to fetch user information by ID (for seller info)
+  Future<User?> fetchUserById(String userId) async {
+    try {
+      final response = await _repository.getUserById(userId);
+      if (response.success && response.data != null) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching user by ID: $e');
+      return null;
+    }
+  }
 } 

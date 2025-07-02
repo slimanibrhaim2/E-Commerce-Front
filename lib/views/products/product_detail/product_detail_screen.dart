@@ -7,6 +7,7 @@ import '../../../view_models/cart_view_model.dart';
 import '../../../widgets/modern_snackbar.dart';
 import '../../../view_models/user_view_model.dart';
 import '../../../view_models/favorites_view_model.dart';
+import '../../user_info/seller_profile_screen.dart';
 
 
 class ProductDetailScreen extends StatefulWidget {
@@ -360,7 +361,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
                                       Text(
                                         feature.name,
@@ -370,6 +371,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           fontFamily: 'Cairo',
                                           color: Color(0xFF2D3436),
                                         ),
+                                        textAlign: TextAlign.center,
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
@@ -379,6 +381,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           color: Colors.grey[600],
                                           fontFamily: 'Cairo',
                                         ),
+                                        textAlign: TextAlign.center,
                                       ),
                                     ],
                                   ),
@@ -429,6 +432,83 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                           ),
                         ),
+                        // Show Seller Info Button - moved to bottom
+                        if (product.userId != null && product.userId!.isNotEmpty) ...[
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.blue.shade200),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.store,
+                                      color: Colors.blue.shade600,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Expanded(
+                                      child: Text(
+                                        'معلومات البائع',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Cairo',
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'تعرف على البائع وطريقة التواصل معه',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.blue,
+                                    fontFamily: 'Cairo',
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => SellerProfileScreen(
+                                            sellerId: product.userId!,
+                                            sellerName: product.name,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.person, size: 18),
+                                    label: const Text(
+                                      'عرض معلومات البائع',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontFamily: 'Cairo',
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      side: BorderSide(color: Colors.blue.shade300),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

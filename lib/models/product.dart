@@ -7,6 +7,7 @@ class Product {
   final int stockQuantity;
   final bool isAvailable;
   final String categoryId;
+  final String? userId;
   final List<Media> media;
   final List<Feature> features;
 
@@ -24,6 +25,7 @@ class Product {
     required this.stockQuantity,
     required this.isAvailable,
     required this.categoryId,
+    this.userId,
     required this.media,
     required this.features,
     this.imageUrl,
@@ -41,6 +43,7 @@ class Product {
       stockQuantity: json['stockQuantity'] ?? 0,
       isAvailable: json['isAvailable'] ?? true,
       categoryId: json['categoryId'] ?? '',
+      userId: json['userId'],
       media: (json['media'] as List?)
           ?.map((m) => Media.fromJson(m))
           .toList() ?? [],
@@ -61,6 +64,7 @@ class Product {
     'stockQuantity': stockQuantity,
     'isAvailable': isAvailable,
     'categoryId': categoryId,
+    if (userId != null) 'userId': userId,
     'media': media.map((m) => m.toJson()).toList(),
     'features': features.map((f) => f.toJson()).toList(),
   };
@@ -74,6 +78,7 @@ class Product {
     int? stockQuantity,
     bool? isAvailable,
     String? categoryId,
+    String? userId,
     List<Media>? media,
     List<Feature>? features,
     String? imageUrl,
@@ -89,6 +94,7 @@ class Product {
       stockQuantity: stockQuantity ?? this.stockQuantity,
       isAvailable: isAvailable ?? this.isAvailable,
       categoryId: categoryId ?? this.categoryId,
+      userId: userId ?? this.userId,
       media: media ?? this.media,
       features: features ?? this.features,
       imageUrl: imageUrl ?? this.imageUrl,

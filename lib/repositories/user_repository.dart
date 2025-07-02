@@ -198,4 +198,15 @@ class UserRepository {
     );
     return response['token'];
   }
+
+  Future<ApiResponse<User>> getUserById(String userId) async {
+    final response = await apiClient.get('${ApiEndpoints.users}$userId');
+    final data = response['data'];
+    return ApiResponse(
+      data: data != null ? User.fromJson(data) : null,
+      message: response['message'] as String?,
+      success: response['success'] ?? true,
+      resultStatus: response['resultStatus'] as int?,
+    );
+  }
 } 

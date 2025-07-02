@@ -1,4 +1,3 @@
-
 class User {
   final String? id;
   final String? firstName;
@@ -8,6 +7,8 @@ class User {
   final String? email;
   final String? profilePhoto;
   final String? description;
+  final double? rating;
+  final int? numOfReviews;
 
   User({
     this.id,
@@ -18,6 +19,8 @@ class User {
     this.email,
     this.profilePhoto,
     this.description,
+    this.rating,
+    this.numOfReviews,
   });
 
   User copyWith({
@@ -29,6 +32,8 @@ class User {
     String? email,
     String? profilePhoto,
     String? description,
+    double? rating,
+    int? numOfReviews,
   }) {
     return User(
       id: id ?? this.id,
@@ -39,6 +44,8 @@ class User {
       email: email ?? this.email,
       profilePhoto: profilePhoto ?? this.profilePhoto,
       description: description ?? this.description,
+      rating: rating ?? this.rating,
+      numOfReviews: numOfReviews ?? this.numOfReviews,
     );
   }
 
@@ -52,6 +59,8 @@ class User {
       email: json['email'] as String?,
       profilePhoto: json['profilePhoto'] as String?,
       description: json['description'] as String?,
+      rating: (json['rating'] as num?)?.toDouble(),
+      numOfReviews: json['numOfReviews'] as int?,
     );
   }
 
@@ -65,7 +74,18 @@ class User {
       if (email != null) 'email': email,
       if (profilePhoto != null) 'profilePhoto': profilePhoto,
       if (description != null) 'description': description,
+      if (rating != null) 'rating': rating,
+      if (numOfReviews != null) 'numOfReviews': numOfReviews,
     };
+  }
+
+  // Helper method to get full name
+  String get fullName {
+    final parts = <String>[];
+    if (firstName?.isNotEmpty == true) parts.add(firstName!);
+    if (middleName?.isNotEmpty == true) parts.add(middleName!);
+    if (lastName?.isNotEmpty == true) parts.add(lastName!);
+    return parts.isEmpty ? 'مستخدم' : parts.join(' ');
   }
 }
 
