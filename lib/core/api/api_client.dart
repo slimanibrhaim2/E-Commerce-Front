@@ -66,8 +66,11 @@ class ApiClient {
 
   Future<dynamic> get(String endpoint) async {
     try {
+      final url = '$baseUrl$endpoint';
+      print('ApiClient GET request to: $url');
+      
       final response = await _client.get(
-        Uri.parse('$baseUrl$endpoint'),
+        Uri.parse(url),
         headers: _buildHeaders(),
       ).timeout(
         Duration(milliseconds: ApiConfig.timeout),
@@ -75,6 +78,10 @@ class ApiClient {
           throw ApiException.timeout();
         },
       );
+      
+      print('ApiClient GET response status: ${response.statusCode}');
+      print('ApiClient GET response body: ${response.body}');
+      
       return _handleResponse(response);
     } on http.ClientException {
       throw ApiException.connectionError();

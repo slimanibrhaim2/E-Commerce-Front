@@ -120,4 +120,27 @@ class ProductsViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<String?> searchProducts(String query) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      if (query.trim().isEmpty) {
+        // If search query is empty, load all products
+        await loadProducts();
+        return null;
+      }
+
+      _products = await _repository.searchProducts(query.trim());
+      return null; // Success
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      return _error;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 } 

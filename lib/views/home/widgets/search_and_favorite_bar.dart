@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../favorites/favorites_screen.dart';
+import '../../products/search_results_screen.dart';
 
-class SearchAndFavoriteBar extends StatelessWidget {
+class SearchAndFavoriteBar extends StatefulWidget {
   final int favoriteCount;
   final ValueChanged<String>? onSearch;
   final VoidCallback? onFavoriteTap;
@@ -12,6 +13,31 @@ class SearchAndFavoriteBar extends StatelessWidget {
     this.onSearch,
     this.onFavoriteTap,
   });
+
+  @override
+  State<SearchAndFavoriteBar> createState() => _SearchAndFavoriteBarState();
+}
+
+class _SearchAndFavoriteBarState extends State<SearchAndFavoriteBar> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _performSearch() {
+    final query = _searchController.text.trim();
+    if (query.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SearchResultsScreen(searchQuery: query),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +53,7 @@ class SearchAndFavoriteBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: TextField(
+                controller: _searchController,
                 textAlign: TextAlign.right,
                 decoration: InputDecoration(
                   hintText: 'ابحث هنا',
@@ -35,10 +62,10 @@ class SearchAndFavoriteBar extends StatelessWidget {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   prefixIcon: IconButton(
                     icon: const Icon(Icons.search, color: Colors.indigo),
-                    onPressed: () {},
+                    onPressed: _performSearch,
                   ),
                 ),
-                onSubmitted: onSearch,
+                onSubmitted: (value) => _performSearch(),
               ),
             ),
           ),
@@ -61,7 +88,7 @@ class SearchAndFavoriteBar extends StatelessWidget {
                   color: Colors.grey,
                   size: 32,
                 ),
-                if (favoriteCount > 0)
+                if (widget.favoriteCount > 0)
                   Positioned(
                     top: -4,
                     left: -4,
@@ -75,7 +102,7 @@ class SearchAndFavoriteBar extends StatelessWidget {
                       constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                       child: Center(
                         child: Text(
-                          '$favoriteCount',
+                          '${widget.favoriteCount}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,

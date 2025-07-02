@@ -7,6 +7,7 @@ class ApiEndpoints {
   static const String products = '/api/products';
   static const String productDetail = '/api/products/'; // Append product ID
   static const String myProducts = '/api/products/my-products';
+  static const String productSearch = '/api/products/search'; // Search products
   
   // Category endpoints
   static const String categories = '/api/Category';

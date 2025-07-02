@@ -204,4 +204,38 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
       rethrow;
     }
   }
+
+  Future<List<Product>> searchProducts(String query) async {
+    return handleListApiCall(() async {
+      try {
+        // URL encode the query parameter
+        final encodedQuery = Uri.encodeComponent(query.trim());
+        final searchUrl = '${ApiEndpoints.productSearch}?name=$encodedQuery';
+        
+        print('Searching products with URL: $searchUrl');
+        print('Original query: "$query"');
+        print('Encoded query: "$encodedQuery"');
+        
+        final response = await apiClient.get(searchUrl);
+        
+        print('Search response: $response');
+        
+        if (response is Map<String, dynamic> &&
+            response.containsKey('data') &&
+            response['data'] is Map<String, dynamic> &&
+            response['data'].containsKey('data') &&
+            response['data']['data'] is List) {
+          final List<dynamic> productListJson = response['data']['data'];
+          final products = productListJson.map((json) => Product.fromJson(json)).toList();
+          print('Found ${products.length} products');
+          return products;
+        }
+        throw Exception('Invalid response format for searchProducts');
+      } catch (e) {
+        print('Error in searchProducts: $e');
+        print('Error type: ${e.runtimeType}');
+        rethrow;
+      }
+    });
+  }
 } 
