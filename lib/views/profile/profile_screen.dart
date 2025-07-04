@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/user_view_model.dart';
 import '../../view_models/cart_view_model.dart';
+import '../../view_models/favorites_view_model.dart';
 import '../auth/register_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../contact/contact_screen.dart';
@@ -174,7 +175,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   await Provider.of<UserViewModel>(context, listen: false).logout();
                   // Clear cart after logout
                   context.read<CartViewModel>().clearCart();
-                  await storage.delete(key: 'auth_token');
+                  // Clear offline data
+                  await context.read<FavoritesViewModel>().clearOfflineFavorites();
+                  await context.read<CartViewModel>().clearOfflineCart();
+                  // Clear all local storage
+                  await storage.deleteAll();
                   ModernSnackbar.show(
                     context: context,
                     message: 'تم تسجيل الخروج بنجاح',

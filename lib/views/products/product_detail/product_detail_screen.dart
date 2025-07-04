@@ -195,7 +195,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             return Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                onTap: () => viewModel.toggleFavorite(context),
+                                onTap: () async {
+                                  final favoritesViewModel = context.read<FavoritesViewModel>();
+                                  final result = await favoritesViewModel.toggleFavorite(product.id!.toString(), context);
+                                  final message = result['message'] as String?;
+                                  final success = result['success'] as bool? ?? false;
+                                  final isOffline = result['offline'] as bool? ?? false;
+                                  
+                                  if (message != null && message.isNotEmpty && context.mounted) {
+                                    ModernSnackbar.show(
+                                      context: context,
+                                      message: message,
+                                      type: success ? SnackBarType.success : SnackBarType.error,
+                                    );
+                                  }
+                                },
                                 customBorder: const CircleBorder(),
                                 child: Container(
                                   padding: const EdgeInsets.all(8),
@@ -395,20 +409,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             onPressed: () async {
-                              final userViewModel = Provider.of<UserViewModel>(context, listen: false);
-                              if (!userViewModel.isLoggedIn) {
-                                ModernSnackbar.show(
-                                  context: context,
-                                  message: 'يجب تسجيل الدخول لإضافة منتجات إلى السلة',
-                                  type: SnackBarType.error,
-                                );
-                                return;
-                              }
                               final cartViewModel = Provider.of<CartViewModel>(context, listen: false);
                               final result = await cartViewModel.addItemToCart(product.id!.toString(), 1, context);
                               final message = result['message'] as String?;
                               final success = result['success'] as bool? ?? false;
-                              if (message != null && message.isNotEmpty) {
+                              final isOffline = result['offline'] as bool? ?? false;
+                              
+                              if (message != null && message.isNotEmpty && context.mounted) {
                                 ModernSnackbar.show(
                                   context: context,
                                   message: message,

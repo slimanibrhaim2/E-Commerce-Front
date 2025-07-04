@@ -19,6 +19,12 @@ class ApiClient {
     _jwtToken = token;
   }
 
+  void clearToken() {
+    _jwtToken = null;
+  }
+
+  bool get hasToken => _jwtToken != null && _jwtToken!.isNotEmpty;
+
   /// Constructs a media URL for accessing files through the media API
   String getMediaUrl(String filePath) {
     if (filePath.isEmpty) return '';

@@ -191,14 +191,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
         final response = isEditMode
           ? await viewModel.editProduct(product, images: _selectedImages.isNotEmpty ? _selectedImages : null)
           : await viewModel.addProduct(product, images: _selectedImages.isNotEmpty ? _selectedImages : null);
-
+        
         if (context.mounted) {
           ModernSnackbar.show(
             context: context,
             message: response.message ?? 'An unknown error occurred.',
             type: response.success ? SnackBarType.success : SnackBarType.error,
           );
-
+          
           if (response.success) {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => MainNavigationScreen(initialIndex: 4)),

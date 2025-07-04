@@ -26,10 +26,193 @@ class _CartScreenState extends State<CartScreen> {
     // Load cart when screen opens if user is logged in
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userViewModel = context.read<UserViewModel>();
+      final cartViewModel = context.read<CartViewModel>();
       if (userViewModel.isLoggedIn) {
-        context.read<CartViewModel>().loadCart();
+        cartViewModel.loadCart();
+      } else {
+        // Load offline cart if user is not logged in
+        cartViewModel.loadOfflineCart();
       }
     });
+  }
+
+
+
+  Widget _buildOfflineCartItemWidget(CartItem offlineItem, int index) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                // Product Image
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.grey[200],
+                  ),
+                  child: offlineItem.imageUrl != null && offlineItem.imageUrl!.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            context.read<CartViewModel>().apiClient.getMediaUrl(offlineItem.imageUrl!),
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.grey[200],
+                                ),
+                                child: const Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.grey,
+                                  size: 30,
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      : Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.grey[200],
+                          ),
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            color: Colors.grey,
+                            size: 30,
+                          ),
+                        ),
+                ),
+                const SizedBox(width: 12),
+                // Product Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        offlineItem.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Cairo',
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${(offlineItem.price ?? 0).toStringAsFixed(0)} ل.س',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          fontFamily: 'Cairo',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Quantity Controls for offline items
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(Icons.remove, size: 18),
+                              onPressed: () async {
+                                if (offlineItem.quantity > 1) {
+                                  await context.read<CartViewModel>().updateOfflineCartItemQuantity(
+                                    offlineItem.itemId,
+                                    offlineItem.quantity - 1,
+                                    context,
+                                  );
+                                } else {
+                                  await context.read<CartViewModel>().removeOfflineCartItem(
+                                    offlineItem.itemId,
+                                    context,
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                          Container(
+                            width: 32,
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${offlineItem.quantity}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.pink,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(Icons.add, size: 18),
+                              onPressed: () async {
+                                await context.read<CartViewModel>().updateOfflineCartItemQuantity(
+                                  offlineItem.itemId,
+                                  offlineItem.quantity + 1,
+                                  context,
+                                );
+                              },
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () async {
+                              await context.read<CartViewModel>().removeOfflineCartItem(
+                                offlineItem.itemId,
+                                context,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Offline indicator
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: Text(
+                'محلي',
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: 10,
+                  color: Colors.orange.shade700,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -50,24 +233,34 @@ class _CartScreenState extends State<CartScreen> {
         body: Selector2<CartViewModel, UserViewModel, Map<String, dynamic>>(
           selector: (context, cartViewModel, userViewModel) {
             return {
+              'cartItems': cartViewModel.cartItems,
+              'offlineCartItemsWithDetails': cartViewModel.offlineCartItemsWithDetails,
+              'offlineCartItems': cartViewModel.offlineCartItems,
               'isLoggedIn': userViewModel.isLoggedIn,
               'isLoading': cartViewModel.isLoading,
               'error': cartViewModel.error,
               'cartItemsCount': cartViewModel.cartItems.length,
+              'offlineCartItemsCount': cartViewModel.offlineCartItems.length,
               'totalItems': cartViewModel.totalItems,
               'totalPrice': cartViewModel.totalPrice,
             };
           },
           builder: (context, data, child) {
+            final cartItems = data['cartItems'] as List<CartItem>;
+            final offlineCartItemsWithDetails = data['offlineCartItemsWithDetails'] as List<CartItem>;
+            final offlineCartItems = data['offlineCartItems'] as List<Map<String, dynamic>>;
             final isLoggedIn = data['isLoggedIn'] as bool;
             final isLoading = data['isLoading'] as bool;
             final error = data['error'] as String?;
             final cartItemsCount = data['cartItemsCount'] as int;
+            final offlineCartItemsCount = data['offlineCartItemsCount'] as int;
             final totalItems = data['totalItems'] as int;
             final totalPrice = data['totalPrice'] as double;
 
-            // Check if user is logged in
-            if (!isLoggedIn) {
+            // Show offline indicator if user is not logged in but has offline items
+            final hasOfflineItems = offlineCartItemsCount > 0 && !isLoggedIn;
+            
+            if (!isLoggedIn && totalItems == 0) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -79,10 +272,19 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'يجب تسجيل الدخول لعرض السلة',
+                      'السلة فارغة',
                       style: TextStyle(
                         fontFamily: 'Cairo',
                         fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'أضف منتجات إلى السلة للبدء',
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 14,
                         color: Colors.grey,
                       ),
                     ),
@@ -95,7 +297,7 @@ class _CartScreenState extends State<CartScreen> {
               return const Center(child: ModernLoader());
             }
 
-            if (error != null) {
+            if (error != null && isLoggedIn) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -120,7 +322,7 @@ class _CartScreenState extends State<CartScreen> {
               );
             }
 
-            if (cartItemsCount == 0) {
+            if (totalItems == 0) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -144,35 +346,98 @@ class _CartScreenState extends State<CartScreen> {
               );
             }
 
+            // Show loader if offline cart is not empty but details are not loaded yet
+            if (!isLoggedIn && offlineCartItems.isNotEmpty && offlineCartItemsWithDetails.isEmpty) {
+              return const Center(child: ModernLoader());
+            }
+
+            // Combine online and unique offline items
+            final onlineIds = cartItems.map((item) => item.itemId).toSet();
+            final uniqueOfflineItems = offlineCartItemsWithDetails
+                .where((item) => !onlineIds.contains(item.itemId))
+                .toList();
+            final allItems = [...cartItems, ...uniqueOfflineItems];
+
             return Column(
               children: [
+                // Offline indicator banner
+                if (hasOfflineItems)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.cloud_off,
+                          color: Colors.orange.shade600,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'المنتجات محفوظة محلياً - سجل الدخول لمزامنتها',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: 14,
+                              color: Colors.orange.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 Expanded(
                   child: RefreshIndicator(
-                    onRefresh: () => context.read<CartViewModel>().loadCart(),
-                    child: Selector<CartViewModel, List<CartItem>>(
-                      selector: (context, cartViewModel) => cartViewModel.cartItems,
-                      builder: (context, cartItems, child) {
+                    onRefresh: () {
+                      final userViewModel = context.read<UserViewModel>();
+                      final cartViewModel = context.read<CartViewModel>();
+                      if (userViewModel.isLoggedIn) {
+                        return cartViewModel.loadCart();
+                      } else {
+                        return cartViewModel.loadOfflineCart();
+                      }
+                    },
+                    child: Selector2<CartViewModel, UserViewModel, Map<String, dynamic>>(
+                      selector: (context, cartViewModel, userViewModel) {
+                        return {
+                          'cartItems': cartViewModel.cartItems,
+                          'offlineCartItemsWithDetails': cartViewModel.offlineCartItemsWithDetails,
+                          'isLoggedIn': userViewModel.isLoggedIn,
+                        };
+                      },
+                      builder: (context, data, child) {
+                        final cartItems = data['cartItems'] as List<CartItem>;
+                        final offlineCartItemsWithDetails = data['offlineCartItemsWithDetails'] as List<CartItem>;
+                        final isLoggedIn = data['isLoggedIn'] as bool;
+                        
+                        // Combine online and unique offline items
+                        final onlineIds = cartItems.map((item) => item.itemId).toSet();
+                        final uniqueOfflineItems = offlineCartItemsWithDetails
+                            .where((item) => !onlineIds.contains(item.itemId))
+                            .toList();
+                        final allItems = [...cartItems, ...uniqueOfflineItems];
+                        
                         return ListView.builder(
                           padding: const EdgeInsets.all(16),
-                          itemCount: cartItems.length,
+                          itemCount: allItems.length,
                           itemBuilder: (context, index) {
-                            final item = cartItems[index];
-                            return Selector<CartViewModel, CartItem?>(
-                              selector: (context, cartViewModel) {
-                                try {
-                                  return cartViewModel.cartItems[index];
-                                } catch (e) {
-                                  return null;
-                                }
-                              },
-                              builder: (context, item, child) {
-                                if (item == null) return const SizedBox.shrink();
-                                return CartItemWidget(
-                                  item: item,
-                                  index: index,
-                                );
-                              },
-                            );
+                            final item = allItems[index];
+                            if (item is CartItem && onlineIds.contains(item.itemId)) {
+                              // Online item
+                              return CartItemWidget(
+                                item: item,
+                                index: index,
+                              );
+                            } else {
+                              // Offline item
+                              return _buildOfflineCartItemWidget(item, index);
+                            }
                           },
                         );
                       },
@@ -247,7 +512,7 @@ class _CartScreenState extends State<CartScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: cartItemsCount > 0 ? () async {
+                            onPressed: totalItems > 0 ? () async {
                               // Show address selection modal
                               final addressViewModel = context.read<AddressViewModel>();
                               final userViewModel = context.read<UserViewModel>();
@@ -299,13 +564,13 @@ class _CartScreenState extends State<CartScreen> {
                             } : null,
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              backgroundColor: cartItemsCount > 0 ? Colors.blue : Colors.grey,
+                              backgroundColor: totalItems > 0 ? Colors.blue : Colors.grey,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                             child: Text(
-                              cartItemsCount > 0 ? 'إتمام الطلب' : 'السلة فارغة',
+                              totalItems > 0 ? 'إتمام الطلب' : 'السلة فارغة',
                               style: const TextStyle(
                                 fontFamily: 'Cairo',
                                 fontSize: 16,

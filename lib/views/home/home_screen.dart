@@ -23,10 +23,13 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductsViewModel>().loadProducts();
       
-      // Load favorites if user is logged in
+      // Load favorites (both online and offline)
       final userViewModel = context.read<UserViewModel>();
+      final favoritesViewModel = context.read<FavoritesViewModel>();
       if (userViewModel.isLoggedIn) {
-        context.read<FavoritesViewModel>().loadFavorites();
+        favoritesViewModel.loadFavorites();
+      } else {
+        favoritesViewModel.loadOfflineFavorites();
       }
     });
   }
@@ -40,9 +43,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               // Search and Favorite Bar
-              Selector2<FavoritesViewModel, UserViewModel, int>(
-                selector: (context, favoritesViewModel, userViewModel) {
-                  return userViewModel.isLoggedIn ? favoritesViewModel.favoritesCount : 0;
+              Selector<FavoritesViewModel, int>(
+                selector: (context, favoritesViewModel) {
+                  return favoritesViewModel.favoritesCount;
                 },
                 builder: (context, favoriteCount, child) {
                   return SearchAndFavoriteBar(

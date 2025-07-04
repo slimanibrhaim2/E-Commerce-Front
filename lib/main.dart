@@ -88,10 +88,18 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<FavoritesViewModel>(
           create: (context) =>
-              FavoritesViewModel(context.read<FavoritesRepository>(), context.read<ApiClient>()),
+              FavoritesViewModel(
+                context.read<FavoritesRepository>(), 
+                context.read<ProductRepository>(),
+                context.read<ApiClient>(),
+              ),
         ),
         ChangeNotifierProvider<CartViewModel>(
-          create: (context) => CartViewModel(context.read<CartRepository>(), context.read<ApiClient>()),
+          create: (context) => CartViewModel(
+            context.read<CartRepository>(),
+            context.read<ProductRepository>(),
+            context.read<ApiClient>(),
+          ),
         ),
         ChangeNotifierProvider<AddressViewModel>(
           create: (context) => AddressViewModel(

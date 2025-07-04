@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/user_view_model.dart';
 import '../../view_models/cart_view_model.dart';
+import '../../view_models/favorites_view_model.dart';
 import '../../widgets/modern_snackbar.dart';
 import '../main_navigation_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -37,6 +38,28 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _phoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> _syncOfflineData() async {
+    try {
+      // Sync offline favorites
+      await context.read<FavoritesViewModel>().syncOfflineFavorites();
+      
+      // Sync offline cart
+      await context.read<CartViewModel>().syncOfflineCart();
+      
+      // Clear offline data from view models
+      context.read<FavoritesViewModel>().clearOfflineDataAfterLogin();
+      context.read<CartViewModel>().clearOfflineDataAfterLogin();
+      
+      // Reload online data after sync
+      await context.read<FavoritesViewModel>().loadFavorites();
+      await context.read<CartViewModel>().loadCart();
+      
+      print('Offline data synced successfully');
+    } catch (e) {
+      print('Error syncing offline data: $e');
+    }
   }
 
   Future<void> _sendOtp() async {
@@ -108,6 +131,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       
                       // Load cart after successful login
                       await context.read<CartViewModel>().loadCart();
+                      if (!mounted) return;
+                      
+                      // Sync offline data
+                      await _syncOfflineData();
                       if (!mounted) return;
                       
                       // Show success message

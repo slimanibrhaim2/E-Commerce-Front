@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:convert';
 import '../../view_models/user_view_model.dart';
 import '../../view_models/cart_view_model.dart';
+import '../../view_models/favorites_view_model.dart';
 import '../../models/user.dart';
 import '../../widgets/modern_snackbar.dart';
 import '../../core/api/api_exception.dart';
@@ -43,6 +44,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _syncOfflineData() async {
+    try {
+      // Sync offline favorites
+      await context.read<FavoritesViewModel>().syncOfflineFavorites();
+      
+      // Sync offline cart
+      await context.read<CartViewModel>().syncOfflineCart();
+      
+      // Clear offline data from view models
+      context.read<FavoritesViewModel>().clearOfflineDataAfterLogin();
+      context.read<CartViewModel>().clearOfflineDataAfterLogin();
+      
+      // Reload online data after sync
+      await context.read<FavoritesViewModel>().loadFavorites();
+      await context.read<CartViewModel>().loadCart();
+      
+      print('Offline data synced successfully');
+    } catch (e) {
+      print('Error syncing offline data: $e');
+    }
   }
 
   Future<void> _pickImage() async {
@@ -124,6 +147,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   await userViewModel.loadUserProfile();
                   // Load cart after successful registration
                   await context.read<CartViewModel>().loadCart();
+                  
+                  // Sync offline data
+                  await _syncOfflineData();
+                  
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
                     (route) => false,

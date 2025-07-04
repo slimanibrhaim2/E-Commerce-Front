@@ -12,6 +12,7 @@ import 'products/add_product/add_product_screen.dart';
 import '../view_models/user_view_model.dart';
 import '../widgets/modern_snackbar.dart';
 import '../view_models/cart_view_model.dart';
+import '../view_models/favorites_view_model.dart';
 
 
 class MainNavigationScreen extends StatefulWidget {
@@ -42,6 +43,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       }
     });
   }
+
+
 
   void _setTab(int index) {
     setState(() {
@@ -152,20 +155,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         currentIndex: currentIndex,
         onTap: (index) {
           if (index == 2) {
-            // If 'إضافة إعلان' tab is tapped
             _showAddDialog(context);
           } else {
+            // Always refresh cart when cart tab is tapped
+            if (index == 1) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final userViewModel = context.read<UserViewModel>();
+                final cartViewModel = context.read<CartViewModel>();
+                if (userViewModel.isLoggedIn) {
+                  cartViewModel.loadCart();
+                } else {
+                  cartViewModel.loadOfflineCart();
+                }
+              });
+            }
             setState(() {
               currentIndex = index;
             });
-            
-            // Refresh cart when cart tab is selected
-            if (index == 1) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                final cartViewModel = context.read<CartViewModel>();
-                cartViewModel.loadCart();
-              });
-            }
           }
         },
         selectedItemColor: Colors.pink,
@@ -182,7 +188,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 const Icon(Icons.shopping_cart),
                 Consumer2<UserViewModel, CartViewModel>(
                   builder: (context, user, cart, child) {
-                    if (user.isLoggedIn && cart.totalItems > 0) {
+                    if (cart.totalItems > 0) {
                       return Positioned(
                         right: 0,
                         top: 0,

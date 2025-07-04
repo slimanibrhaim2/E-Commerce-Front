@@ -22,14 +22,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   void initState() {
     super.initState();
-    // Load favorites when screen opens if user is logged in
+    // Load favorites when screen opens (both online and offline)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userViewModel = context.read<UserViewModel>();
+      final favoritesViewModel = context.read<FavoritesViewModel>();
       if (userViewModel.isLoggedIn) {
-        context.read<FavoritesViewModel>().loadFavorites();
+        favoritesViewModel.loadFavorites();
+      } else {
+        // Load offline favorites if user is not logged in
+        favoritesViewModel.loadOfflineFavorites();
       }
     });
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +58,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               'isLoggedIn': userViewModel.isLoggedIn,
               'isLoading': favoritesViewModel.isLoading,
               'error': favoritesViewModel.error,
-              'favoritesCount': favoritesViewModel.favorites.length,
+              'favoritesCount': favoritesViewModel.favoritesCount,
+              'offlineFavoritesCount': favoritesViewModel.offlineFavorites.length,
             };
           },
           builder: (context, data, child) {
@@ -60,9 +67,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             final isLoading = data['isLoading'] as bool;
             final error = data['error'] as String?;
             final favoritesCount = data['favoritesCount'] as int;
+            final offlineFavoritesCount = data['offlineFavoritesCount'] as int;
             
-            // Check if user is logged in
-            if (!isLoggedIn) {
+            // Show offline indicator if user is not logged in but has offline items
+            final hasOfflineItems = offlineFavoritesCount > 0 && !isLoggedIn;
+            
+            if (!isLoggedIn && favoritesCount == 0) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -74,10 +84,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'يجب تسجيل الدخول لعرض المفضلة',
+                      'لا توجد منتجات في المفضلة',
                               style: TextStyle(
                                 fontFamily: 'Cairo',
                         fontSize: 16,
+                        color: Colors.grey,
+                            ),
+                          ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'أضف منتجات إلى المفضلة للبدء',
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 14,
                         color: Colors.grey,
                             ),
                           ),
@@ -139,7 +158,42 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               );
             }
 
-            return LayoutBuilder(
+            return Column(
+              children: [
+                // Offline indicator banner
+                if (hasOfflineItems)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.cloud_off,
+                          color: Colors.orange.shade600,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'المنتجات محفوظة محلياً - سجل الدخول لمزامنتها',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: 14,
+                              color: Colors.orange.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                Expanded(
+                  child: LayoutBuilder(
               builder: (context, constraints) {
                 final crossAxisCount = (constraints.maxWidth / 200).floor();
                 final columns = crossAxisCount < 2 ? 2 : crossAxisCount;
@@ -153,6 +207,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   child: Selector<FavoritesViewModel, List<Favorite>>(
                     selector: (context, favoritesViewModel) => favoritesViewModel.favorites,
                     builder: (context, favorites, child) {
+                                                  // Combine online favorites and offline favorites
+                      final allFavorites = <Widget>[];
+                      
+                      // Add online favorites
+                      for (final favorite in favorites) {
+                        allFavorites.add(FavoriteCard(favorite: favorite));
+                      }
+                      
+                      // Offline favorites are now loaded as proper Favorite objects with product data
+                      // No need to build separate offline cards
+                      
                       return GridView.builder(
                         padding: EdgeInsets.all(padding),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -161,22 +226,26 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           crossAxisSpacing: crossAxisSpacing,
                           mainAxisSpacing: mainAxisSpacing,
                         ),
-                        itemCount: favorites.length,
+                        itemCount: allFavorites.length,
                         itemBuilder: (context, index) {
-                          final favorite = favorites[index];
-                          return FavoriteCard(favorite: favorite);
+                          return allFavorites[index];
                         },
                       );
                     },
                   ),
                 );
               },
+                  ),
+                ),
+              ],
             );
           },
         ),
       ),
     );
   }
+
+
 }
 
 class FavoriteCard extends StatelessWidget {
@@ -385,18 +454,11 @@ class FavoriteCard extends StatelessWidget {
                               children: [
                                 InkWell(
                                   onTap: () async {
-                                    final userViewModel = Provider.of<UserViewModel>(context, listen: false);
-                                    if (!userViewModel.isLoggedIn) {
-                                      ModernSnackbar.show(
-                                        context: context,
-                                        message: 'يجب تسجيل الدخول لإضافة منتجات إلى السلة',
-                                        type: SnackBarType.error,
-                                      );
-                                      return;
-                                    }
-                                    final result = await context.read<CartViewModel>().addItemToCart(favorite.itemId, 1, context); // Use itemId here
+                                    final result = await context.read<CartViewModel>().addItemToCart(favorite.itemId, 1, context);
                                     final message = result['message'] as String?;
                                     final success = result['success'] as bool? ?? false;
+                                    final isOffline = result['offline'] as bool? ?? false;
+                                    
                                     if (message != null && context.mounted) {
                                       ModernSnackbar.show(
                                         context: context,
@@ -430,13 +492,16 @@ class FavoriteCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                // Remove from Favorites Button and Offline Indicator
+                Consumer<FavoritesViewModel>(
+                  builder: (context, favoritesViewModel, child) {
+                    return Stack(
+                      children: [
                 // Remove from Favorites Button
                 Positioned(
                   top: 8,
                   left: 8,
-                  child: Consumer<FavoritesViewModel>(
-                    builder: (context, favoritesViewModel, child) {
-                      return Material(
+                          child: Material(
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () async {
@@ -467,9 +532,33 @@ class FavoriteCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                      );
-                    },
-                  ),
+                          ),
+                        ),
+                        // Offline indicator for offline favorites
+                        if (favoritesViewModel.offlineFavorites.contains(favorite.itemId))
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade50,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: Colors.orange.shade200),
+                              ),
+                              child: Text(
+                                'محلي',
+                                style: TextStyle(
+                                  fontFamily: 'Cairo',
+                                  fontSize: 10,
+                                  color: Colors.orange.shade700,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),

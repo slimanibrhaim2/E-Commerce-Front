@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/user.dart';
 import 'dart:io';
 import '../core/api/api_response.dart';
+import '../core/services/local_storage_service.dart';
 
 
 enum RegistrationStep { none, registering, awaitingOtp, verifyingOtp, done }
@@ -19,6 +20,7 @@ class UserViewModel extends ChangeNotifier {
   LoginStep _loginStep = LoginStep.none;
   String? _phoneNumber;
   String? _jwt;
+  bool _wasLoggedIn = false; // Track if user was previously logged in
 
   UserViewModel(this._repository, this._apiClient);
 
@@ -30,6 +32,7 @@ class UserViewModel extends ChangeNotifier {
   String? get jwt => _jwt;
   LoginStep get loginStep => _loginStep;
   bool get isLoggedIn => _jwt != null;
+  bool get wasLoggedIn => _wasLoggedIn;
   ApiClient get apiClient => _apiClient;
 
   Future<String?> loadUserProfile() async {
@@ -143,7 +146,11 @@ class UserViewModel extends ChangeNotifier {
       if (response.success == true && response.data != null) {
         _jwt = response.data;
         _apiClient.setToken(_jwt);
+        _wasLoggedIn = true; // Mark as logged in
         _step = RegistrationStep.done;
+        
+        // Sync offline data after successful registration
+        _syncOfflineData();
       } else {
         _error = response.message;
         _step = RegistrationStep.awaitingOtp;
@@ -194,7 +201,11 @@ class UserViewModel extends ChangeNotifier {
       if (response.data != null) {
         _jwt = response.data;
         _apiClient.setToken(_jwt);
+        _wasLoggedIn = true; // Mark as logged in
         _loginStep = LoginStep.done;
+        
+        // Sync offline data after successful login
+        _syncOfflineData();
       } else {
         _error = response.message;
         _loginStep = LoginStep.awaitingOtp;
@@ -211,15 +222,40 @@ class UserViewModel extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    final wasLoggedIn = _wasLoggedIn; // Store before clearing
     _jwt = null;
     _user = null;
     _phoneNumber = null;
     _error = null;
     _step = RegistrationStep.none;
     _loginStep = LoginStep.none;
+    _wasLoggedIn = false;
+    _apiClient.clearToken();
+    
+    // Clear offline data on logout only if user was previously logged in
+    if (wasLoggedIn) {
+      await _clearOfflineData();
+    }
+    
     notifyListeners();
-    // Also clear from secure storage if needed
-    // (Handled in UI for now)
+  }
+
+  // Sync offline favorites and cart data to backend
+  void _syncOfflineData() {
+    // This will be called by the UI layer to sync data
+    // We can't directly access other view models here due to dependency issues
+    print('User logged in - offline data should be synced');
+  }
+
+  // Clear offline data on logout
+  Future<void> _clearOfflineData() async {
+    try {
+      final localStorage = await LocalStorageService.getInstance();
+      await localStorage.clearAllOfflineData();
+      print('All offline data cleared on logout');
+    } catch (e) {
+      print('Error clearing offline data: $e');
+    }
   }
 
   void setJwt(String? token) {

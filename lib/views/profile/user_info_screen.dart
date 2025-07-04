@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/user_view_model.dart';
 import '../../view_models/cart_view_model.dart';
+import '../../view_models/favorites_view_model.dart';
 import '../../models/user.dart';
 import '../../widgets/modern_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class UserInfoScreen extends StatefulWidget {
   const UserInfoScreen({super.key});
@@ -16,6 +18,8 @@ class UserInfoScreen extends StatefulWidget {
 }
 
 class _UserInfoScreenState extends State<UserInfoScreen> {
+  final _storage = const FlutterSecureStorage();
+  
   @override
   Widget build(BuildContext context) {
     final userViewModel = context.watch<UserViewModel>();
@@ -449,6 +453,11 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                                                   await userViewModel.logout();
                                                   // Clear cart after logout
                                                   context.read<CartViewModel>().clearCart();
+                                                  // Clear offline data
+                                                  await context.read<FavoritesViewModel>().clearOfflineFavorites();
+                                                  await context.read<CartViewModel>().clearOfflineCart();
+                                                  // Clear all local storage
+                                                  await _storage.deleteAll();
                                                   if (!context.mounted) return;
                                                   // Navigate to login screen with phone number pre-filled
                                                   Navigator.of(context).pushNamedAndRemoveUntil(

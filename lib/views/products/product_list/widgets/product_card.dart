@@ -220,18 +220,11 @@ class ProductCard extends StatelessWidget {
                               children: [
                                 InkWell(
                                   onTap: () async {
-                                    final userViewModel = Provider.of<UserViewModel>(context, listen: false);
-                                    if (!userViewModel.isLoggedIn) {
-                                      ModernSnackbar.show(
-                                        context: context,
-                                        message: 'يجب تسجيل الدخول لإضافة منتجات إلى السلة',
-                                        type: SnackBarType.error,
-                                      );
-                                      return;
-                                    }
-                                    final result = await context.read<CartViewModel>().addItemToCart(product.id!, 1, context);
+                                    final result = await context.read<CartViewModel>().addItemToCart(product.id!.toString(), 1, context);
                                     final message = result['message'] as String?;
                                     final success = result['success'] as bool? ?? false;
+                                    final isOffline = result['offline'] as bool? ?? false;
+                                    
                                     if (message != null && context.mounted) {
                                       ModernSnackbar.show(
                                         context: context,
