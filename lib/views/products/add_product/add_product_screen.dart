@@ -23,6 +23,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _quantityController = TextEditingController();
+  final _serialNumberController = TextEditingController();
   String? _selectedCategory;
   final List<File> _selectedImages = [];
   final List<Map<String, String>> _features = [];
@@ -39,6 +40,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _descriptionController.text = p.description;
       _priceController.text = p.price.toString();
       _quantityController.text = p.stockQuantity.toString();
+      _serialNumberController.text = p.serialNumber ?? '';
       _selectedCategory = p.categoryId;
       _features.addAll(p.features.map((f) => {'name': f.name, 'value': f.value}));
       // Note: Images are not prefilled for edit (backend should handle existing images)
@@ -51,6 +53,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     _descriptionController.dispose();
     _priceController.dispose();
     _quantityController.dispose();
+    _serialNumberController.dispose();
     _featureNameController.dispose();
     _featureValueController.dispose();
     super.dispose();
@@ -177,6 +180,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           description: _descriptionController.text,
           price: double.parse(_priceController.text),
           sku: isEditMode ? widget.productToEdit!.sku : DateTime.now().millisecondsSinceEpoch.toString(),
+          serialNumber: _serialNumberController.text.isNotEmpty ? _serialNumberController.text : null,
           stockQuantity: int.parse(_quantityController.text),
           isAvailable: true,
           categoryId: _selectedCategory ?? '1',
@@ -290,6 +294,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _serialNumberController,
+                  textAlign: TextAlign.right,
+                  decoration: const InputDecoration(
+                    labelText: 'الرقم التسلسلي',
+                    labelStyle: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+                    border: OutlineInputBorder(),
+                    hintText: 'اختياري - أدخل الرقم التسلسلي للمنتج',
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

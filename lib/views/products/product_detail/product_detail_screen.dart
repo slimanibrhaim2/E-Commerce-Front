@@ -350,6 +350,48 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                           ),
                         ),
+                        if (product.serialNumber != null && product.serialNumber!.isNotEmpty) ...[
+                          const SizedBox(height: 24),
+                          const Text(
+                            'الرقم التسلسلي',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Cairo',
+                              color: Color(0xFF2D3436),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.blue.shade200),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.qr_code,
+                                  color: Colors.blue.shade600,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    product.serialNumber!,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.blue.shade700,
+                                      fontFamily: 'Cairo',
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         if (product.features.isNotEmpty) ...[
                           const SizedBox(height: 24),
                           const Text(

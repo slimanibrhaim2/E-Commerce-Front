@@ -4,6 +4,7 @@ class Product {
   final String description;
   final double price;
   final String sku;
+  final String? serialNumber;
   final int stockQuantity;
   final bool isAvailable;
   final String categoryId;
@@ -22,6 +23,7 @@ class Product {
     required this.description,
     required this.price,
     required this.sku,
+    this.serialNumber,
     required this.stockQuantity,
     required this.isAvailable,
     required this.categoryId,
@@ -40,6 +42,7 @@ class Product {
       description: json['description'] ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       sku: json['sku'] ?? '',
+      serialNumber: json['serialNumber'],
       stockQuantity: json['stockQuantity'] ?? 0,
       isAvailable: json['isAvailable'] ?? true,
       categoryId: json['categoryId'] ?? '',
@@ -61,6 +64,7 @@ class Product {
     'description': description,
     'price': price,
     'sku': sku,
+    if (serialNumber != null) 'serialNumber': serialNumber,
     'stockQuantity': stockQuantity,
     'isAvailable': isAvailable,
     'categoryId': categoryId,
@@ -75,6 +79,7 @@ class Product {
     String? description,
     double? price,
     String? sku,
+    String? serialNumber,
     int? stockQuantity,
     bool? isAvailable,
     String? categoryId,
@@ -91,6 +96,7 @@ class Product {
       description: description ?? this.description,
       price: price ?? this.price,
       sku: sku ?? this.sku,
+      serialNumber: serialNumber ?? this.serialNumber,
       stockQuantity: stockQuantity ?? this.stockQuantity,
       isAvailable: isAvailable ?? this.isAvailable,
       categoryId: categoryId ?? this.categoryId,
