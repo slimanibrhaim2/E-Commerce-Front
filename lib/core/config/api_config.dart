@@ -1,6 +1,6 @@
 class ApiConfig {
   // Base URLs for different environments
-  static const String baseUrl = 'http://192.168.99.15:44362';
+  static const String baseUrl = 'http://192.168.96.158:44362';
   //  static const String baseUrl = 'http://192.168.10.92:44362';
 
   

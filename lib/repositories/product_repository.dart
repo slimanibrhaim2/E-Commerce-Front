@@ -2,7 +2,6 @@ import '../core/api/api_endpoints.dart';
 import '../core/api/api_base_repository.dart' as api;
 import '../models/product.dart';
 import '../core/api/api_response.dart';
-import '../models/pagination.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -34,90 +33,6 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
       }
       throw Exception('Invalid response format for getProducts');
     });
-  }
-
-  Future<PaginatedResponse<Product>> getProductsPaginated({
-    int page = 1,
-    int pageSize = 10,
-    String? categoryId,
-  }) async {
-    try {
-      String endpoint = ApiEndpoints.products;
-      final queryParams = <String, String>{
-        'page': page.toString(),
-        'pageSize': pageSize.toString(),
-      };
-      
-      if (categoryId != null) {
-        endpoint = '${ApiEndpoints.categoryProducts}$categoryId';
-      }
-      
-      // Add query parameters to endpoint
-      final uri = Uri.parse('${apiClient.baseUrl}$endpoint').replace(queryParameters: queryParams);
-      final response = await apiClient.get('$endpoint?${uri.query}');
-      
-      if (response is Map<String, dynamic> &&
-          response.containsKey('data') &&
-          response['data'] is Map<String, dynamic>) {
-        
-        final data = response['data'] as Map<String, dynamic>;
-        final List<dynamic> productListJson = data['data'] ?? [];
-        final paginationData = data['pagination'] ?? {};
-        
-        final products = productListJson.map((json) => Product.fromJson(json)).toList();
-        final pagination = PaginationInfo.fromJson(paginationData);
-        
-        return PaginatedResponse<Product>(
-          data: products,
-          pagination: pagination,
-        );
-      }
-      
-      throw Exception('Invalid response format for getProductsPaginated');
-    } catch (e) {
-      print('Error in getProductsPaginated: $e');
-      rethrow;
-    }
-  }
-
-  Future<PaginatedResponse<Product>> searchProductsPaginated(
-    String query, {
-    int page = 1,
-    int pageSize = 10,
-  }) async {
-    try {
-      final encodedQuery = Uri.encodeComponent(query.trim());
-      final queryParams = <String, String>{
-        'name': encodedQuery,
-        'page': page.toString(),
-        'pageSize': pageSize.toString(),
-      };
-      
-      final uri = Uri.parse('${apiClient.baseUrl}${ApiEndpoints.productSearch}').replace(queryParameters: queryParams);
-      final response = await apiClient.get('${ApiEndpoints.productSearch}?${uri.query}');
-      
-      if (response is Map<String, dynamic> &&
-          response.containsKey('data') &&
-          response['data'] is Map<String, dynamic>) {
-        
-        final data = response['data'] as Map<String, dynamic>;
-        final List<dynamic> productListJson = data['data'] ?? [];
-        final paginationData = data['pagination'] ?? {};
-        
-        final products = productListJson.map((json) => Product.fromJson(json)).toList();
-        final pagination = PaginationInfo.fromJson(paginationData);
-        
-        return PaginatedResponse<Product>(
-          data: products,
-          pagination: pagination,
-        );
-      }
-      
-      throw Exception('Invalid response format for searchProductsPaginated');
-    } catch (e) {
-      print('Error in searchProductsPaginated: $e');
-      rethrow;
-    }
   }
 
   @override
@@ -184,7 +99,7 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
       var uri = Uri.parse('${apiClient.baseUrl}${ApiEndpoints.aggregateProduct}');
       print('Creating product at: $uri');
       print('Product data: ${item.toJson()}');
-      print('Number of images: [32m${images?.length ?? 0}[0m');
+      print('Number of images:  [32m${images?.length ?? 0} [0m');
       
       var request = http.MultipartRequest('POST', uri);
 
