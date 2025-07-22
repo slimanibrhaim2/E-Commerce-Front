@@ -14,7 +14,7 @@ class AddressViewModel extends ChangeNotifier {
   
   // Pagination state
   int _currentPage = 1;
-  int _pageSize = 5;
+  int _pageSize = 10;
   bool _hasMoreData = true;
   int _totalCount = 0;
   int _totalPages = 0;
