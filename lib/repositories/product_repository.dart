@@ -297,38 +297,57 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
     }
   }
 
-  Future<List<Product>> searchProducts(String query) async {
-    return handleListApiCall(() async {
-      try {
-        // URL encode the query parameter
-        final encodedQuery = Uri.encodeComponent(query.trim());
-        final searchUrl = '${ApiEndpoints.productSearch}?name=$encodedQuery';
-        
-        print('Searching products with URL: $searchUrl');
-        print('Original query: "$query"');
-        print('Encoded query: "$encodedQuery"');
-        
-        final response = await apiClient.get(searchUrl);
-        
-        print('Search response: $response');
-        
-        if (response is Map<String, dynamic> &&
-            response.containsKey('data') &&
-            response['data'] is Map<String, dynamic> &&
-            response['data'].containsKey('data') &&
-            response['data']['data'] is List) {
-          final List<dynamic> productListJson = response['data']['data'];
-          final products = productListJson.map((json) => Product.fromJson(json)).toList();
-          print('Found ${products.length} products');
-          return products;
+  Future<ApiResponse<List<Product>>> searchProducts(String query, {int pageNumber = 1, int pageSize = 10}) async {
+    try {
+      // URL encode the query parameter
+      final encodedQuery = Uri.encodeComponent(query.trim());
+      final searchUrl = '${ApiEndpoints.productSearch}?name=$encodedQuery&pageNumber=$pageNumber&pageSize=$pageSize';
+      
+      print('Searching products with URL: $searchUrl');
+      print('Original query: "$query"');
+      print('Encoded query: "$encodedQuery"');
+      
+      final response = await apiClient.get(searchUrl);
+      
+      print('Search response: $response');
+      
+      List<Product> products = [];
+      final outerData = response['data'];
+      
+      if (outerData is Map && outerData.containsKey('data')) {
+        final innerData = outerData['data'];
+        if (innerData is List) {
+          products = innerData.map((json) => Product.fromJson(json)).toList();
         }
-        throw Exception('Invalid response format for searchProducts');
-      } catch (e) {
-        print('Error in searchProducts: $e');
-        print('Error type: ${e.runtimeType}');
-        rethrow;
       }
-    });
+      
+      print('Found ${products.length} products');
+
+      // Extract pagination metadata from backend response
+      Map<String, dynamic>? paginationMetadata;
+      if (outerData is Map) {
+        paginationMetadata = {
+          'pageNumber': outerData['pageNumber'],
+          'pageSize': outerData['pageSize'],
+          'totalPages': outerData['totalPages'],
+          'totalCount': outerData['totalCount'],
+          'hasPreviousPage': outerData['hasPreviousPage'],
+          'hasNextPage': outerData['hasNextPage'],
+        };
+      }
+      
+      return ApiResponse(
+        data: products,
+        message: response['message'] as String?,
+        success: response['success'] ?? true,
+        resultStatus: response['resultStatus'] as int?,
+        metadata: paginationMetadata,
+      );
+    } catch (e) {
+      print('Error in searchProducts: $e');
+      print('Error type: ${e.runtimeType}');
+      rethrow;
+    }
   }
 
   Future<ApiResponse<Product>> updateProduct(Product item, {List<File>? images}) async {

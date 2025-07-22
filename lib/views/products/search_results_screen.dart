@@ -19,13 +19,45 @@ class SearchResultsScreen extends StatefulWidget {
 }
 
 class _SearchResultsScreenState extends State<SearchResultsScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _showLoadMore = false;
+
   @override
   void initState() {
     super.initState();
+    
+    // Add scroll listener
+    _scrollController.addListener(_onScroll);
+    
     // Perform search when screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductsViewModel>().searchProducts(widget.searchQuery);
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      // Show load more button when user is 200 pixels from bottom
+      if (!_showLoadMore) {
+        setState(() {
+          _showLoadMore = true;
+        });
+      }
+    } else {
+      // Hide load more button when user scrolls up
+      if (_showLoadMore) {
+        setState(() {
+          _showLoadMore = false;
+        });
+      }
+    }
   }
 
   @override
@@ -146,22 +178,79 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () => productsViewModel.searchProducts(widget.searchQuery),
-                    child: GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.75,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                      itemCount: productsViewModel.products.length,
-                      itemBuilder: (context, index) {
-                        final product = productsViewModel.products[index];
-                        return ProductCard(
-                          product: product,
-                          apiClient: productsViewModel.apiClient,
-                        );
-                      },
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: GridView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.all(16),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.75,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
+                            itemCount: productsViewModel.products.length,
+                            itemBuilder: (context, index) {
+                              final product = productsViewModel.products[index];
+                              return ProductCard(
+                                product: product,
+                                apiClient: productsViewModel.apiClient,
+                              );
+                            },
+                          ),
+                        ),
+                        // Show "Load More" button only when user reaches bottom and has more data
+                        if (_showLoadMore && productsViewModel.hasMoreData)
+                          Container(
+                            margin: const EdgeInsets.all(16),
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: productsViewModel.isLoadingMore ? null : () async {
+                                await productsViewModel.loadMoreSearchResults();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF7C3AED),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 4,
+                                shadowColor: const Color(0xFF7C3AED).withOpacity(0.3),
+                              ),
+                              child: productsViewModel.isLoadingMore
+                                  ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    )
+                                  : Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.keyboard_arrow_down,
+                                          size: 24,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          'تحميل المزيد',
+                                          style: TextStyle(
+                                            fontFamily: 'Cairo',
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),

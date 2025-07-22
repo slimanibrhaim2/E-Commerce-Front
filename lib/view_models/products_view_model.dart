@@ -13,6 +13,7 @@ class ProductsViewModel extends ChangeNotifier {
   bool _isLoadingMore = false;
   String? _error;
   String? _currentCategory;
+  String? _currentSearchQuery;
   
   // Pagination state
   int _currentPage = 1;
@@ -198,25 +199,75 @@ class ProductsViewModel extends ChangeNotifier {
     }
   }
 
+  // Search products with pagination (first page)
   Future<String?> searchProducts(String query) async {
+    return await _searchProductsPage(query, 1, reset: true);
+  }
+
+  // Load more search results (next page)
+  Future<String?> loadMoreSearchResults() async {
+    if (!_hasMoreData || _isLoadingMore) return null;
+    // We need to store the current search query to continue pagination
+    // For now, we'll use a simple approach - this could be improved
+    return await _searchProductsPage(_currentSearchQuery ?? '', _currentPage + 1, reset: false);
+  }
+
+  // Internal method to search products with pagination
+  Future<String?> _searchProductsPage(String query, int pageNumber, {required bool reset}) async {
     try {
-      _isLoading = true;
+      if (reset) {
+        _isLoading = true;
+        _currentPage = 1;
+        _hasMoreData = true;
+        _products.clear();
+        _currentSearchQuery = query;
+      } else {
+        _isLoadingMore = true;
+      }
       _error = null;
       notifyListeners();
 
       if (query.trim().isEmpty) {
         // If search query is empty, load all products
-        await loadProducts();
+        if (reset) {
+          await loadProducts();
+        } else {
+          await loadMoreProducts();
+        }
         return null;
       }
 
-      _products = await _repository.searchProducts(query.trim());
-      return null; // Success
+      final response = await _repository.searchProducts(query.trim(), pageNumber: pageNumber, pageSize: _pageSize);
+      final newProducts = response.data ?? [];
+      
+      // Extract pagination metadata from response
+      final metadata = response.metadata;
+      if (metadata != null) {
+        _currentPage = metadata['pageNumber'] ?? pageNumber;
+        _pageSize = metadata['pageSize'] ?? _pageSize;
+        _totalPages = metadata['totalPages'] ?? 0;
+        _totalCount = metadata['totalCount'] ?? 0;
+        _hasMoreData = metadata['hasNextPage'] ?? false;
+      }
+      
+      if (reset) {
+        _products = newProducts;
+      } else {
+        _products.addAll(newProducts);
+      }
+      
+      notifyListeners();
+      return response.message;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
       return _error;
     } finally {
-      _isLoading = false;
+      if (reset) {
+        _isLoading = false;
+      } else {
+        _isLoadingMore = false;
+      }
       notifyListeners();
     }
   }
