@@ -20,9 +20,16 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _showLoadMore = false;
+
   @override
   void initState() {
     super.initState();
+    
+    // Add scroll listener
+    _scrollController.addListener(_onScroll);
+    
     // Load cart when screen opens if user is logged in
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userViewModel = context.read<UserViewModel>();
@@ -36,6 +43,30 @@ class _CartScreenState extends State<CartScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      // Show load more button when user is 200 pixels from bottom
+      if (!_showLoadMore) {
+        setState(() {
+          _showLoadMore = true;
+        });
+      }
+    } else {
+      // Hide load more button when user scrolls up
+      if (_showLoadMore) {
+        setState(() {
+          _showLoadMore = false;
+        });
+      }
+    }
+  }
 
 
   Widget _buildOfflineCartItemWidget(CartItem offlineItem, int index) {
@@ -398,49 +429,106 @@ class _CartScreenState extends State<CartScreen> {
                       final userViewModel = context.read<UserViewModel>();
                       final cartViewModel = context.read<CartViewModel>();
                       if (userViewModel.isLoggedIn) {
-                        return cartViewModel.loadCart();
+                        return cartViewModel.refreshCart();
                       } else {
                         return cartViewModel.loadOfflineCart();
                       }
                     },
-                    child: Selector2<CartViewModel, UserViewModel, Map<String, dynamic>>(
-                      selector: (context, cartViewModel, userViewModel) {
-                        return {
-                          'cartItems': cartViewModel.cartItems,
-                          'offlineCartItemsWithDetails': cartViewModel.offlineCartItemsWithDetails,
-                          'isLoggedIn': userViewModel.isLoggedIn,
-                        };
-                      },
-                      builder: (context, data, child) {
-                        final cartItems = data['cartItems'] as List<CartItem>;
-                        final offlineCartItemsWithDetails = data['offlineCartItemsWithDetails'] as List<CartItem>;
-                        final isLoggedIn = data['isLoggedIn'] as bool;
-                        
-                        // Combine online and unique offline items
-                        final onlineIds = cartItems.map((item) => item.itemId).toSet();
-                        final uniqueOfflineItems = offlineCartItemsWithDetails
-                            .where((item) => !onlineIds.contains(item.itemId))
-                            .toList();
-                        final allItems = [...cartItems, ...uniqueOfflineItems];
-                        
-                        return ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: allItems.length,
-                          itemBuilder: (context, index) {
-                            final item = allItems[index];
-                            if (item is CartItem && onlineIds.contains(item.itemId)) {
-                              // Online item
-                              return CartItemWidget(
-                                item: item,
-                                index: index,
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Selector2<CartViewModel, UserViewModel, Map<String, dynamic>>(
+                            selector: (context, cartViewModel, userViewModel) {
+                              return {
+                                'cartItems': cartViewModel.cartItems,
+                                'offlineCartItemsWithDetails': cartViewModel.offlineCartItemsWithDetails,
+                                'isLoggedIn': userViewModel.isLoggedIn,
+                              };
+                            },
+                            builder: (context, data, child) {
+                              final cartItems = data['cartItems'] as List<CartItem>;
+                              final offlineCartItemsWithDetails = data['offlineCartItemsWithDetails'] as List<CartItem>;
+                              final isLoggedIn = data['isLoggedIn'] as bool;
+                              
+                              // Combine online and unique offline items
+                              final onlineIds = cartItems.map((item) => item.itemId).toSet();
+                              final uniqueOfflineItems = offlineCartItemsWithDetails
+                                  .where((item) => !onlineIds.contains(item.itemId))
+                                  .toList();
+                              final allItems = [...cartItems, ...uniqueOfflineItems];
+                              
+                              return ListView.builder(
+                                controller: _scrollController,
+                                padding: const EdgeInsets.all(16),
+                                itemCount: allItems.length,
+                                itemBuilder: (context, index) {
+                                  final item = allItems[index];
+                                  if (item is CartItem && onlineIds.contains(item.itemId)) {
+                                    // Online item
+                                    return CartItemWidget(
+                                      item: item,
+                                      index: index,
+                                    );
+                                  } else {
+                                    // Offline item
+                                    return _buildOfflineCartItemWidget(item, index);
+                                  }
+                                },
                               );
-                            } else {
-                              // Offline item
-                              return _buildOfflineCartItemWidget(item, index);
-                            }
-                          },
-                        );
-                      },
+                            },
+                          ),
+                        ),
+                        // Show "Load More" button only when user reaches bottom and has more data
+                        if (_showLoadMore && context.read<CartViewModel>().hasMoreData)
+                          Container(
+                            margin: const EdgeInsets.all(16),
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: context.read<CartViewModel>().isLoadingMore ? null : () async {
+                                await context.read<CartViewModel>().loadMoreCartItems();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF7C3AED),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 4,
+                                shadowColor: const Color(0xFF7C3AED).withOpacity(0.3),
+                              ),
+                              child: context.read<CartViewModel>().isLoadingMore
+                                  ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    )
+                                  : Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.keyboard_arrow_down,
+                                          size: 24,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          'تحميل المزيد',
+                                          style: TextStyle(
+                                            fontFamily: 'Cairo',
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),

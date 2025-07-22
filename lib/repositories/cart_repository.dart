@@ -15,49 +15,44 @@ class CartRepository extends api.ApiRepositoryBase<CartItem> implements BaseRepo
     }
   }
 
-  Future<ApiResponse<List<CartItem>>> getCart() async {
+  Future<ApiResponse<List<CartItem>>> getCart({int pageNumber = 1, int pageSize = 10}) async {
     try {
-      final response = await apiClient.get(ApiEndpoints.myCartItems);
+      final queryParams = '?pageNumber=$pageNumber&pageSize=$pageSize';
+      final endpoint = '${ApiEndpoints.myCartItems}$queryParams';
+      final response = await apiClient.get(endpoint);
       
       List<CartItem> cartItems = [];
+      final outerData = response['data'];
       
-      // Handle wrapped response structure
-      if (response is Map<String, dynamic>) {
-        if (response.containsKey('data')) {
-          final data = response['data'];
-          if (data is Map<String, dynamic> && data.containsKey('data')) {
-            final cartItemsData = data['data'];
-            if (cartItemsData is List) {
-              cartItems = cartItemsData.map((json) => CartItem.fromJson(json)).toList();
-            }
-          }
-          
-          // Fallback: if data is directly a list
-          if (data is List) {
-            cartItems = data.map((json) => CartItem.fromJson(json)).toList();
-          }
+      if (outerData is Map && outerData.containsKey('data')) {
+        final innerData = outerData['data'];
+        if (innerData is List) {
+          cartItems = innerData.map((json) => CartItem.fromJson(json)).toList();
         }
-        
-        return ApiResponse<List<CartItem>>(
-          data: cartItems,
-          message: response['message'] as String?,
-          success: response['success'] ?? false,
-          resultStatus: response['resultStatus'] as int?,
-        );
-      }
-      
-      // Handle direct list response (fallback)
-      if (response is List) {
+      } else if (response is List) {
         cartItems = response.map((json) => CartItem.fromJson(json)).toList();
-        return ApiResponse<List<CartItem>>(
-          data: cartItems,
-          message: null,
-          success: true,
-          resultStatus: null,
-        );
+      }
+
+      // Extract pagination metadata from backend response
+      Map<String, dynamic>? paginationMetadata;
+      if (outerData is Map) {
+        paginationMetadata = {
+          'pageNumber': outerData['pageNumber'],
+          'pageSize': outerData['pageSize'],
+          'totalPages': outerData['totalPages'],
+          'totalCount': outerData['totalCount'],
+          'hasPreviousPage': outerData['hasPreviousPage'],
+          'hasNextPage': outerData['hasNextPage'],
+        };
       }
       
-      throw Exception('Invalid response format');
+      return ApiResponse<List<CartItem>>(
+        data: cartItems,
+        message: response['message'] as String?,
+        success: response['success'] ?? false,
+        resultStatus: response['resultStatus'] as int?,
+        metadata: paginationMetadata,
+      );
     } catch (e) {
       throw Exception('Failed to load cart: $e');
     }

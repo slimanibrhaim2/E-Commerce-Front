@@ -16,9 +16,17 @@ class CartViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _offlineCartItems = [];
   List<CartItem> _offlineCartItemsWithDetails = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _error;
   LocalStorageService? _localStorage;
   bool _isCartLoading = false;
+  
+  // Pagination state
+  int _currentPage = 1;
+  int _pageSize = 10;
+  bool _hasMoreData = true;
+  int _totalCount = 0;
+  int _totalPages = 0;
 
   CartViewModel(this._repository, this._productRepository, this._apiClient) {
     _initLocalStorage();
@@ -33,8 +41,14 @@ class CartViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> get offlineCartItems => _offlineCartItems;
   List<CartItem> get offlineCartItemsWithDetails => _offlineCartItemsWithDetails;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
   ApiClient get apiClient => _apiClient;
+  int get currentPage => _currentPage;
+  int get pageSize => _pageSize;
+  bool get hasMoreData => _hasMoreData;
+  int get totalCount => _totalCount;
+  int get totalPages => _totalPages;
 
   // Calculate total items in cart (online + offline)
   int get totalItems => _cartItems.fold(0, (sum, item) => sum + item.quantity) + 
@@ -105,28 +119,75 @@ class CartViewModel extends ChangeNotifier {
     }
   }
 
+  // Load cart with pagination (first page)
   Future<String?> loadCart() async {
+    return await _loadCartPage(1, reset: true);
+  }
+
+  // Load more cart items (next page)
+  Future<String?> loadMoreCartItems() async {
+    if (!_hasMoreData || _isLoadingMore) return null;
+    return await _loadCartPage(_currentPage + 1, reset: false);
+  }
+
+  // Internal method to load a specific page
+  Future<String?> _loadCartPage(int pageNumber, {required bool reset}) async {
     if (_isCartLoading) return null;
     _isCartLoading = true;
-    _cartItems.clear();
-    _offlineCartItems.clear();
-    _offlineCartItemsWithDetails.clear();
+    
     try {
-      _isLoading = true;
+      if (reset) {
+        _isLoading = true;
+        _currentPage = 1;
+        _hasMoreData = true;
+        _cartItems.clear();
+        _offlineCartItems.clear();
+        _offlineCartItemsWithDetails.clear();
+      } else {
+        _isLoadingMore = true;
+      }
       _error = null;
       notifyListeners();
 
-      final response = await _repository.getCart();
-      _cartItems = response.data ?? [];
+      final response = await _repository.getCart(pageNumber: pageNumber, pageSize: _pageSize);
+      final newCartItems = response.data ?? [];
+      
+      // Extract pagination metadata from response
+      final metadata = response.metadata;
+      if (metadata != null) {
+        _currentPage = metadata['pageNumber'] ?? pageNumber;
+        _pageSize = metadata['pageSize'] ?? _pageSize;
+        _totalPages = metadata['totalPages'] ?? 0;
+        _totalCount = metadata['totalCount'] ?? 0;
+        _hasMoreData = metadata['hasNextPage'] ?? false;
+      }
+      
+      if (reset) {
+        _cartItems = newCartItems;
+      } else {
+        _cartItems.addAll(newCartItems);
+      }
+      
+      notifyListeners();
       return response.message;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
       return _error;
     } finally {
-      _isLoading = false;
+      if (reset) {
+        _isLoading = false;
+      } else {
+        _isLoadingMore = false;
+      }
       _isCartLoading = false;
       notifyListeners();
     }
+  }
+
+  // Refresh cart (reset to first page)
+  Future<String?> refreshCart() async {
+    return await loadCart();
   }
 
   Future<String?> addToCart(String productId, int quantity, BuildContext context) async {
