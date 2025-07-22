@@ -90,6 +90,23 @@ class _AddressesScreenState extends State<AddressesScreen> {
             style: TextStyle(fontFamily: 'Cairo'),
           ),
           centerTitle: true,
+          actions: [
+            // Show pagination info
+            if (addresses.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Center(
+                  child: Text(
+                    'الصفحة ${addressViewModel.currentPage} - ${addresses.length}/${addressViewModel.totalAddresses} عنوان',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontFamily: 'Cairo',
+                      color: Colors.white70,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         body: Consumer<AddressViewModel>(
           builder: (context, viewModel, child) {
@@ -215,209 +232,264 @@ class _AddressesScreenState extends State<AddressesScreen> {
                             ],
                           ),
                         )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: addresses.length,
-                          itemBuilder: (context, index) {
-                            final address = addresses[index];
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: ListTile(
-                                onTap: () {
-                                  if (address.latitude != null && address.longitude != null) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ViewAddressOnMapScreen(
-                                          latitude: address.latitude!,
-                                          longitude: address.longitude!,
-                                          name: address.name,
+                      : RefreshIndicator(
+                          onRefresh: () async {
+                            await viewModel.refreshAddresses();
+                          },
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: addresses.length + (viewModel.hasMoreData ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              // Debug info
+                              if (index == 0) {
+                                print('🔍 UI Debug:');
+                                print('   - addresses.length: ${addresses.length}');
+                                print('   - viewModel.hasMoreData: ${viewModel.hasMoreData}');
+                                print('   - viewModel.totalAddresses: ${viewModel.totalAddresses}');
+                                print('   - viewModel.currentPage: ${viewModel.currentPage}');
+                                print('   - itemCount: ${addresses.length + (viewModel.hasMoreData ? 1 : 0)}');
+                              }
+                              
+                              // Show "Load More" button at the end
+                              if (index == addresses.length) {
+                                print('🔍 Showing Load More button');
+                                return Container(
+                                  margin: const EdgeInsets.only(top: 16),
+                                  child: Center(
+                                    child: ElevatedButton(
+                                      onPressed: viewModel.isLoadingMore ? null : () async {
+                                        print('🔍 Load More button pressed');
+                                        await viewModel.loadMoreAddresses();
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue,
+                                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
                                       ),
-                                    );
-                                  }
-                                },
-                                leading: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, color: Colors.blue),
-                                      onPressed: () async {
-                                        final controller = TextEditingController(text: address.name ?? '');
-                                        await showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return Directionality(
-                                              textDirection: TextDirection.rtl,
-                                              child: AlertDialog(
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                title: const Text(
-                                                  'تعديل اسم الموقع',
-                                                  textAlign: TextAlign.right,
-                                                  style: TextStyle(
-                                                    fontFamily: 'Cairo',
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0xFF7C3AED),
-                                                    fontSize: 20,
-                                                  ),
-                                                ),
-                                                content: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                                  child: TextField(
-                                                    controller: controller,
-                                                    decoration: InputDecoration(
-                                                      hintText: 'اسم الموقع',
-                                                      hintStyle: const TextStyle(fontFamily: 'Cairo'),
-                                                      border: OutlineInputBorder(
-                                                        borderRadius: BorderRadius.circular(12),
-                                                      ),
-                                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                                    ),
-                                                    textAlign: TextAlign.right,
-                                                    style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
-                                                  ),
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () => Navigator.pop(context),
-                                                    child: const Text('إلغاء', style: TextStyle(fontFamily: 'Cairo')),
-                                                  ),
-                                                  ElevatedButton(
-                                                    onPressed: () async {
-                                                      if (controller.text.trim().isNotEmpty) {
-                                                        Navigator.pop(context);
-                                                        final updatedAddress = address.copyWith(name: controller.text.trim());
-                                                        final message = await viewModel.updateAddress(address.id!, updatedAddress);
-                                                        if (viewModel.error != null && mounted) {
-                                                          ModernSnackbar.show(
-                                                            context: context,
-                                                            message: viewModel.error!,
-                                                            type: SnackBarType.error,
-                                                          );
-                                                        } else if (message != null && mounted) {
-                                                          ModernSnackbar.show(
-                                                            context: context,
-                                                            message: message,
-                                                            type: SnackBarType.success,
-                                                          );
-                                                          await viewModel.loadAddresses();
-                                                        }
-                                                      }
-                                                    },
-                                                    style: ElevatedButton.styleFrom(
-                                                      backgroundColor: Color(0xFF7C3AED),
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(12),
-                                                      ),
-                                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                                                    ),
-                                                    child: const Text(
-                                                      'حفظ',
-                                                      style: TextStyle(fontFamily: 'Cairo', color: Colors.white, fontWeight: FontWeight.bold),
-                                                    ),
-                                                  ),
-                                                ],
+                                      child: viewModel.isLoadingMore
+                                          ? const SizedBox(
+                                              height: 20,
+                                              width: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                               ),
-                                            );
-                                          },
-                                        );
-                                      },
+                                            )
+                                          : const Text(
+                                              'تحميل المزيد',
+                                              style: TextStyle(
+                                                fontFamily: 'Cairo',
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                      onPressed: () async {
-                                        final confirm = await showDialog<bool>(
-                                          context: context,
-                                          builder: (context) {
-                                            return Directionality(
-                                              textDirection: TextDirection.rtl,
-                                              child: AlertDialog(
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                title: const Text(
-                                                  'تأكيد الحذف',
-                                                  textAlign: TextAlign.right,
-                                                  style: TextStyle(
-                                                    fontFamily: 'Cairo',
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.red,
-                                                    fontSize: 20,
+                                  ),
+                                );
+                              }
+
+                              final address = addresses[index];
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: ListTile(
+                                  onTap: () {
+                                    if (address.latitude != null && address.longitude != null) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ViewAddressOnMapScreen(
+                                            latitude: address.latitude!,
+                                            longitude: address.longitude!,
+                                            name: address.name,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  leading: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Colors.blue),
+                                        onPressed: () async {
+                                          final controller = TextEditingController(text: address.name ?? '');
+                                          await showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return Directionality(
+                                                textDirection: TextDirection.rtl,
+                                                child: AlertDialog(
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                                  title: const Text(
+                                                    'تعديل اسم الموقع',
+                                                    textAlign: TextAlign.right,
+                                                    style: TextStyle(
+                                                      fontFamily: 'Cairo',
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Color(0xFF7C3AED),
+                                                      fontSize: 20,
+                                                    ),
                                                   ),
-                                                ),
-                                                content: const Text(
-                                                  'هل أنت متأكد أنك تريد حذف هذا العنوان؟',
-                                                  textAlign: TextAlign.right,
-                                                  style: TextStyle(fontFamily: 'Cairo'),
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () => Navigator.pop(context, false),
-                                                    child: const Text('إلغاء', style: TextStyle(fontFamily: 'Cairo')),
-                                                  ),
-                                                  ElevatedButton(
-                                                    onPressed: () => Navigator.pop(context, true),
-                                                    style: ElevatedButton.styleFrom(
-                                                      backgroundColor: Colors.red,
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(12),
+                                                  content: Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                                    child: TextField(
+                                                      controller: controller,
+                                                      decoration: InputDecoration(
+                                                        hintText: 'اسم الموقع',
+                                                        hintStyle: const TextStyle(fontFamily: 'Cairo'),
+                                                        border: OutlineInputBorder(
+                                                          borderRadius: BorderRadius.circular(12),
+                                                        ),
+                                                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                                       ),
-                                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                                                    ),
-                                                    child: const Text(
-                                                      'حذف',
-                                                      style: TextStyle(fontFamily: 'Cairo', color: Colors.white, fontWeight: FontWeight.bold),
+                                                      textAlign: TextAlign.right,
+                                                      style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
                                                     ),
                                                   ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        );
-                                        if (confirm == true) {
-                                          try {
-                                            final message = await viewModel.deleteAddress(address.id!);
-                                            if (mounted) {
-                                              ModernSnackbar.show(
-                                                context: context,
-                                                message: message ?? 'تم حذف العنوان بنجاح',
-                                                type: viewModel.error != null ? SnackBarType.error : SnackBarType.success,
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () => Navigator.pop(context),
+                                                      child: const Text('إلغاء', style: TextStyle(fontFamily: 'Cairo')),
+                                                    ),
+                                                    ElevatedButton(
+                                                      onPressed: () async {
+                                                        if (controller.text.trim().isNotEmpty) {
+                                                          Navigator.pop(context);
+                                                          final updatedAddress = address.copyWith(name: controller.text.trim());
+                                                          final message = await viewModel.updateAddress(address.id!, updatedAddress);
+                                                          if (viewModel.error != null && mounted) {
+                                                            ModernSnackbar.show(
+                                                              context: context,
+                                                              message: viewModel.error!,
+                                                              type: SnackBarType.error,
+                                                            );
+                                                          } else if (message != null && mounted) {
+                                                            ModernSnackbar.show(
+                                                              context: context,
+                                                              message: message,
+                                                              type: SnackBarType.success,
+                                                            );
+                                                            await viewModel.refreshAddresses();
+                                                          }
+                                                        }
+                                                      },
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: Color(0xFF7C3AED),
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(12),
+                                                        ),
+                                                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                                                      ),
+                                                      child: const Text(
+                                                        'حفظ',
+                                                        style: TextStyle(fontFamily: 'Cairo', color: Colors.white, fontWeight: FontWeight.bold),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               );
-                                            }
-                                          } catch (e) {
-                                            if (mounted) {
-                                              ModernSnackbar.show(
-                                                context: context,
-                                                message: e.toString().replaceAll('Exception: ', ''),
-                                                type: SnackBarType.error,
+                                            },
+                                          );
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                        onPressed: () async {
+                                          final confirm = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) {
+                                              return Directionality(
+                                                textDirection: TextDirection.rtl,
+                                                child: AlertDialog(
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                                  title: const Text(
+                                                    'تأكيد الحذف',
+                                                    textAlign: TextAlign.right,
+                                                    style: TextStyle(
+                                                      fontFamily: 'Cairo',
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.red,
+                                                      fontSize: 20,
+                                                    ),
+                                                  ),
+                                                  content: const Text(
+                                                    'هل أنت متأكد أنك تريد حذف هذا العنوان؟',
+                                                    textAlign: TextAlign.right,
+                                                    style: TextStyle(fontFamily: 'Cairo'),
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () => Navigator.pop(context, false),
+                                                      child: const Text('إلغاء', style: TextStyle(fontFamily: 'Cairo')),
+                                                    ),
+                                                    ElevatedButton(
+                                                      onPressed: () => Navigator.pop(context, true),
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: Colors.red,
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(12),
+                                                        ),
+                                                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                                                      ),
+                                                      child: const Text(
+                                                        'حذف',
+                                                        style: TextStyle(fontFamily: 'Cairo', color: Colors.white, fontWeight: FontWeight.bold),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               );
+                                            },
+                                          );
+                                          if (confirm == true) {
+                                            try {
+                                              final message = await viewModel.deleteAddress(address.id!);
+                                              if (mounted) {
+                                                ModernSnackbar.show(
+                                                  context: context,
+                                                  message: message ?? 'تم حذف العنوان بنجاح',
+                                                  type: viewModel.error != null ? SnackBarType.error : SnackBarType.success,
+                                                );
+                                              }
+                                            } catch (e) {
+                                              if (mounted) {
+                                                ModernSnackbar.show(
+                                                  context: context,
+                                                  message: e.toString().replaceAll('Exception: ', ''),
+                                                  type: SnackBarType.error,
+                                                );
+                                              }
                                             }
                                           }
-                                        }
-                                      },
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  title: Text(
+                                    (address.name != null && address.name!.isNotEmpty)
+                                        ? address.name!
+                                        : 'بدون اسم',
+                                    style: const TextStyle(
+                                      fontFamily: 'Cairo',
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                  ],
-                                ),
-                                title: Text(
-                                  (address.name != null && address.name!.isNotEmpty)
-                                      ? address.name!
-                                      : 'بدون اسم',
-                                  style: const TextStyle(
-                                    fontFamily: 'Cairo',
-                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  subtitle: Text(
+                                    address.address ?? '',
+                                    style: const TextStyle(
+                                      fontFamily: 'Cairo',
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ),
-                                subtitle: Text(
-                                  address.address ?? '',
-                                  style: const TextStyle(
-                                    fontFamily: 'Cairo',
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
                 ),
                 Container(
