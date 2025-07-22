@@ -20,22 +20,45 @@ class OrderRepository {
     );
   }
 
-  Future<ApiResponse<List<Order>>> getMyOrders() async {
-    final response = await apiClient.get(ApiEndpoints.myOrders);
-    final outerData = response['data'];
-    List<Order> orders = [];
-    if (outerData is Map && outerData.containsKey('data')) {
-      final innerData = outerData['data'];
-      if (innerData is List) {
-        orders = innerData.map((json) => Order.fromJson(json)).toList();
+  Future<ApiResponse<List<Order>>> getMyOrders({int pageNumber = 1, int pageSize = 10}) async {
+    try {
+      final queryParams = '?pageNumber=$pageNumber&pageSize=$pageSize';
+      final endpoint = '${ApiEndpoints.myOrders}$queryParams';
+      final response = await apiClient.get(endpoint);
+      
+      final outerData = response['data'];
+      List<Order> orders = [];
+      
+      if (outerData is Map && outerData.containsKey('data')) {
+        final innerData = outerData['data'];
+        if (innerData is List) {
+          orders = innerData.map((json) => Order.fromJson(json)).toList();
+        }
       }
+
+      // Extract pagination metadata from backend response
+      Map<String, dynamic>? paginationMetadata;
+      if (outerData is Map) {
+        paginationMetadata = {
+          'pageNumber': outerData['pageNumber'],
+          'pageSize': outerData['pageSize'],
+          'totalPages': outerData['totalPages'],
+          'totalCount': outerData['totalCount'],
+          'hasPreviousPage': outerData['hasPreviousPage'],
+          'hasNextPage': outerData['hasNextPage'],
+        };
+      }
+      
+      return ApiResponse(
+        data: orders,
+        message: response['message'] as String?,
+        success: response['success'] ?? true,
+        resultStatus: response['resultStatus'] as int?,
+        metadata: paginationMetadata,
+      );
+    } catch (e) {
+      throw Exception('Failed to load orders: $e');
     }
-    return ApiResponse(
-      data: orders,
-      message: response['message'] as String?,
-      success: response['success'] ?? true,
-      resultStatus: response['resultStatus'] as int?,
-    );
   }
 
   Future<ApiResponse<Order>> getOrderById(String orderId) async {

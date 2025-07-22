@@ -10,10 +10,18 @@ class OrderViewModel extends ChangeNotifier {
   String? error;
   List<Order> myOrders = [];
   bool isLoadingOrders = false;
+  bool isLoadingMore = false;
   String? ordersError;
   Order? selectedOrder;
   bool isLoadingOrderDetail = false;
   String? orderDetailError;
+  
+  // Pagination state
+  int currentPage = 1;
+  int pageSize = 10;
+  bool hasMoreData = true;
+  int totalCount = 0;
+  int totalPages = 0;
 
   OrderViewModel(this.repository);
 
@@ -51,19 +59,69 @@ class OrderViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> loadMyOrders() async {
-    isLoadingOrders = true;
-    ordersError = null;
-    notifyListeners();
+  // Load orders with pagination (first page)
+  Future<String?> loadMyOrders() async {
+    return await _loadOrdersPage(1, reset: true);
+  }
+
+  // Load more orders (next page)
+  Future<String?> loadMoreOrders() async {
+    if (!hasMoreData || isLoadingMore) return null;
+    return await _loadOrdersPage(currentPage + 1, reset: false);
+  }
+
+  // Internal method to load a specific page
+  Future<String?> _loadOrdersPage(int pageNumber, {required bool reset}) async {
     try {
-      final response = await repository.getMyOrders();
-      myOrders = response.data ?? [];
+      if (reset) {
+        isLoadingOrders = true;
+        currentPage = 1;
+        hasMoreData = true;
+        myOrders.clear();
+      } else {
+        isLoadingMore = true;
+      }
       ordersError = null;
+      notifyListeners();
+      
+      final response = await repository.getMyOrders(pageNumber: pageNumber, pageSize: pageSize);
+      final newOrders = response.data ?? [];
+      
+      // Extract pagination metadata from response
+      final metadata = response.metadata;
+      if (metadata != null) {
+        currentPage = metadata['pageNumber'] ?? pageNumber;
+        pageSize = metadata['pageSize'] ?? pageSize;
+        totalPages = metadata['totalPages'] ?? 0;
+        totalCount = metadata['totalCount'] ?? 0;
+        hasMoreData = metadata['hasNextPage'] ?? false;
+      }
+      
+      if (reset) {
+        myOrders = newOrders;
+      } else {
+        myOrders.addAll(newOrders);
+      }
+      
+      notifyListeners();
+      return response.message;
     } catch (e) {
       ordersError = e.toString();
+      notifyListeners();
+      return ordersError;
+    } finally {
+      if (reset) {
+        isLoadingOrders = false;
+      } else {
+        isLoadingMore = false;
+      }
+      notifyListeners();
     }
-    isLoadingOrders = false;
-    notifyListeners();
+  }
+
+  // Refresh orders (reset to first page)
+  Future<String?> refreshOrders() async {
+    return await loadMyOrders();
   }
 
   Future<void> loadOrderById(String orderId) async {
