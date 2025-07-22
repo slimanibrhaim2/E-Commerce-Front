@@ -19,9 +19,16 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _showLoadMore = false;
+
   @override
   void initState() {
     super.initState();
+    
+    // Add scroll listener
+    _scrollController.addListener(_onScroll);
+    
     // Load favorites when screen opens (both online and offline)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userViewModel = context.read<UserViewModel>();
@@ -35,6 +42,30 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      // Show load more button when user is 200 pixels from bottom
+      if (!_showLoadMore) {
+        setState(() {
+          _showLoadMore = true;
+        });
+      }
+    } else {
+      // Hide load more button when user scrolls up
+      if (_showLoadMore) {
+        setState(() {
+          _showLoadMore = false;
+        });
+      }
+    }
+  }
 
 
   @override
@@ -203,35 +234,92 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 final padding = 16.0;
 
                 return RefreshIndicator(
-                  onRefresh: () => context.read<FavoritesViewModel>().loadFavorites(),
-                  child: Selector<FavoritesViewModel, List<Favorite>>(
-                    selector: (context, favoritesViewModel) => favoritesViewModel.favorites,
-                    builder: (context, favorites, child) {
-                                                  // Combine online favorites and offline favorites
-                      final allFavorites = <Widget>[];
-                      
-                      // Add online favorites
-                      for (final favorite in favorites) {
-                        allFavorites.add(FavoriteCard(favorite: favorite));
-                      }
-                      
-                      // Offline favorites are now loaded as proper Favorite objects with product data
-                      // No need to build separate offline cards
-                      
-                      return GridView.builder(
-                        padding: EdgeInsets.all(padding),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: columns,
-                          childAspectRatio: aspectRatio,
-                          crossAxisSpacing: crossAxisSpacing,
-                          mainAxisSpacing: mainAxisSpacing,
+                  onRefresh: () => context.read<FavoritesViewModel>().refreshFavorites(),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Selector<FavoritesViewModel, List<Favorite>>(
+                          selector: (context, favoritesViewModel) => favoritesViewModel.favorites,
+                          builder: (context, favorites, child) {
+                            // Combine online favorites and offline favorites
+                            final allFavorites = <Widget>[];
+                            
+                            // Add online favorites
+                            for (final favorite in favorites) {
+                              allFavorites.add(FavoriteCard(favorite: favorite));
+                            }
+                            
+                            // Offline favorites are now loaded as proper Favorite objects with product data
+                            // No need to build separate offline cards
+                            
+                            return GridView.builder(
+                              controller: _scrollController,
+                              padding: EdgeInsets.all(padding),
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: columns,
+                                childAspectRatio: aspectRatio,
+                                crossAxisSpacing: crossAxisSpacing,
+                                mainAxisSpacing: mainAxisSpacing,
+                              ),
+                              itemCount: allFavorites.length,
+                              itemBuilder: (context, index) {
+                                return allFavorites[index];
+                              },
+                            );
+                          },
                         ),
-                        itemCount: allFavorites.length,
-                        itemBuilder: (context, index) {
-                          return allFavorites[index];
-                        },
-                      );
-                    },
+                      ),
+                      // Show "Load More" button only when user reaches bottom and has more data
+                      if (_showLoadMore && context.read<FavoritesViewModel>().hasMoreData)
+                        Container(
+                          margin: const EdgeInsets.all(16),
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: context.read<FavoritesViewModel>().isLoadingMore ? null : () async {
+                              await context.read<FavoritesViewModel>().loadMoreFavorites();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF7C3AED),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 4,
+                              shadowColor: const Color(0xFF7C3AED).withOpacity(0.3),
+                            ),
+                            child: context.read<FavoritesViewModel>().isLoadingMore
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.keyboard_arrow_down,
+                                        size: 24,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'تحميل المزيد',
+                                        style: TextStyle(
+                                          fontFamily: 'Cairo',
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                    ],
                   ),
                 );
               },

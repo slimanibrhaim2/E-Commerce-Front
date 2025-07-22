@@ -16,8 +16,16 @@ class FavoritesViewModel extends ChangeNotifier {
   List<Favorite> _favorites = [];
   List<String> _offlineFavorites = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _error;
   LocalStorageService? _localStorage;
+  
+  // Pagination state
+  int _currentPage = 1;
+  int _pageSize = 10;
+  bool _hasMoreData = true;
+  int _totalCount = 0;
+  int _totalPages = 0;
 
   FavoritesViewModel(this._repository, this._productRepository, this._apiClient) {
     _initLocalStorage();
@@ -32,9 +40,15 @@ class FavoritesViewModel extends ChangeNotifier {
   List<Product> get favoriteProducts => _favorites.map((f) => f.baseItem).toList();
   List<String> get offlineFavorites => _offlineFavorites;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
   int get favoritesCount => _favorites.length + _offlineFavorites.length;
   ApiClient get apiClient => _apiClient;
+  int get currentPage => _currentPage;
+  int get pageSize => _pageSize;
+  bool get hasMoreData => _hasMoreData;
+  int get totalCount => _totalCount;
+  int get totalPages => _totalPages;
 
   Future<void> _loadOfflineFavorites() async {
     if (_localStorage != null) {
@@ -84,29 +98,69 @@ class FavoritesViewModel extends ChangeNotifier {
     }
   }
 
+  // Load favorites with pagination (first page)
   Future<String?> loadFavorites() async {
+    return await _loadFavoritesPage(1, reset: true);
+  }
+
+  // Load more favorites (next page)
+  Future<String?> loadMoreFavorites() async {
+    if (!_hasMoreData || _isLoadingMore) return null;
+    return await _loadFavoritesPage(_currentPage + 1, reset: false);
+  }
+
+  // Internal method to load a specific page
+  Future<String?> _loadFavoritesPage(int pageNumber, {required bool reset}) async {
     try {
-      _isLoading = true;
+      if (reset) {
+        _isLoading = true;
+        _currentPage = 1;
+        _hasMoreData = true;
+        _favorites.clear();
+      } else {
+        _isLoadingMore = true;
+      }
       _error = null;
       notifyListeners();
-
-      // Clear favorites first
-      _favorites = [];
       
-      final response = await _repository.getFavorites();
-      _favorites = response.data ?? [];
+      final response = await _repository.getFavorites(pageNumber: pageNumber, pageSize: _pageSize);
+      final newFavorites = response.data ?? [];
       
-      // Return backend message if available
+      // Extract pagination metadata from response
+      final metadata = response.metadata;
+      if (metadata != null) {
+        _currentPage = metadata['pageNumber'] ?? pageNumber;
+        _pageSize = metadata['pageSize'] ?? _pageSize;
+        _totalPages = metadata['totalPages'] ?? 0;
+        _totalCount = metadata['totalCount'] ?? 0;
+        _hasMoreData = metadata['hasNextPage'] ?? false;
+      }
+      
+      if (reset) {
+        _favorites = newFavorites;
+      } else {
+        _favorites.addAll(newFavorites);
+      }
+      
+      notifyListeners();
       return response.message;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
-      // Clear favorites on error
-      _favorites = [];
+      notifyListeners();
       return _error;
     } finally {
-      _isLoading = false;
+      if (reset) {
+        _isLoading = false;
+      } else {
+        _isLoadingMore = false;
+      }
       notifyListeners();
     }
+  }
+
+  // Refresh favorites (reset to first page)
+  Future<String?> refreshFavorites() async {
+    return await loadFavorites();
   }
 
   Future<Map<String, dynamic>> toggleFavorite(String itemId, BuildContext context) async {
@@ -184,8 +238,19 @@ class FavoritesViewModel extends ChangeNotifier {
   // Private method to reload favorites without showing loading state
   Future<void> _reloadFavoritesSilently() async {
     try {
-      final response = await _repository.getFavorites();
+      final response = await _repository.getFavorites(pageNumber: 1, pageSize: _pageSize);
       _favorites = response.data ?? [];
+      
+      // Extract pagination metadata
+      final metadata = response.metadata;
+      if (metadata != null) {
+        _currentPage = metadata['pageNumber'] ?? 1;
+        _pageSize = metadata['pageSize'] ?? _pageSize;
+        _totalPages = metadata['totalPages'] ?? 0;
+        _totalCount = metadata['totalCount'] ?? 0;
+        _hasMoreData = metadata['hasNextPage'] ?? false;
+      }
+      
       notifyListeners();
     } catch (e) {
       // Silently handle errors for background reload

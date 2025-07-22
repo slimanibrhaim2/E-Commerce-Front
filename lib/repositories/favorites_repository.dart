@@ -7,33 +7,42 @@ import '../models/favorite.dart';
 class FavoritesRepository extends api.ApiRepositoryBase<Favorite> implements BaseRepository<Favorite> {
   FavoritesRepository(super.apiClient);
 
-  Future<ApiResponse<List<Favorite>>> getFavorites() async {
+  Future<ApiResponse<List<Favorite>>> getFavorites({int pageNumber = 1, int pageSize = 10}) async {
     try {
-      final response = await apiClient.get(ApiEndpoints.favorites);
+      final queryParams = '?pageNumber=$pageNumber&pageSize=$pageSize';
+      final endpoint = '${ApiEndpoints.favorites}$queryParams';
+      final response = await apiClient.get(endpoint);
       
       List<Favorite> favorites = [];
+      final outerData = response['data'];
       
-      // Handle wrapped response structure
-      if (response is Map<String, dynamic>) {
-        if (response.containsKey('data')) {
-          final data = response['data'];
-          if (data is Map<String, dynamic> && data.containsKey('data')) {
-            final favoritesData = data['data'];
-            if (favoritesData is List) {
-              favorites = favoritesData.map((json) => Favorite.fromJson(json)).toList();
-      }
-          }
+      if (outerData is Map && outerData.containsKey('data')) {
+        final innerData = outerData['data'];
+        if (innerData is List) {
+          favorites = innerData.map((json) => Favorite.fromJson(json)).toList();
         }
-        
-        return ApiResponse<List<Favorite>>(
-          data: favorites,
-          message: response['message'] as String?,
-          success: response['success'] ?? false,
-          resultStatus: response['resultStatus'] as int?,
-        );
+      }
+
+      // Extract pagination metadata from backend response
+      Map<String, dynamic>? paginationMetadata;
+      if (outerData is Map) {
+        paginationMetadata = {
+          'pageNumber': outerData['pageNumber'],
+          'pageSize': outerData['pageSize'],
+          'totalPages': outerData['totalPages'],
+          'totalCount': outerData['totalCount'],
+          'hasPreviousPage': outerData['hasPreviousPage'],
+          'hasNextPage': outerData['hasNextPage'],
+        };
       }
       
-      throw Exception('Invalid response format');
+      return ApiResponse<List<Favorite>>(
+        data: favorites,
+        message: response['message'] as String?,
+        success: response['success'] ?? false,
+        resultStatus: response['resultStatus'] as int?,
+        metadata: paginationMetadata,
+      );
     } catch (e) {
       throw Exception('Failed to load favorites: $e');
     }
