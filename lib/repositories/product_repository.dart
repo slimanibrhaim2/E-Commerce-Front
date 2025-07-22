@@ -18,21 +18,125 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
     }
   }
 
-  Future<List<Product>> getProducts() async {
-    return handleListApiCall(() async {
-      final response = await apiClient.get(ApiEndpoints.products);
-      if (response is Map<String, dynamic> &&
-          response.containsKey('data') &&
-          response['data'] is Map<String, dynamic> &&
-          response['data'].containsKey('data') &&
-          response['data']['data'] is List) {
-        final List<dynamic> productListJson = response['data']['data'];
-        return productListJson.map((json) => Product.fromJson(json)).toList();
-      } else if (response is List) {
-        return response.map((json) => Product.fromJson(json)).toList();
+  Future<ApiResponse<List<Product>>> getProductsByCategory(String categoryId, {int pageNumber = 1, int pageSize = 10}) async {
+    try {
+      final queryParams = '?pageNumber=$pageNumber&pageSize=$pageSize';
+      final endpoint = '${ApiEndpoints.categoryProducts}$categoryId$queryParams';
+      final response = await apiClient.get(endpoint);
+      
+      List<Product> products = [];
+      final outerData = response['data'];
+      
+      if (outerData is Map && outerData.containsKey('data')) {
+        final innerData = outerData['data'];
+        if (innerData is List) {
+          products = innerData.map((json) => Product.fromJson(json)).toList();
+        }
       }
-      throw Exception('Invalid response format for getProducts');
-    });
+
+      // Extract pagination metadata from backend response
+      Map<String, dynamic>? paginationMetadata;
+      if (outerData is Map) {
+        paginationMetadata = {
+          'pageNumber': outerData['pageNumber'],
+          'pageSize': outerData['pageSize'],
+          'totalPages': outerData['totalPages'],
+          'totalCount': outerData['totalCount'],
+          'hasPreviousPage': outerData['hasPreviousPage'],
+          'hasNextPage': outerData['hasNextPage'],
+        };
+      }
+
+      return ApiResponse(
+        data: products,
+        message: response['message'] as String?,
+        metadata: paginationMetadata,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<ApiResponse<List<Product>>> getProducts({int pageNumber = 1, int pageSize = 10}) async {
+    try {
+      final queryParams = '?pageNumber=$pageNumber&pageSize=$pageSize';
+      final endpoint = '${ApiEndpoints.products}$queryParams';
+      final response = await apiClient.get(endpoint);
+      
+      List<Product> products = [];
+      final outerData = response['data'];
+      
+      if (outerData is Map && outerData.containsKey('data')) {
+        final innerData = outerData['data'];
+        if (innerData is List) {
+          products = innerData.map((json) => Product.fromJson(json)).toList();
+        }
+      } else if (response is List) {
+        products = response.map((json) => Product.fromJson(json)).toList();
+      }
+
+      // Extract pagination metadata from backend response
+      Map<String, dynamic>? paginationMetadata;
+      if (outerData is Map) {
+        paginationMetadata = {
+          'pageNumber': outerData['pageNumber'],
+          'pageSize': outerData['pageSize'],
+          'totalPages': outerData['totalPages'],
+          'totalCount': outerData['totalCount'],
+          'hasPreviousPage': outerData['hasPreviousPage'],
+          'hasNextPage': outerData['hasNextPage'],
+        };
+      }
+
+      return ApiResponse(
+        data: products,
+        message: response['message'] as String?,
+        metadata: paginationMetadata,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<ApiResponse<List<Product>>> getMyProducts({int pageNumber = 1, int pageSize = 10}) async {
+    try {
+      final queryParams = '?pageNumber=$pageNumber&pageSize=$pageSize';
+      final endpoint = '${ApiEndpoints.myProducts}$queryParams';
+      final response = await apiClient.get(endpoint);
+      
+      List<Product> products = [];
+      final outerData = response['data'];
+      
+      if (outerData is Map && outerData.containsKey('data')) {
+        final innerData = outerData['data'];
+        if (innerData is List) {
+          products = innerData.map((json) => Product.fromJson(json)).toList();
+        }
+      } else if (response is List) {
+        products = response.map((json) => Product.fromJson(json)).toList();
+      }
+
+      // Extract pagination metadata from backend response
+      Map<String, dynamic>? paginationMetadata;
+      if (outerData is Map) {
+        paginationMetadata = {
+          'pageNumber': outerData['pageNumber'],
+          'pageSize': outerData['pageSize'],
+          'totalPages': outerData['totalPages'],
+          'totalCount': outerData['totalCount'],
+          'hasPreviousPage': outerData['hasPreviousPage'],
+          'hasNextPage': outerData['hasNextPage'],
+        };
+      }
+
+      return ApiResponse(
+        data: products,
+        message: response['message'] as String?,
+        metadata: paginationMetadata,
+      );
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
@@ -56,27 +160,12 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
     }
   }
 
-  Future<List<Product>> getProductsByCategory(String categoryId) async {
-    return handleListApiCall(() async {
-      final endpoint = '${ApiEndpoints.categoryProducts}$categoryId';
-      final response = await apiClient.get(endpoint);
-      if (response is Map<String, dynamic> &&
-          response.containsKey('data') &&
-          response['data'] is Map<String, dynamic> &&
-          response['data'].containsKey('data') &&
-          response['data']['data'] is List) {
-        final List<dynamic> productListJson = response['data']['data'];
-        return productListJson.map((json) => Product.fromJson(json)).toList();
-      }
-      throw Exception('Invalid response format for getProductsByCategory');
-    });
-  }
-
-  Future<List<Product>> getAll() async {
+  Future<ApiResponse<List<Product>>> getAll() async {
     return getProducts();
   }
 
-  Future<List<Product>> getMyProducts() async {
+  // Keep the original getMyProducts method for backward compatibility
+  Future<List<Product>> getMyProductsLegacy() async {
     return handleListApiCall(() async {
       final response = await apiClient.get(ApiEndpoints.myProducts);
       if (response is Map<String, dynamic> &&

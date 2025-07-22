@@ -77,13 +77,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
         ),
         body: Consumer<ProductsViewModel>(
           builder: (context, viewModel, child) {
-            if (viewModel.isLoading) {
+            if (viewModel.isLoading && viewModel.products.isEmpty) {
               return const Center(
                 child: ModernLoader(),
               );
             }
 
-            if (viewModel.error != null) {
+            if (viewModel.error != null && viewModel.products.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -124,37 +124,87 @@ class _ProductListScreenState extends State<ProductListScreen> {
               );
             }
 
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final crossAxisCount = (constraints.maxWidth / 200).floor();
-                final columns = crossAxisCount < 2 ? 2 : crossAxisCount;
-                final aspectRatio = 0.75;
-                final crossAxisSpacing = 16.0;
-                final mainAxisSpacing = 16.0;
-                final padding = 16.0;
+            final crossAxisCount = (MediaQuery.of(context).size.width / 200).floor();
+            final columns = crossAxisCount < 2 ? 2 : crossAxisCount;
+            final aspectRatio = 0.75;
+            final crossAxisSpacing = 16.0;
+            final mainAxisSpacing = 16.0;
+            final padding = 16.0;
 
-                return RefreshIndicator(
-                  onRefresh: () => viewModel.loadProducts(
-                    category: widget.category?.id,
-                  ),
-                  child: GridView.builder(
-                    padding: EdgeInsets.all(padding),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: columns,
-                      childAspectRatio: aspectRatio,
-                      crossAxisSpacing: crossAxisSpacing,
-                      mainAxisSpacing: mainAxisSpacing,
+            return RefreshIndicator(
+              onRefresh: () => viewModel.refreshProducts(),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: GridView.builder(
+                      padding: EdgeInsets.all(padding),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        childAspectRatio: aspectRatio,
+                        crossAxisSpacing: crossAxisSpacing,
+                        mainAxisSpacing: mainAxisSpacing,
+                      ),
+                      itemCount: viewModel.products.length,
+                      itemBuilder: (context, index) {
+                        return ProductCard(
+                          product: viewModel.products[index],
+                          apiClient: viewModel.apiClient,
+                        );
+                      },
                     ),
-                    itemCount: viewModel.products.length,
-                    itemBuilder: (context, index) {
-                      return ProductCard(
-                        product: viewModel.products[index],
-                        apiClient: viewModel.apiClient,
-                      );
-                    },
                   ),
-                );
-              },
+                  // Show "Load More" button at the bottom
+                  if (viewModel.hasMoreData)
+                    Container(
+                      margin: const EdgeInsets.all(16),
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: viewModel.isLoadingMore ? null : () async {
+                          await viewModel.loadMoreProducts();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7C3AED),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 4,
+                          shadowColor: const Color(0xFF7C3AED).withOpacity(0.3),
+                        ),
+                        child: viewModel.isLoadingMore
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.keyboard_arrow_down,
+                                    size: 24,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'تحميل المزيد',
+                                    style: TextStyle(
+                                      fontFamily: 'Cairo',
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ),
+                ],
+              ),
             );
           },
         ),

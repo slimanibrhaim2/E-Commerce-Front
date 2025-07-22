@@ -10,8 +10,16 @@ class ProductsViewModel extends ChangeNotifier {
   final ApiClient _apiClient;
   List<Product> _products = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _error;
   String? _currentCategory;
+  
+  // Pagination state
+  int _currentPage = 1;
+  int _pageSize = 10;
+  bool _hasMoreData = true;
+  int _totalCount = 0;
+  int _totalPages = 0;
 
   ProductsViewModel(this._repository, this._apiClient);
 
@@ -19,29 +27,86 @@ class ProductsViewModel extends ChangeNotifier {
   ApiClient get apiClient => _apiClient;
   List<Product> get products => _products;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
   String? get currentCategory => _currentCategory;
+  int get currentPage => _currentPage;
+  int get pageSize => _pageSize;
+  bool get hasMoreData => _hasMoreData;
+  int get totalCount => _totalCount;
+  int get totalPages => _totalPages;
 
+  // Load products with pagination (first page)
   Future<String?> loadProducts({String? category}) async {
-    try {
-      _isLoading = true;
-      _error = null;
-      _currentCategory = category;
-      notifyListeners();
+    return await _loadProductsPage(1, reset: true, category: category);
+  }
 
-      if (category != null) {
-        _products = await _repository.getProductsByCategory(category);
+  // Load more products (next page)
+  Future<String?> loadMoreProducts() async {
+    if (!_hasMoreData || _isLoadingMore) return null;
+    return await _loadProductsPage(_currentPage + 1, reset: false, category: _currentCategory);
+  }
+
+  // Internal method to load a specific page
+  Future<String?> _loadProductsPage(int pageNumber, {required bool reset, String? category}) async {
+    try {
+      if (reset) {
+        _isLoading = true;
+        _currentPage = 1;
+        _hasMoreData = true;
+        _products.clear();
+        _currentCategory = category;
       } else {
-        _products = await _repository.getAll();
+        _isLoadingMore = true;
       }
-      return null; // Success
+      _error = null;
+      notifyListeners();
+      
+      ApiResponse<List<Product>> response;
+      
+      if (category != null) {
+        response = await _repository.getProductsByCategory(category, pageNumber: pageNumber, pageSize: _pageSize);
+      } else {
+        response = await _repository.getProducts(pageNumber: pageNumber, pageSize: _pageSize);
+      }
+      
+      final newProducts = response.data ?? [];
+      
+      // Extract pagination metadata from response
+      final metadata = response.metadata;
+      if (metadata != null) {
+        _currentPage = metadata['pageNumber'] ?? pageNumber;
+        _pageSize = metadata['pageSize'] ?? _pageSize;
+        _totalPages = metadata['totalPages'] ?? 0;
+        _totalCount = metadata['totalCount'] ?? 0;
+        _hasMoreData = metadata['hasNextPage'] ?? false;
+      }
+      
+      if (reset) {
+        _products = newProducts;
+      } else {
+        _products.addAll(newProducts);
+      }
+      
+      notifyListeners();
+      return response.message;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
       return _error;
     } finally {
-      _isLoading = false;
+      if (reset) {
+        _isLoading = false;
+      } else {
+        _isLoadingMore = false;
+      }
       notifyListeners();
     }
+  }
+
+  // Refresh products (reset to first page)
+  Future<String?> refreshProducts() async {
+    return await loadProducts(category: _currentCategory);
   }
 
   Future<String?> loadMyProducts() async {
@@ -50,8 +115,20 @@ class ProductsViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      _products = await _repository.getMyProducts();
-      return null; // Success
+      final response = await _repository.getMyProducts(pageNumber: 1, pageSize: _pageSize);
+      _products = response.data ?? [];
+      
+      // Extract pagination metadata
+      final metadata = response.metadata;
+      if (metadata != null) {
+        _currentPage = metadata['pageNumber'] ?? 1;
+        _pageSize = metadata['pageSize'] ?? _pageSize;
+        _totalPages = metadata['totalPages'] ?? 0;
+        _totalCount = metadata['totalCount'] ?? 0;
+        _hasMoreData = metadata['hasNextPage'] ?? false;
+      }
+      
+      return response.message;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
       return _error;
@@ -70,7 +147,7 @@ class ProductsViewModel extends ChangeNotifier {
       final response = await _repository.create(product, images: images);
 
       if (response.success) {
-        await loadProducts(); 
+        await refreshProducts(); 
       } else {
         _error = response.message;
       }
@@ -92,7 +169,7 @@ class ProductsViewModel extends ChangeNotifier {
       notifyListeners();
 
       await _repository.update(product);
-      await loadProducts();
+      await refreshProducts();
       return 'تم تحديث المنتج بنجاح';
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
@@ -153,7 +230,7 @@ class ProductsViewModel extends ChangeNotifier {
       final response = await _repository.updateProduct(product, images: images);
 
       if (response.success) {
-        await loadProducts(); 
+        await refreshProducts(); 
       } else {
         _error = response.message;
       }
