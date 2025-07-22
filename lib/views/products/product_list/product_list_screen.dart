@@ -20,15 +20,47 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _showLoadMore = false;
+
   @override
   void initState() {
     super.initState();
+    
+    // Add scroll listener
+    _scrollController.addListener(_onScroll);
+    
     // Load products when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductsViewModel>().loadProducts(
             category: widget.category?.id,
           );
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      // Show load more button when user is 200 pixels from bottom
+      if (!_showLoadMore) {
+        setState(() {
+          _showLoadMore = true;
+        });
+      }
+    } else {
+      // Hide load more button when user scrolls up
+      if (_showLoadMore) {
+        setState(() {
+          _showLoadMore = false;
+        });
+      }
+    }
   }
 
   @override
@@ -137,6 +169,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 children: [
                   Expanded(
                     child: GridView.builder(
+                      controller: _scrollController,
                       padding: EdgeInsets.all(padding),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: columns,
@@ -153,8 +186,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       },
                     ),
                   ),
-                  // Show "Load More" button at the bottom
-                  if (viewModel.hasMoreData)
+                  // Show "Load More" button only when user reaches bottom and has more data
+                  if (_showLoadMore && viewModel.hasMoreData)
                     Container(
                       margin: const EdgeInsets.all(16),
                       width: double.infinity,
