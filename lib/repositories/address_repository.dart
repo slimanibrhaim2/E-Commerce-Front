@@ -8,10 +8,48 @@ class AddressRepository {
 
   AddressRepository(this.apiClient);
 
-  // Fetch all addresses for current user
-  Future<ApiResponse<List<Address>>> fetchAddresses() async {
+  // Fetch all addresses for current user (with pagination support)
+  Future<ApiResponse<List<Address>>> fetchAddresses({int pageNumber = 1, int pageSize = 10}) async {
+    final queryParams = '?pageNumber=$pageNumber&pageSize=$pageSize';
+    final fullUrl = '${ApiEndpoints.addresses}$queryParams';
+    
+    final response = await apiClient.get(fullUrl);
+
+    List<Address> addresses = [];
+    final outerData = response['data'];
+    
+    if (outerData is Map && outerData.containsKey('data')) {
+      final innerData = outerData['data'];
+      
+      if (innerData is List) {
+        addresses = innerData.map((json) => Address.fromJson(json)).toList();
+      }
+    }
+
+    // Extract pagination metadata from backend response
+    Map<String, dynamic>? paginationMetadata;
+    if (outerData is Map) {
+      paginationMetadata = {
+        'pageNumber': outerData['pageNumber'],
+        'pageSize': outerData['pageSize'],
+        'totalPages': outerData['totalPages'],
+        'totalCount': outerData['totalCount'],
+        'hasPreviousPage': outerData['hasPreviousPage'],
+        'hasNextPage': outerData['hasNextPage'],
+      };
+    }
+
+    return ApiResponse(
+      data: addresses,
+      message: response['message'] as String?,
+      metadata: paginationMetadata,
+    );
+  }
+
+  // Fetch all addresses without pagination (for backward compatibility)
+  Future<ApiResponse<List<Address>>> fetchAllAddresses() async {
     final response = await apiClient.get(ApiEndpoints.addresses);
-    print('Addresses response: $response');
+    print('All addresses response: $response');
 
     List<Address> addresses = [];
     final outerData = response['data'];

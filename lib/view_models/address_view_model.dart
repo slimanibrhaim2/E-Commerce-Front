@@ -1,29 +1,84 @@
 import 'package:e_commerce/repositories/address_repository.dart';
 import 'package:e_commerce/core/api/api_client.dart';
+import 'package:e_commerce/core/api/api_response.dart';
 import 'package:flutter/material.dart';
 import '../models/address.dart';
 
 class AddressViewModel extends ChangeNotifier {
   final AddressRepository _repository;
   final ApiClient _apiClient;
-  List<Address> _addresses = [];
+  List<Address> _addresses = []; // Displayed addresses
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _error;
+  
+  // Pagination state
+  int _currentPage = 1;
+  int _pageSize = 5;
+  bool _hasMoreData = true;
+  int _totalCount = 0;
+  int _totalPages = 0;
 
   AddressViewModel(this._repository, this._apiClient);
 
   List<Address> get addresses => _addresses;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
+  int get currentPage => _currentPage;
+  int get pageSize => _pageSize;
+  bool get hasMoreData => _hasMoreData;
+  int get totalAddresses => _totalCount;
+  int get totalPages => _totalPages;
 
+  // Load addresses with pagination (first page)
   Future<String?> loadAddresses() async {
+    return await _loadAddressesPage(1, reset: true);
+  }
+
+  // Load more addresses (next page)
+  Future<String?> loadMoreAddresses() async {
+    if (!_hasMoreData || _isLoadingMore) return null;
+    return await _loadAddressesPage(_currentPage + 1, reset: false);
+  }
+
+  // Internal method to load a specific page
+  Future<String?> _loadAddressesPage(int pageNumber, {required bool reset}) async {
     try {
-      _isLoading = true;
+      if (reset) {
+        _isLoading = true;
+        _currentPage = 1;
+        _hasMoreData = true;
+        _addresses.clear(); // Clear displayed addresses
+      } else {
+        _isLoadingMore = true;
+      }
       _error = null;
       notifyListeners();
       
-      final response = await _repository.fetchAddresses();
-      _addresses = response.data ?? [];
+      final response = await _repository.fetchAddresses(
+        pageNumber: pageNumber,
+        pageSize: _pageSize,
+      );
+      
+      final newAddresses = response.data ?? [];
+      
+      // Extract pagination metadata from response
+      final metadata = response.metadata;
+      if (metadata != null) {
+        _currentPage = metadata['pageNumber'] ?? pageNumber;
+        _pageSize = metadata['pageSize'] ?? _pageSize;
+        _totalPages = metadata['totalPages'] ?? 0;
+        _totalCount = metadata['totalCount'] ?? 0;
+        _hasMoreData = metadata['hasNextPage'] ?? false;
+      }
+      
+      if (reset) {
+        _addresses = newAddresses;
+      } else {
+        _addresses.addAll(newAddresses);
+      }
+      
       notifyListeners();
       return response.message;
     } catch (e) {
@@ -31,9 +86,18 @@ class AddressViewModel extends ChangeNotifier {
       notifyListeners();
       return _error;
     } finally {
-      _isLoading = false;
+      if (reset) {
+        _isLoading = false;
+      } else {
+        _isLoadingMore = false;
+      }
       notifyListeners();
     }
+  }
+
+  // Refresh addresses (reset to first page)
+  Future<String?> refreshAddresses() async {
+    return await loadAddresses();
   }
 
   Future<String?> createAddress(Address address) async {
