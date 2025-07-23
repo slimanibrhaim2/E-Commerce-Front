@@ -46,7 +46,7 @@ class AddressViewModel extends ChangeNotifier {
   Future<String?> _loadAddressesPage(int pageNumber, {required bool reset}) async {
     try {
       if (reset) {
-        _isLoading = true;
+      _isLoading = true;
         _currentPage = 1;
         _hasMoreData = true;
         _allAddresses.clear(); // Clear all addresses when resetting
@@ -122,7 +122,7 @@ class AddressViewModel extends ChangeNotifier {
       return _error;
     } finally {
       if (reset) {
-        _isLoading = false;
+      _isLoading = false;
       } else {
         _isLoadingMore = false;
       }
