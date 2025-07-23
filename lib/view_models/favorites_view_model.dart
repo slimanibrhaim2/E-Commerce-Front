@@ -193,6 +193,10 @@ class FavoritesViewModel extends ChangeNotifier {
           // Remove from offline favorites
           await _localStorage?.removeOfflineFavorite(itemId);
           _offlineFavorites.remove(itemId);
+          // Update total count for offline removal
+          if (_totalCount > 0) {
+            _totalCount--;
+          }
           notifyListeners();
           return {
             'message': 'تم إزالة المنتج من المفضلة (محلياً)',
@@ -203,6 +207,8 @@ class FavoritesViewModel extends ChangeNotifier {
           // Add to offline favorites
           await _localStorage?.addOfflineFavorite(itemId);
           _offlineFavorites.add(itemId);
+          // Update total count for offline addition
+          _totalCount++;
           notifyListeners();
         return {
             'message': 'تم إضافة المنتج إلى المفضلة (محلياً)',
@@ -220,9 +226,13 @@ class FavoritesViewModel extends ChangeNotifier {
         // Remove from favorites
         response = await _repository.removeFromFavorites(itemId);
         
-        // Remove from local list without triggering loading state
+        // Remove from local list and update total count
         if (response.success) {
           _favorites.removeWhere((favorite) => favorite.itemId == itemId);
+          // Decrement total count when removing
+          if (_totalCount > 0) {
+            _totalCount--;
+          }
           notifyListeners();
         }
       } else {
@@ -267,6 +277,11 @@ class FavoritesViewModel extends ChangeNotifier {
         _totalPages = metadata['totalPages'] ?? 0;
         _totalCount = metadata['totalCount'] ?? 0;
         _hasMoreData = metadata['hasNextPage'] ?? false;
+      }
+      
+      // Ensure total count is at least the number of loaded favorites
+      if (_totalCount < _favorites.length) {
+        _totalCount = _favorites.length;
       }
       
       notifyListeners();
@@ -321,9 +336,13 @@ class FavoritesViewModel extends ChangeNotifier {
 
       final response = await _repository.removeFromFavorites(itemId);
       
-      // Remove from local list without triggering loading state
+      // Remove from local list and update total count
       if (response.success) {
         _favorites.removeWhere((favorite) => favorite.itemId == itemId);
+        // Decrement total count when removing
+        if (_totalCount > 0) {
+          _totalCount--;
+        }
         notifyListeners();
       }
       
