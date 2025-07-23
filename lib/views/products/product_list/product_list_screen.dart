@@ -157,34 +157,34 @@ class _ProductListScreenState extends State<ProductListScreen> {
             }
 
             final crossAxisCount = (MediaQuery.of(context).size.width / 200).floor();
-            final columns = crossAxisCount < 2 ? 2 : crossAxisCount;
-            final aspectRatio = 0.75;
-            final crossAxisSpacing = 16.0;
-            final mainAxisSpacing = 16.0;
-            final padding = 16.0;
+                final columns = crossAxisCount < 2 ? 2 : crossAxisCount;
+                final aspectRatio = 0.75;
+                final crossAxisSpacing = 16.0;
+                final mainAxisSpacing = 16.0;
+                final padding = 16.0;
 
-            return RefreshIndicator(
+                return RefreshIndicator(
               onRefresh: () => viewModel.refreshProducts(),
               child: Column(
                 children: [
                   Expanded(
-                    child: GridView.builder(
+                  child: GridView.builder(
                       controller: _scrollController,
-                      padding: EdgeInsets.all(padding),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: columns,
-                        childAspectRatio: aspectRatio,
-                        crossAxisSpacing: crossAxisSpacing,
-                        mainAxisSpacing: mainAxisSpacing,
-                      ),
-                      itemCount: viewModel.products.length,
-                      itemBuilder: (context, index) {
-                        return ProductCard(
-                          product: viewModel.products[index],
-                          apiClient: viewModel.apiClient,
-                        );
-                      },
+                    padding: EdgeInsets.all(padding),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      childAspectRatio: aspectRatio,
+                      crossAxisSpacing: crossAxisSpacing,
+                      mainAxisSpacing: mainAxisSpacing,
                     ),
+                    itemCount: viewModel.products.length,
+                    itemBuilder: (context, index) {
+                      return ProductCard(
+                        product: viewModel.products[index],
+                        apiClient: viewModel.apiClient,
+                      );
+                    },
+                  ),
                   ),
                   // Show "Load More" button only when user reaches bottom and has more data
                   if (_showLoadMore && viewModel.hasMoreData)
@@ -194,7 +194,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       child: ElevatedButton(
                         onPressed: viewModel.isLoadingMore ? null : () async {
                           await viewModel.loadMoreProducts();
-                        },
+              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF7C3AED),
                           foregroundColor: Colors.white,

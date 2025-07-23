@@ -140,9 +140,9 @@ class CartViewModel extends ChangeNotifier {
         _isLoading = true;
         _currentPage = 1;
         _hasMoreData = true;
-        _cartItems.clear();
-        _offlineCartItems.clear();
-        _offlineCartItemsWithDetails.clear();
+    _cartItems.clear();
+    _offlineCartItems.clear();
+    _offlineCartItemsWithDetails.clear();
       } else {
         _isLoadingMore = true;
       }
@@ -176,7 +176,7 @@ class CartViewModel extends ChangeNotifier {
       return _error;
     } finally {
       if (reset) {
-        _isLoading = false;
+      _isLoading = false;
       } else {
         _isLoadingMore = false;
       }

@@ -196,272 +196,272 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
               child: Column(
                 children: [
                   Expanded(
-                    child: ListView.builder(
+              child: ListView.builder(
                       controller: _scrollController,
-                      padding: const EdgeInsets.all(16),
-                      itemCount: productsViewModel.products.length,
-                      itemBuilder: (context, index) {
-                        final product = productsViewModel.products[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: InkWell(
-                            onTap: () async {
-                              try {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => ChangeNotifierProvider(
-                                      create: (context) => ProductDetailsViewModel(
-                                        context.read<ProductsViewModel>().repository,
-                                        context.read<ProductsViewModel>().apiClient,
-                                      ),
-                                      child: ProductDetailScreen(
-                                        productId: product.id!.toString(),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ModernSnackbar.show(
-                                    context: context,
-                                    message: 'حدث خطأ أثناء الانتقال إلى تفاصيل المنتج: ${e.toString()}',
-                                    type: SnackBarType.error,
-                                  );
-                                }
-                              }
-                            },
-                            borderRadius: BorderRadius.circular(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Product Image
-                                AspectRatio(
-                                  aspectRatio: 16 / 9,
-                                  child: Container(
-                                    decoration: BoxDecoration(
+                padding: const EdgeInsets.all(16),
+                itemCount: productsViewModel.products.length,
+                itemBuilder: (context, index) {
+                  final product = productsViewModel.products[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: InkWell(
+                      onTap: () async {
+                        try {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ChangeNotifierProvider(
+                                create: (context) => ProductDetailsViewModel(
+                                  context.read<ProductsViewModel>().repository,
+                                  context.read<ProductsViewModel>().apiClient,
+                                ),
+                                child: ProductDetailScreen(
+                                  productId: product.id!.toString(),
+                                ),
+                              ),
+                            ),
+                          );
+                        } catch (e) {
+                          if (context.mounted) {
+                            ModernSnackbar.show(
+                              context: context,
+                              message: 'حدث خطأ أثناء الانتقال إلى تفاصيل المنتج: ${e.toString()}',
+                              type: SnackBarType.error,
+                            );
+                          }
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Product Image
+                          AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(12),
+                                ),
+                                color: Colors.grey[200],
+                              ),
+                              child: product.media.isNotEmpty
+                                  ? ClipRRect(
                                       borderRadius: const BorderRadius.vertical(
                                         top: Radius.circular(12),
                                       ),
-                                      color: Colors.grey[200],
+                                      child: Image.network(
+                                        productsViewModel.apiClient.getMediaUrl(product.media.first.url),
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            color: Colors.grey[200],
+                                            child: const Icon(
+                                              Icons.image_not_supported,
+                                              color: Colors.grey,
+                                              size: 40,
+                                            ),
+                                          );
+                                        },
+                                        loadingBuilder: (context, child, loadingProgress) {
+                                          if (loadingProgress == null) return child;
+                                          return Container(
+                                            color: Colors.grey[200],
+                                            child: const ModernLoader(),
+                                          );
+                                        },
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.image_not_supported,
+                                      color: Colors.grey,
+                                      size: 40,
                                     ),
-                                    child: product.media.isNotEmpty
-                                        ? ClipRRect(
-                                            borderRadius: const BorderRadius.vertical(
-                                              top: Radius.circular(12),
-                                            ),
-                                            child: Image.network(
-                                              productsViewModel.apiClient.getMediaUrl(product.media.first.url),
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
-                                                return Container(
-                                                  color: Colors.grey[200],
-                                                  child: const Icon(
-                                                    Icons.image_not_supported,
-                                                    color: Colors.grey,
-                                                    size: 40,
-                                                  ),
-                                                );
-                                              },
-                                              loadingBuilder: (context, child, loadingProgress) {
-                                                if (loadingProgress == null) return child;
-                                                return Container(
-                                                  color: Colors.grey[200],
-                                                  child: const ModernLoader(),
-                                                );
-                                              },
-                                            ),
-                                          )
-                                        : const Icon(
-                                            Icons.image_not_supported,
-                                            color: Colors.grey,
-                                            size: 40,
-                                          ),
+                            ),
+                          ),
+                          // Product Details
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  product.name,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Cairo',
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                // Product Details
-                                Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        product.name,
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Cairo',
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
+                                const SizedBox(height: 8),
+                                Text(
+                                  product.description,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                    fontFamily: 'Cairo',
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '${product.price.toStringAsFixed(0)} ل.س',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green,
+                                        fontFamily: 'Cairo',
                                       ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        product.description,
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: product.isAvailable
+                                            ? Colors.green.shade50
+                                            : Colors.red.shade50,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: product.isAvailable
+                                              ? Colors.green.shade200
+                                              : Colors.red.shade200,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        product.isAvailable ? 'متوفر' : 'غير متوفر',
                                         style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                          color: product.isAvailable
+                                              ? Colors.green.shade700
+                                              : Colors.red.shade700,
                                           fontFamily: 'Cairo',
+                                          fontWeight: FontWeight.w600,
                                         ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            '${product.price.toStringAsFixed(0)} ل.س',
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.green,
-                                              fontFamily: 'Cairo',
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () async {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => AddProductScreen(productToEdit: product),
                                             ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: product.isAvailable
-                                                  ? Colors.green.shade50
-                                                  : Colors.red.shade50,
-                                              borderRadius: BorderRadius.circular(8),
-                                              border: Border.all(
-                                                color: product.isAvailable
-                                                    ? Colors.green.shade200
-                                                    : Colors.red.shade200,
-                                              ),
-                                            ),
-                                            child: Text(
-                                              product.isAvailable ? 'متوفر' : 'غير متوفر',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: product.isAvailable
-                                                    ? Colors.green.shade700
-                                                    : Colors.red.shade700,
-                                                fontFamily: 'Cairo',
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                          );
+                                        },
+                                        icon: const Icon(Icons.edit, size: 16),
+                                        label: const Text(
+                                          'تعديل',
+                                          style: TextStyle(fontFamily: 'Cairo'),
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 8),
+                                        ),
                                       ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          Expanded(
-                                            child: OutlinedButton.icon(
-                                              onPressed: () async {
-                                                Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                    builder: (context) => AddProductScreen(productToEdit: product),
-                                                  ),
-                                                );
-                                              },
-                                              icon: const Icon(Icons.edit, size: 16),
-                                              label: const Text(
-                                                'تعديل',
-                                                style: TextStyle(fontFamily: 'Cairo'),
-                                              ),
-                                              style: OutlinedButton.styleFrom(
-                                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: OutlinedButton.icon(
-                                              onPressed: () async {
-                                                final confirmed = await showDialog<bool>(
-                                                  context: context,
-                                                  builder: (context) => Directionality(
-                                                    textDirection: TextDirection.rtl,
-                                                    child: AlertDialog(
-                                                      title: const Text(
-                                                        'تأكيد الحذف',
-                                                        style: TextStyle(fontFamily: 'Cairo'),
-                                                      ),
-                                                      content: Text(
-                                                        'هل أنت متأكد من حذف المنتج "${product.name}"؟',
-                                                        style: const TextStyle(fontFamily: 'Cairo'),
-                                                      ),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () => Navigator.pop(context, false),
-                                                          child: const Text(
-                                                            'إلغاء',
-                                                            style: TextStyle(fontFamily: 'Cairo'),
-                                                          ),
-                                                        ),
-                                                        TextButton(
-                                                          onPressed: () => Navigator.pop(context, true),
-                                                          child: const Text(
-                                                            'حذف',
-                                                            style: TextStyle(
-                                                              fontFamily: 'Cairo',
-                                                              color: Colors.red,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () async {
+                                          final confirmed = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => Directionality(
+                                              textDirection: TextDirection.rtl,
+                                              child: AlertDialog(
+                                                title: const Text(
+                                                  'تأكيد الحذف',
+                                                  style: TextStyle(fontFamily: 'Cairo'),
+                                                ),
+                                                content: Text(
+                                                  'هل أنت متأكد من حذف المنتج "${product.name}"؟',
+                                                  style: const TextStyle(fontFamily: 'Cairo'),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.pop(context, false),
+                                                    child: const Text(
+                                                      'إلغاء',
+                                                      style: TextStyle(fontFamily: 'Cairo'),
                                                     ),
                                                   ),
-                                                );
-
-                                                if (confirmed == true && context.mounted) {
-                                                  try {
-                                                    print('Deleting product with ID: ${product.id}');
-                                                    final message = await productsViewModel.deleteProduct(product.id!);
-                                                    if (context.mounted) {
-                                                      ModernSnackbar.show(
-                                                        context: context,
-                                                        message: message ?? 'تم حذف المنتج بنجاح',
-                                                        type: message?.contains('نجح') == true || message?.contains('تم') == true
-                                                            ? SnackBarType.success
-                                                            : SnackBarType.error,
-                                                      );
-                                                    }
-                                                  } catch (e) {
-                                                    if (context.mounted) {
-                                                      ModernSnackbar.show(
-                                                        context: context,
-                                                        message: 'حدث خطأ أثناء حذف المنتج: ${e.toString()}',
-                                                        type: SnackBarType.error,
-                                                      );
-                                                    }
-                                                  }
-                                                }
-                                              },
-                                              icon: const Icon(Icons.delete, size: 16, color: Colors.red),
-                                              label: const Text(
-                                                'حذف',
-                                                style: TextStyle(
-                                                  fontFamily: 'Cairo',
-                                                  color: Colors.red,
-                                                ),
-                                              ),
-                                              style: OutlinedButton.styleFrom(
-                                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                                side: const BorderSide(color: Colors.red),
+                                                  TextButton(
+                                                    onPressed: () => Navigator.pop(context, true),
+                                                    child: const Text(
+                                                      'حذف',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Cairo',
+                                                        color: Colors.red,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
+                                          );
+
+                                          if (confirmed == true && context.mounted) {
+                                            try {
+                                              print('Deleting product with ID: ${product.id}');
+                                              final message = await productsViewModel.deleteProduct(product.id!);
+                                              if (context.mounted) {
+                                                ModernSnackbar.show(
+                                                  context: context,
+                                                  message: message ?? 'تم حذف المنتج بنجاح',
+                                                  type: message?.contains('نجح') == true || message?.contains('تم') == true
+                                                      ? SnackBarType.success
+                                                      : SnackBarType.error,
+                                                );
+                                              }
+                                            } catch (e) {
+                                              if (context.mounted) {
+                                                ModernSnackbar.show(
+                                                  context: context,
+                                                  message: 'حدث خطأ أثناء حذف المنتج: ${e.toString()}',
+                                                  type: SnackBarType.error,
+                                                );
+                                              }
+                                            }
+                                          }
+                                        },
+                                        icon: const Icon(Icons.delete, size: 16, color: Colors.red),
+                                        label: const Text(
+                                          'حذف',
+                                          style: TextStyle(
+                                            fontFamily: 'Cairo',
+                                            color: Colors.red,
                                           ),
-                                        ],
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 8),
+                                          side: const BorderSide(color: Colors.red),
+                                        ),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
-                        );
-                      },
+                        ],
+                      ),
+                    ),
+                  );
+                },
                     ),
                   ),
                   // Show "Load More" button only when user reaches bottom and has more data

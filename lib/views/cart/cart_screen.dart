@@ -437,45 +437,45 @@ class _CartScreenState extends State<CartScreen> {
                     child: Column(
                       children: [
                         Expanded(
-                          child: Selector2<CartViewModel, UserViewModel, Map<String, dynamic>>(
-                            selector: (context, cartViewModel, userViewModel) {
-                              return {
-                                'cartItems': cartViewModel.cartItems,
-                                'offlineCartItemsWithDetails': cartViewModel.offlineCartItemsWithDetails,
-                                'isLoggedIn': userViewModel.isLoggedIn,
-                              };
-                            },
-                            builder: (context, data, child) {
-                              final cartItems = data['cartItems'] as List<CartItem>;
-                              final offlineCartItemsWithDetails = data['offlineCartItemsWithDetails'] as List<CartItem>;
-                              final isLoggedIn = data['isLoggedIn'] as bool;
-                              
-                              // Combine online and unique offline items
-                              final onlineIds = cartItems.map((item) => item.itemId).toSet();
-                              final uniqueOfflineItems = offlineCartItemsWithDetails
-                                  .where((item) => !onlineIds.contains(item.itemId))
-                                  .toList();
-                              final allItems = [...cartItems, ...uniqueOfflineItems];
-                              
-                              return ListView.builder(
+                    child: Selector2<CartViewModel, UserViewModel, Map<String, dynamic>>(
+                      selector: (context, cartViewModel, userViewModel) {
+                        return {
+                          'cartItems': cartViewModel.cartItems,
+                          'offlineCartItemsWithDetails': cartViewModel.offlineCartItemsWithDetails,
+                          'isLoggedIn': userViewModel.isLoggedIn,
+                        };
+                      },
+                      builder: (context, data, child) {
+                        final cartItems = data['cartItems'] as List<CartItem>;
+                        final offlineCartItemsWithDetails = data['offlineCartItemsWithDetails'] as List<CartItem>;
+                        final isLoggedIn = data['isLoggedIn'] as bool;
+                        
+                        // Combine online and unique offline items
+                        final onlineIds = cartItems.map((item) => item.itemId).toSet();
+                        final uniqueOfflineItems = offlineCartItemsWithDetails
+                            .where((item) => !onlineIds.contains(item.itemId))
+                            .toList();
+                        final allItems = [...cartItems, ...uniqueOfflineItems];
+                        
+                        return ListView.builder(
                                 controller: _scrollController,
-                                padding: const EdgeInsets.all(16),
-                                itemCount: allItems.length,
-                                itemBuilder: (context, index) {
-                                  final item = allItems[index];
-                                  if (item is CartItem && onlineIds.contains(item.itemId)) {
-                                    // Online item
-                                    return CartItemWidget(
-                                      item: item,
-                                      index: index,
-                                    );
-                                  } else {
-                                    // Offline item
-                                    return _buildOfflineCartItemWidget(item, index);
-                                  }
-                                },
+                          padding: const EdgeInsets.all(16),
+                          itemCount: allItems.length,
+                          itemBuilder: (context, index) {
+                            final item = allItems[index];
+                            if (item is CartItem && onlineIds.contains(item.itemId)) {
+                              // Online item
+                              return CartItemWidget(
+                                item: item,
+                                index: index,
                               );
-                            },
+                            } else {
+                              // Offline item
+                              return _buildOfflineCartItemWidget(item, index);
+                            }
+                          },
+                        );
+                      },
                           ),
                         ),
                         // Show "Load More" button only when user reaches bottom and has more data

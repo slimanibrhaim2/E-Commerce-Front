@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/user.dart';
 import '../../view_models/user_view_model.dart';
 import '../../widgets/modern_loader.dart';
+import '../../widgets/star_rating_widget.dart';
 
 class SellerProfileScreen extends StatefulWidget {
   final String sellerId;
@@ -142,6 +143,17 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
+                                  // Star Rating
+                                  if (_seller!.rating != null) ...[
+                                    const SizedBox(height: 8),
+                                    StarRatingWidget(
+                                      rating: _seller!.rating!,
+                                      numOfReviews: _seller!.numOfReviews,
+                                      starSize: 20,
+                                      fontSize: 16,
+                                      alignment: MainAxisAlignment.center,
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

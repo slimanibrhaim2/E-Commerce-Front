@@ -181,23 +181,23 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     child: Column(
                       children: [
                         Expanded(
-                          child: GridView.builder(
+                    child: GridView.builder(
                             controller: _scrollController,
-                            padding: const EdgeInsets.all(16),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 0.75,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                            ),
-                            itemCount: productsViewModel.products.length,
-                            itemBuilder: (context, index) {
-                              final product = productsViewModel.products[index];
-                              return ProductCard(
-                                product: product,
-                                apiClient: productsViewModel.apiClient,
-                              );
-                            },
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.75,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                      ),
+                      itemCount: productsViewModel.products.length,
+                      itemBuilder: (context, index) {
+                        final product = productsViewModel.products[index];
+                        return ProductCard(
+                          product: product,
+                          apiClient: productsViewModel.apiClient,
+                        );
+                      },
                           ),
                         ),
                         // Show "Load More" button only when user reaches bottom and has more data

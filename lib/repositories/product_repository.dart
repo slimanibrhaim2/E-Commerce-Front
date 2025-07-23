@@ -298,19 +298,19 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
   }
 
   Future<ApiResponse<List<Product>>> searchProducts(String query, {int pageNumber = 1, int pageSize = 10}) async {
-    try {
-      // URL encode the query parameter
-      final encodedQuery = Uri.encodeComponent(query.trim());
+      try {
+        // URL encode the query parameter
+        final encodedQuery = Uri.encodeComponent(query.trim());
       final searchUrl = '${ApiEndpoints.productSearch}?name=$encodedQuery&pageNumber=$pageNumber&pageSize=$pageSize';
-      
-      print('Searching products with URL: $searchUrl');
-      print('Original query: "$query"');
-      print('Encoded query: "$encodedQuery"');
-      
-      final response = await apiClient.get(searchUrl);
-      
-      print('Search response: $response');
-      
+        
+        print('Searching products with URL: $searchUrl');
+        print('Original query: "$query"');
+        print('Encoded query: "$encodedQuery"');
+        
+        final response = await apiClient.get(searchUrl);
+        
+        print('Search response: $response');
+        
       List<Product> products = [];
       final outerData = response['data'];
       
@@ -321,7 +321,7 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
         }
       }
       
-      print('Found ${products.length} products');
+          print('Found ${products.length} products');
 
       // Extract pagination metadata from backend response
       Map<String, dynamic>? paginationMetadata;
@@ -343,11 +343,11 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
         resultStatus: response['resultStatus'] as int?,
         metadata: paginationMetadata,
       );
-    } catch (e) {
-      print('Error in searchProducts: $e');
-      print('Error type: ${e.runtimeType}');
-      rethrow;
-    }
+      } catch (e) {
+        print('Error in searchProducts: $e');
+        print('Error type: ${e.runtimeType}');
+        rethrow;
+      }
   }
 
   Future<ApiResponse<Product>> updateProduct(Product item, {List<File>? images}) async {

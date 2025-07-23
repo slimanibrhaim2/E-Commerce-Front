@@ -20,8 +20,8 @@ class FavoritesRepository extends api.ApiRepositoryBase<Favorite> implements Bas
         final innerData = outerData['data'];
         if (innerData is List) {
           favorites = innerData.map((json) => Favorite.fromJson(json)).toList();
-        }
       }
+          }
 
       // Extract pagination metadata from backend response
       Map<String, dynamic>? paginationMetadata;
@@ -34,15 +34,15 @@ class FavoritesRepository extends api.ApiRepositoryBase<Favorite> implements Bas
           'hasPreviousPage': outerData['hasPreviousPage'],
           'hasNextPage': outerData['hasNextPage'],
         };
-      }
-      
-      return ApiResponse<List<Favorite>>(
-        data: favorites,
-        message: response['message'] as String?,
-        success: response['success'] ?? false,
-        resultStatus: response['resultStatus'] as int?,
+        }
+        
+        return ApiResponse<List<Favorite>>(
+          data: favorites,
+          message: response['message'] as String?,
+          success: response['success'] ?? false,
+          resultStatus: response['resultStatus'] as int?,
         metadata: paginationMetadata,
-      );
+        );
     } catch (e) {
       throw Exception('Failed to load favorites: $e');
     }

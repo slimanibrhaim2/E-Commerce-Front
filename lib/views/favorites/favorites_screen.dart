@@ -238,35 +238,35 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   child: Column(
                     children: [
                       Expanded(
-                        child: Selector<FavoritesViewModel, List<Favorite>>(
-                          selector: (context, favoritesViewModel) => favoritesViewModel.favorites,
-                          builder: (context, favorites, child) {
-                            // Combine online favorites and offline favorites
-                            final allFavorites = <Widget>[];
-                            
-                            // Add online favorites
-                            for (final favorite in favorites) {
-                              allFavorites.add(FavoriteCard(favorite: favorite));
-                            }
-                            
-                            // Offline favorites are now loaded as proper Favorite objects with product data
-                            // No need to build separate offline cards
-                            
-                            return GridView.builder(
+                  child: Selector<FavoritesViewModel, List<Favorite>>(
+                    selector: (context, favoritesViewModel) => favoritesViewModel.favorites,
+                    builder: (context, favorites, child) {
+                                                  // Combine online favorites and offline favorites
+                      final allFavorites = <Widget>[];
+                      
+                      // Add online favorites
+                      for (final favorite in favorites) {
+                        allFavorites.add(FavoriteCard(favorite: favorite));
+                      }
+                      
+                      // Offline favorites are now loaded as proper Favorite objects with product data
+                      // No need to build separate offline cards
+                      
+                      return GridView.builder(
                               controller: _scrollController,
-                              padding: EdgeInsets.all(padding),
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: columns,
-                                childAspectRatio: aspectRatio,
-                                crossAxisSpacing: crossAxisSpacing,
-                                mainAxisSpacing: mainAxisSpacing,
-                              ),
-                              itemCount: allFavorites.length,
-                              itemBuilder: (context, index) {
-                                return allFavorites[index];
-                              },
-                            );
-                          },
+                        padding: EdgeInsets.all(padding),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: columns,
+                          childAspectRatio: aspectRatio,
+                          crossAxisSpacing: crossAxisSpacing,
+                          mainAxisSpacing: mainAxisSpacing,
+                        ),
+                        itemCount: allFavorites.length,
+                        itemBuilder: (context, index) {
+                          return allFavorites[index];
+                        },
+                      );
+                    },
                         ),
                       ),
                       // Show "Load More" button only when user reaches bottom and has more data

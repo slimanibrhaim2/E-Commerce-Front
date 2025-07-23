@@ -52,7 +52,7 @@ class ProductsViewModel extends ChangeNotifier {
   Future<String?> _loadProductsPage(int pageNumber, {required bool reset, String? category}) async {
     try {
       if (reset) {
-        _isLoading = true;
+      _isLoading = true;
         _currentPage = 1;
         _hasMoreData = true;
         _products.clear();
@@ -64,7 +64,7 @@ class ProductsViewModel extends ChangeNotifier {
       notifyListeners();
       
       ApiResponse<List<Product>> response;
-      
+
       if (category != null) {
         response = await _repository.getProductsByCategory(category, pageNumber: pageNumber, pageSize: _pageSize);
       } else {
@@ -97,7 +97,7 @@ class ProductsViewModel extends ChangeNotifier {
       return _error;
     } finally {
       if (reset) {
-        _isLoading = false;
+      _isLoading = false;
       } else {
         _isLoadingMore = false;
       }
@@ -216,7 +216,7 @@ class ProductsViewModel extends ChangeNotifier {
   Future<String?> _searchProductsPage(String query, int pageNumber, {required bool reset}) async {
     try {
       if (reset) {
-        _isLoading = true;
+      _isLoading = true;
         _currentPage = 1;
         _hasMoreData = true;
         _products.clear();
@@ -230,7 +230,7 @@ class ProductsViewModel extends ChangeNotifier {
       if (query.trim().isEmpty) {
         // If search query is empty, load all products
         if (reset) {
-          await loadProducts();
+        await loadProducts();
         } else {
           await loadMoreProducts();
         }
@@ -264,7 +264,7 @@ class ProductsViewModel extends ChangeNotifier {
       return _error;
     } finally {
       if (reset) {
-        _isLoading = false;
+      _isLoading = false;
       } else {
         _isLoadingMore = false;
       }

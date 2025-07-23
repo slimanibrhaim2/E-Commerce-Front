@@ -12,6 +12,7 @@ import 'about_us_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../widgets/modern_snackbar.dart';
+import '../../widgets/star_rating_widget.dart';
 import '../orders/my_orders_screen.dart';
 import '../profile/my_products_screen.dart';
 
@@ -251,6 +252,15 @@ class _UserInfoHeader extends StatelessWidget {
                         fontSize: 14,
                       ),
                     ),
+                    if (user?.rating != null) ...[
+                      const SizedBox(height: 4),
+                      StarRatingWidget(
+                        rating: user!.rating!,
+                        numOfReviews: user.numOfReviews,
+                        starSize: 16,
+                        fontSize: 12,
+                      ),
+                    ],
                   ],
                 ),
               ),
