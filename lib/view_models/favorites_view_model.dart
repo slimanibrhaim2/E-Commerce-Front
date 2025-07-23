@@ -42,7 +42,13 @@ class FavoritesViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
-  int get favoritesCount => _favorites.length + _offlineFavorites.length;
+  int get favoritesCount {
+    // If we have total count from API, use it; otherwise fall back to loaded items count
+    if (_totalCount > 0) {
+      return _totalCount + _offlineFavorites.length;
+    }
+    return _favorites.length + _offlineFavorites.length;
+  }
   ApiClient get apiClient => _apiClient;
   int get currentPage => _currentPage;
   int get pageSize => _pageSize;
@@ -61,6 +67,12 @@ class FavoritesViewModel extends ChangeNotifier {
     await _loadOfflineFavorites();
     // Fetch product details for offline favorites
     await _fetchOfflineFavoriteProducts();
+    
+    // Set total count to offline favorites count if no API total count
+    if (_totalCount == 0) {
+      _totalCount = _offlineFavorites.length;
+      notifyListeners();
+    }
   }
 
   Future<void> _fetchOfflineFavoriteProducts() async {
@@ -92,6 +104,12 @@ class FavoritesViewModel extends ChangeNotifier {
           print('Error fetching product $productId: $e');
         }
       }
+      
+      // Update total count if we have offline favorites
+      if (_totalCount == 0 && _offlineFavorites.isNotEmpty) {
+        _totalCount = _offlineFavorites.length;
+      }
+      
       notifyListeners();
     } catch (e) {
       print('Error fetching offline favorite products: $e');
