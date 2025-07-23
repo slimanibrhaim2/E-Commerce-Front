@@ -139,6 +139,47 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
     }
   }
 
+  Future<ApiResponse<List<Product>>> getProductsByUser(String userId, {int pageNumber = 1, int pageSize = 10}) async {
+    try {
+      final queryParams = '?pageNumber=$pageNumber&pageSize=$pageSize';
+      final endpoint = '${ApiEndpoints.products}/user/$userId$queryParams';
+      final response = await apiClient.get(endpoint);
+      
+      List<Product> products = [];
+      final outerData = response['data'];
+      
+      if (outerData is Map && outerData.containsKey('data')) {
+        final innerData = outerData['data'];
+        if (innerData is List) {
+          products = innerData.map((json) => Product.fromJson(json)).toList();
+        }
+      } else if (response is List) {
+        products = response.map((json) => Product.fromJson(json)).toList();
+      }
+
+      // Extract pagination metadata from backend response
+      Map<String, dynamic>? paginationMetadata;
+      if (outerData is Map) {
+        paginationMetadata = {
+          'pageNumber': outerData['pageNumber'],
+          'pageSize': outerData['pageSize'],
+          'totalPages': outerData['totalPages'],
+          'totalCount': outerData['totalCount'],
+          'hasPreviousPage': outerData['hasPreviousPage'],
+          'hasNextPage': outerData['hasNextPage'],
+        };
+      }
+
+      return ApiResponse(
+        data: products,
+        message: response['message'] as String?,
+        metadata: paginationMetadata,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   @override
   Future<Product?> getById(String id) async {
     try {

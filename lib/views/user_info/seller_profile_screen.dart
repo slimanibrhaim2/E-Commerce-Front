@@ -4,6 +4,7 @@ import '../../models/user.dart';
 import '../../view_models/user_view_model.dart';
 import '../../widgets/modern_loader.dart';
 import '../../widgets/star_rating_widget.dart';
+import 'seller_products_screen.dart';
 
 class SellerProfileScreen extends StatefulWidget {
   final String sellerId;
@@ -215,6 +216,42 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                 ),
                               ),
                             ],
+                            // Show Products Button
+                            const SizedBox(height: 32),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SellerProductsScreen(
+                                        sellerId: widget.sellerId,
+                                        sellerName: _seller?.fullName ?? widget.sellerName,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF7C3AED),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 2,
+                                ),
+                                icon: const Icon(Icons.shopping_bag, size: 24),
+                                label: const Text(
+                                  'عرض منتجات البائع',
+                                  style: TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),

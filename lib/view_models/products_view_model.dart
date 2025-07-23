@@ -9,11 +9,15 @@ class ProductsViewModel extends ChangeNotifier {
   final ProductRepository _repository;
   final ApiClient _apiClient;
   List<Product> _products = [];
+  List<Product> _sellerProducts = []; // New: Seller products list
   bool _isLoading = false;
   bool _isLoadingMore = false;
+  bool _isLoadingSellerProducts = false; // New: Loading state for seller products
+  bool _isLoadingMoreSellerProducts = false; // New: Loading more state for seller products
   String? _error;
   String? _currentCategory;
   String? _currentSearchQuery;
+  String? _currentSellerId; // New: Current seller ID
   
   // Pagination state
   int _currentPage = 1;
@@ -21,19 +25,28 @@ class ProductsViewModel extends ChangeNotifier {
   bool _hasMoreData = true;
   int _totalCount = 0;
   int _totalPages = 0;
+  
+  // Seller products pagination state
+  int _sellerCurrentPage = 1;
+  bool _hasMoreSellerProducts = true;
+  int _sellerTotalCount = 0;
 
   ProductsViewModel(this._repository, this._apiClient);
 
   ProductRepository get repository => _repository;
   ApiClient get apiClient => _apiClient;
   List<Product> get products => _products;
+  List<Product> get sellerProducts => _sellerProducts; // New: Getter for seller products
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
+  bool get isLoadingSellerProducts => _isLoadingSellerProducts; // New: Getter for seller products loading
+  bool get isLoadingMoreSellerProducts => _isLoadingMoreSellerProducts; // New: Getter for seller products loading more
   String? get error => _error;
   String? get currentCategory => _currentCategory;
   int get currentPage => _currentPage;
   int get pageSize => _pageSize;
   bool get hasMoreData => _hasMoreData;
+  bool get hasMoreSellerProducts => _hasMoreSellerProducts; // New: Getter for seller products has more
   int get totalCount => _totalCount;
   int get totalPages => _totalPages;
 
@@ -292,6 +305,67 @@ class ProductsViewModel extends ChangeNotifier {
       return ApiResponse(success: false, message: _error);
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Load seller products with pagination (first page)
+  Future<String?> loadSellerProducts(String sellerId) async {
+    return await _loadSellerProductsPage(sellerId, 1, reset: true);
+  }
+
+  // Load more seller products (next page)
+  Future<String?> loadMoreSellerProducts(String sellerId) async {
+    if (!_hasMoreSellerProducts || _isLoadingMoreSellerProducts) return null;
+    return await _loadSellerProductsPage(sellerId, _sellerCurrentPage + 1, reset: false);
+  }
+
+  // Internal method to load seller products with pagination
+  Future<String?> _loadSellerProductsPage(String sellerId, int pageNumber, {required bool reset}) async {
+    try {
+      if (reset) {
+        _isLoadingSellerProducts = true;
+        _sellerCurrentPage = 1;
+        _hasMoreSellerProducts = true;
+        _sellerProducts.clear();
+        _currentSellerId = sellerId;
+      } else {
+        _isLoadingMoreSellerProducts = true;
+      }
+      _error = null;
+      notifyListeners();
+      
+      final response = await _repository.getProductsByUser(sellerId, pageNumber: pageNumber, pageSize: _pageSize);
+      final newProducts = response.data ?? [];
+      
+      // Extract pagination metadata from response
+      final metadata = response.metadata;
+      if (metadata != null) {
+        _sellerCurrentPage = metadata['pageNumber'] ?? pageNumber;
+        _pageSize = metadata['pageSize'] ?? _pageSize;
+        _totalPages = metadata['totalPages'] ?? 0;
+        _sellerTotalCount = metadata['totalCount'] ?? 0;
+        _hasMoreSellerProducts = metadata['hasNextPage'] ?? false;
+      }
+      
+      if (reset) {
+        _sellerProducts = newProducts;
+      } else {
+        _sellerProducts.addAll(newProducts);
+      }
+      
+      notifyListeners();
+      return response.message;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return _error;
+    } finally {
+      if (reset) {
+        _isLoadingSellerProducts = false;
+      } else {
+        _isLoadingMoreSellerProducts = false;
+      }
       notifyListeners();
     }
   }
