@@ -7,6 +7,7 @@ import '../../view_models/payment_view_model.dart';
 import '../../models/address.dart';
 import '../../widgets/modern_loader.dart';
 import '../../widgets/modern_snackbar.dart';
+import '../../widgets/order_status_flow.dart';
 import '../reviews/review_form_screen.dart';
 import '../address/view_address_on_map_screen.dart';
 import '../cart/widgets/payment_method_selection_sheet.dart';
@@ -83,14 +84,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('الحالة:', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
-                                Text(orderViewModel.selectedOrder!.orderStatus ?? '', style: TextStyle(fontFamily: 'Cairo', color: Colors.blue)),
-                              ],
+                            // Order Status Flow
+                            OrderStatusFlow(
+                              currentStatus: orderViewModel.selectedOrder!.orderStatus ?? 'قيد الانتظار',
+                              isCancelled: orderViewModel.selectedOrder!.orderStatus == 'ملغي',
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 20),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
