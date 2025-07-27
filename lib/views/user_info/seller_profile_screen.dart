@@ -4,6 +4,7 @@ import '../../models/user.dart';
 import '../../view_models/user_view_model.dart';
 import '../../widgets/modern_loader.dart';
 import '../../widgets/star_rating_widget.dart';
+import '../../widgets/follow_button.dart';
 import 'seller_products_screen.dart';
 
 class SellerProfileScreen extends StatefulWidget {
@@ -157,6 +158,13 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                   ],
                                 ],
                               ),
+                            ),
+                            const SizedBox(height: 24),
+                            // Follow Button
+                            FollowButton(
+                              userId: widget.sellerId,
+                              initialIsFollowing: _seller!.isFollowing,
+                              height: 50,
                             ),
                             const SizedBox(height: 32),
                             // Contact Information

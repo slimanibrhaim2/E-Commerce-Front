@@ -9,6 +9,7 @@ class User {
   final String? description;
   final double? rating;
   final int? numOfReviews;
+  final bool? isFollowing;
 
   User({
     this.id,
@@ -21,6 +22,7 @@ class User {
     this.description,
     this.rating,
     this.numOfReviews,
+    this.isFollowing,
   });
 
   User copyWith({
@@ -34,6 +36,7 @@ class User {
     String? description,
     double? rating,
     int? numOfReviews,
+    bool? isFollowing,
   }) {
     return User(
       id: id ?? this.id,
@@ -46,6 +49,7 @@ class User {
       description: description ?? this.description,
       rating: rating ?? this.rating,
       numOfReviews: numOfReviews ?? this.numOfReviews,
+      isFollowing: isFollowing ?? this.isFollowing,
     );
   }
 
@@ -61,6 +65,7 @@ class User {
       description: json['description'] as String?,
       rating: (json['rating'] as num?)?.toDouble(),
       numOfReviews: json['numOfReviews'] as int?,
+      isFollowing: json['isFollowing'] as bool?,
     );
   }
 
@@ -76,6 +81,7 @@ class User {
       if (description != null) 'description': description,
       if (rating != null) 'rating': rating,
       if (numOfReviews != null) 'numOfReviews': numOfReviews,
+      if (isFollowing != null) 'isFollowing': isFollowing,
     };
   }
 

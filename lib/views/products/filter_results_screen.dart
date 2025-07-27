@@ -67,7 +67,6 @@ class _FilterResultsScreenState extends State<FilterResultsScreen> {
     List<String> filters = [];
     
     if (widget.categoryId != null) {
-      // Note: You might want to get the category name from the categories list
       filters.add('تصنيف محدد');
     }
     

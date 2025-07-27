@@ -76,4 +76,7 @@ class ApiEndpoints {
 
   // New endpoint for reviews
   static const String reviews = '/api/Review';
+
+  // Follow/Unfollow endpoints
+  static const String userFollowers = '/api/users/followers';
 } 

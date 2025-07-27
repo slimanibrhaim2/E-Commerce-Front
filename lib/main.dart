@@ -25,6 +25,8 @@ import 'repositories/payment_repository.dart';
 import 'view_models/payment_view_model.dart';
 import 'repositories/review_repository.dart';
 import 'view_models/review_view_model.dart';
+import 'repositories/follow_repository.dart';
+import 'view_models/follow_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,6 +77,9 @@ class MyApp extends StatelessWidget {
         Provider<ReviewRepository>(
           create: (context) => ReviewRepository(context.read<ApiClient>()),
         ),
+        Provider<FollowRepository>(
+          create: (context) => FollowRepository(context.read<ApiClient>()),
+        ),
         // ViewModels
         ChangeNotifierProvider<ProductsViewModel>(
           create: (context) =>
@@ -121,6 +126,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<ReviewViewModel>(
           create: (context) => ReviewViewModel(context.read<ReviewRepository>()),
+        ),
+        ChangeNotifierProvider<FollowViewModel>(
+          create: (context) => FollowViewModel(context.read<FollowRepository>()),
         ),
       ],
       child: MaterialApp(

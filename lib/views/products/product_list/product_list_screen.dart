@@ -6,6 +6,7 @@ import '../../cart/cart_screen.dart';
 import '../../favorites/favorites_screen.dart';
 import '../../../models/category.dart';
 import '../../../widgets/modern_loader.dart';
+import '../category_filter_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   final Category? category;
@@ -81,6 +82,33 @@ class _ProductListScreenState extends State<ProductListScreen> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Filter button (only show if we have a category)
+                if (widget.category != null)
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.grey,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.filter_list,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CategoryFilterScreen(
+                            categoryId: widget.category!.id!,
+                            categoryName: widget.category!.name,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 IconButton(
                   icon: const Icon(Icons.favorite),
                   onPressed: () {
