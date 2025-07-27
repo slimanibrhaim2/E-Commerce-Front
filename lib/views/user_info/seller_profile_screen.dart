@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../models/user.dart';
 import '../../view_models/user_view_model.dart';
 import '../../widgets/modern_loader.dart';
@@ -54,6 +56,24 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           _error = e.toString();
           _isLoading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _launchContact(String url, String errorMessage) async {
+    try {
+      if (!await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage)),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
       }
     }
   }
@@ -179,19 +199,38 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                             const SizedBox(height: 16),
                             // Phone Number
                             if (_seller!.phoneNumber != null) ...[
-                              _buildInfoRow(
+                              _buildContactOption(
                                 icon: Icons.phone,
-                                label: 'رقم الهاتف',
-                                value: _seller!.phoneNumber!,
+                                title: 'اتصال مباشر',
+                                subtitle: _seller!.phoneNumber!,
+                                onTap: () => _launchContact(
+                                  'tel:${_seller!.phoneNumber!.replaceAll('\u200E', '')}',
+                                  'لا يمكن فتح تطبيق الهاتف',
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildContactOption(
+                                icon: FontAwesomeIcons.whatsapp,
+                                title: 'واتساب',
+                                subtitle: 'تواصل عبر الواتساب',
+                                onTap: () => _launchContact(
+                                  'https://wa.me/${_seller!.phoneNumber!.replaceAll(RegExp(r'[^\d+]'), '')}',
+                                  'لا يمكن فتح تطبيق واتساب',
+                                ),
+                                iconColor: const Color(0xFF25D366),
                               ),
                               const SizedBox(height: 16),
                             ],
                             // Email
                             if (_seller!.email != null) ...[
-                              _buildInfoRow(
+                              _buildContactOption(
                                 icon: Icons.email,
-                                label: 'البريد الإلكتروني',
-                                value: _seller!.email!,
+                                title: 'البريد الإلكتروني',
+                                subtitle: _seller!.email!,
+                                onTap: () => _launchContact(
+                                  'mailto:${_seller!.email!}',
+                                  'لا يمكن فتح تطبيق البريد',
+                                ),
                               ),
                               const SizedBox(height: 16),
                             ],
@@ -240,16 +279,16 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                     ),
                                   );
                                 },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF7C3AED),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  elevation: 2,
-                                ),
-                                icon: const Icon(Icons.shopping_bag, size: 24),
+                                                                 style: ElevatedButton.styleFrom(
+                                   backgroundColor: const Color(0xFF7C3AED),
+                                   foregroundColor: Colors.white,
+                                   padding: const EdgeInsets.symmetric(vertical: 16),
+                                   shape: RoundedRectangleBorder(
+                                     borderRadius: BorderRadius.circular(12),
+                                   ),
+                                   elevation: 2,
+                                 ),
+                                                                 icon: const Icon(Icons.shopping_bag, color: Colors.white, size: 24),
                                 label: const Text(
                                   'عرض منتجات البائع',
                                   style: TextStyle(
@@ -267,51 +306,56 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow({
+  Widget _buildContactOption({
     required IconData icon,
-    required String label,
-    required String value,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    Color? iconColor,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200),
       ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: Colors.blue,
-            size: 24,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor ?? Colors.blue,
+            borderRadius: BorderRadius.circular(12),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                    fontFamily: 'Cairo',
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Cairo',
-                  ),
-                ),
-              ],
-            ),
+          child: Icon(icon, color: Colors.white, size: 24),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Colors.black87,
           ),
-        ],
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontFamily: 'Cairo',
+            color: Colors.grey[600],
+            fontSize: 14,
+          ),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.grey.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.black54),
+        ),
+        onTap: onTap,
       ),
     );
   }

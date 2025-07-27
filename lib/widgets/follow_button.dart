@@ -89,6 +89,7 @@ class FollowButton extends StatelessWidget {
                     children: [
                       Icon(
                         isFollowing ? Icons.person_remove : Icons.person_add,
+                        color: Colors.white,
                         size: 20,
                       ),
                       const SizedBox(width: 8),

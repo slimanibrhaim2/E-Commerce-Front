@@ -353,16 +353,7 @@ class _SectionHeader extends StatelessWidget {
               color: color.withOpacity(0.3),
             ),
           ),
-          const SizedBox(width: 12),
-          Container(
-            width: 4,
-            height: 20,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 16),
           Text(
             title,
             style: TextStyle(
@@ -372,16 +363,7 @@ class _SectionHeader extends StatelessWidget {
               color: color,
             ),
           ),
-          const SizedBox(width: 8),
-          Container(
-            width: 4,
-            height: 20,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Container(
               height: 1,
