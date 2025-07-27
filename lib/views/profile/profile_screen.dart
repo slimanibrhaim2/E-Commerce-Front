@@ -17,6 +17,7 @@ import '../orders/my_orders_screen.dart';
 import '../profile/my_products_screen.dart';
 import 'followers_screen.dart';
 import 'following_screen.dart';
+import '../../view_models/follow_view_model.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -43,6 +44,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             message: userViewModel.error!,
             type: SnackBarType.error,
           );
+        }
+        
+        // Load followers and following counts for display
+        if (mounted && isLoggedIn) {
+          context.read<FollowViewModel>().loadFollowers();
+          context.read<FollowViewModel>().loadFollowing();
         }
       });
     }
@@ -80,30 +87,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const Divider(height: 32),
             if (isLoggedIn) ...[
-              _ProfileOption(
-                icon: Icons.people,
-                label: 'المتابعون',
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const FollowersScreen()),
-                  );
-                },
-              ),
-              _ProfileOption(
-                icon: Icons.person_add,
-                label: 'متابعاتي',
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const FollowingScreen()),
-                  );
-                },
-              ),
+              _FollowStatsWidget(),
               const Divider(height: 32),
             ],
             if (!isLoggedIn) ...[
+              _SectionHeader(title: 'الحساب', color: Colors.blue.shade600),
               _ProfileOption(
                 icon: Icons.login,
                 label: 'تسجيل الدخول',
+                color: Colors.purple.shade600,
                 onTap: () {
                   Navigator.of(context).pushNamed('/login');
                 },
@@ -111,17 +103,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _ProfileOption(
                 icon: Icons.app_registration,
                 label: 'إنشاء حساب',
+                color: Colors.purple.shade600,
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const RegisterScreen()),
                   );
                 },
               ),
-              const Divider(height: 32),
             ],
+            _SectionHeader(title: 'خدماتي', color: Colors.blue.shade600),
             _ProfileOption(
               icon: Icons.location_on,
               label: 'عناويني',
+              color: Colors.purple.shade600,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const AddressesScreen()),
@@ -131,6 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _ProfileOption(
               icon: Icons.list_alt,
               label: 'طلباتي',
+              color: Colors.purple.shade600,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
@@ -141,6 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _ProfileOption(
                 icon: Icons.shopping_bag,
                 label: 'منتجاتي',
+                color: Colors.purple.shade600,
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const MyProductsScreen()),
@@ -150,6 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _ProfileOption(
               icon: Icons.favorite,
               label: 'المفضلة',
+              color: Colors.purple.shade600,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const FavoritesScreen()),
@@ -159,12 +156,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _ProfileOption(
               icon: Icons.card_giftcard,
               label: 'الجوائز و قسائم التخفيض',
+              color: Colors.purple.shade600,
               onTap: () {},
             ),
-            const Divider(height: 32),
+            _SectionHeader(title: 'الدعم و المعلومات', color: Colors.blue.shade600),
             _ProfileOption(
               icon: Icons.info,
               label: 'لمحة عن تطبيقنا',
+              color: Colors.purple.shade600,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const AboutUsScreen()),
@@ -174,6 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _ProfileOption(
               icon: Icons.privacy_tip,
               label: 'سياسة الخصوصية',
+              color: Colors.purple.shade600,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
@@ -183,6 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _ProfileOption(
               icon: Icons.phone,
               label: 'اتصل بنا',
+              color: Colors.purple.shade600,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const ContactScreen()),
@@ -318,14 +319,186 @@ class _ProfileOption extends StatelessWidget {
         leading: Icon(icon, color: color ?? Colors.blueGrey),
         title: Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontFamily: 'Cairo',
-            color: color ?? Colors.black,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 18),
         onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final Color color;
+
+  const _SectionHeader({
+    required this.title,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(top: 20, bottom: 8, left: 16, right: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 1,
+              color: color.withOpacity(0.3),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            width: 4,
+            height: 20,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 4,
+            height: 20,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Container(
+              height: 1,
+              color: color.withOpacity(0.3),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FollowStatsWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<FollowViewModel>(
+      builder: (context, followViewModel, child) {
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _FollowStatItem(
+                  icon: Icons.people,
+                  label: 'المتابعون',
+                  count: followViewModel.followersTotalCount,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const FollowersScreen()),
+                    );
+                  },
+                ),
+                Container(
+                  height: 40,
+                  width: 1,
+                  color: Colors.grey.shade300,
+                ),
+                _FollowStatItem(
+                  icon: Icons.person_add,
+                  label: 'متابعاتي',
+                  count: followViewModel.followingTotalCount,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const FollowingScreen()),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _FollowStatItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int count;
+  final VoidCallback onTap;
+
+  const _FollowStatItem({
+    required this.icon,
+    required this.label,
+    required this.count,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.blue.shade50,
+                border: Border.all(color: Colors.blue.shade200, width: 2),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.blue.shade600,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              count.toString(),
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
