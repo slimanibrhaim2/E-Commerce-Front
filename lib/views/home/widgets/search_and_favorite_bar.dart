@@ -82,15 +82,15 @@ class _SearchAndFavoriteBarState extends State<SearchAndFavoriteBar> {
               );
             },
             child: Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color:  Colors.grey,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
                 Icons.filter_list,
                 color: Colors.white,
-                size: 24,
+                size: 20,
               ),
             ),
           ),

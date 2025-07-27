@@ -176,6 +176,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         },
         selectedItemColor: Colors.pink,
         unselectedItemColor: Colors.grey,
+                 backgroundColor: const Color(0xFFF1F3F5), // Slightly darker grey color
+        elevation: 8, // Add some elevation for depth
         type: BottomNavigationBarType.fixed,
         items: [
           const BottomNavigationBarItem(

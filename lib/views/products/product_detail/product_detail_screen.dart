@@ -365,24 +365,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.blue.shade200),
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey[200]!),
                             ),
                             child: Row(
                               children: [
                                 Icon(
                                   Icons.qr_code,
-                                  color: Colors.blue.shade600,
+                                  color: const Color(0xFF2D3436),
                                   size: 20,
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
                                     product.serialNumber!,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 16,
-                                      color: Colors.blue.shade700,
+                                      color: Color(0xFF2D3436),
                                       fontFamily: 'Cairo',
                                       fontWeight: FontWeight.w600,
                                     ),
