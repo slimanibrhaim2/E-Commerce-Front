@@ -10,14 +10,22 @@ class ProductsViewModel extends ChangeNotifier {
   final ApiClient _apiClient;
   List<Product> _products = [];
   List<Product> _sellerProducts = []; // New: Seller products list
+  List<Product> _filteredProducts = []; // New: Filtered products list
   bool _isLoading = false;
   bool _isLoadingMore = false;
   bool _isLoadingSellerProducts = false; // New: Loading state for seller products
   bool _isLoadingMoreSellerProducts = false; // New: Loading more state for seller products
+  bool _isLoadingFilteredProducts = false; // New: Loading state for filtered products
+  bool _isLoadingMoreFilteredProducts = false; // New: Loading more state for filtered products
   String? _error;
   String? _currentCategory;
   String? _currentSearchQuery;
   String? _currentSellerId; // New: Current seller ID
+  
+  // Filter state
+  String? _currentFilterCategoryId;
+  double? _currentFilterMinPrice;
+  double? _currentFilterMaxPrice;
   
   // Pagination state
   int _currentPage = 1;
@@ -30,6 +38,11 @@ class ProductsViewModel extends ChangeNotifier {
   int _sellerCurrentPage = 1;
   bool _hasMoreSellerProducts = true;
   int _sellerTotalCount = 0;
+  
+  // Filtered products pagination state
+  int _filteredCurrentPage = 1;
+  bool _hasMoreFilteredData = true;
+  int _filteredTotalCount = 0;
 
   ProductsViewModel(this._repository, this._apiClient);
 
@@ -37,17 +50,22 @@ class ProductsViewModel extends ChangeNotifier {
   ApiClient get apiClient => _apiClient;
   List<Product> get products => _products;
   List<Product> get sellerProducts => _sellerProducts; // New: Getter for seller products
+  List<Product> get filteredProducts => _filteredProducts; // New: Getter for filtered products
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
   bool get isLoadingSellerProducts => _isLoadingSellerProducts; // New: Getter for seller products loading
   bool get isLoadingMoreSellerProducts => _isLoadingMoreSellerProducts; // New: Getter for seller products loading more
+  bool get isLoadingFilteredProducts => _isLoadingFilteredProducts; // New: Getter for filtered products loading
+  bool get isLoadingMoreFilteredProducts => _isLoadingMoreFilteredProducts; // New: Getter for filtered products loading more
   String? get error => _error;
   String? get currentCategory => _currentCategory;
   int get currentPage => _currentPage;
   int get pageSize => _pageSize;
   bool get hasMoreData => _hasMoreData;
   bool get hasMoreSellerProducts => _hasMoreSellerProducts; // New: Getter for seller products has more
+  bool get hasMoreFilteredData => _hasMoreFilteredData; // New: Getter for filtered products has more
   int get totalCount => _totalCount;
+  int get filteredTotalCount => _filteredTotalCount; // New: Getter for filtered products total count
   int get totalPages => _totalPages;
 
   // Load products with pagination (first page)
@@ -365,6 +383,97 @@ class ProductsViewModel extends ChangeNotifier {
         _isLoadingSellerProducts = false;
       } else {
         _isLoadingMoreSellerProducts = false;
+      }
+      notifyListeners();
+    }
+  }
+
+  // Filter Products Methods
+  Future<String?> filterProducts({
+    String? categoryId,
+    double? minPrice,
+    double? maxPrice,
+  }) async {
+    return await _filterProductsPage(
+      1,
+      reset: true,
+      categoryId: categoryId,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+    );
+  }
+
+  Future<String?> loadMoreFilteredProducts() async {
+    if (!_hasMoreFilteredData || _isLoadingMoreFilteredProducts) return null;
+    return await _filterProductsPage(
+      _filteredCurrentPage + 1,
+      reset: false,
+      categoryId: _currentFilterCategoryId,
+      minPrice: _currentFilterMinPrice,
+      maxPrice: _currentFilterMaxPrice,
+    );
+  }
+
+  Future<String?> _filterProductsPage(
+    int pageNumber, {
+    required bool reset,
+    String? categoryId,
+    double? minPrice,
+    double? maxPrice,
+  }) async {
+    try {
+      if (reset) {
+        _isLoadingFilteredProducts = true;
+        _filteredCurrentPage = 1;
+        _hasMoreFilteredData = true;
+        _filteredProducts.clear();
+        
+        // Store current filter parameters
+        _currentFilterCategoryId = categoryId;
+        _currentFilterMinPrice = minPrice;
+        _currentFilterMaxPrice = maxPrice;
+      } else {
+        _isLoadingMoreFilteredProducts = true;
+      }
+      _error = null;
+      notifyListeners();
+
+      final response = await _repository.filterProducts(
+        categoryId: categoryId,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        pageNumber: pageNumber,
+        pageSize: _pageSize,
+      );
+      
+      final newProducts = response.data ?? [];
+
+      final metadata = response.metadata;
+      if (metadata != null) {
+        _filteredCurrentPage = metadata['pageNumber'] ?? pageNumber;
+        _pageSize = metadata['pageSize'] ?? _pageSize;
+        _totalPages = metadata['totalPages'] ?? 0;
+        _filteredTotalCount = metadata['totalCount'] ?? 0;
+        _hasMoreFilteredData = metadata['hasNextPage'] ?? false;
+      }
+      
+      if (reset) {
+        _filteredProducts = newProducts;
+      } else {
+        _filteredProducts.addAll(newProducts);
+      }
+      notifyListeners();
+      
+      return response.message;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return _error;
+    } finally {
+      if (reset) {
+        _isLoadingFilteredProducts = false;
+      } else {
+        _isLoadingMoreFilteredProducts = false;
       }
       notifyListeners();
     }

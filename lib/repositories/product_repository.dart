@@ -391,6 +391,80 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
       }
   }
 
+  Future<ApiResponse<List<Product>>> filterProducts({
+    String? categoryId,
+    double? minPrice,
+    double? maxPrice,
+    int pageNumber = 1,
+    int pageSize = 10,
+  }) async {
+    try {
+      // Build query parameters
+      List<String> queryParams = [
+        'pageNumber=$pageNumber',
+        'pageSize=$pageSize',
+      ];
+      
+      if (categoryId != null && categoryId.isNotEmpty) {
+        queryParams.add('categoryId=$categoryId');
+      }
+      
+      if (minPrice != null) {
+        queryParams.add('minPrice=$minPrice');
+      }
+      
+      if (maxPrice != null) {
+        queryParams.add('maxPrice=$maxPrice');
+      }
+      
+      final filterUrl = '${ApiEndpoints.productFilter}?${queryParams.join('&')}';
+      
+      print('Filtering products with URL: $filterUrl');
+      print('Filter params - Category: $categoryId, MinPrice: $minPrice, MaxPrice: $maxPrice');
+      
+      final response = await apiClient.get(filterUrl);
+      
+      print('Filter response: $response');
+      
+      List<Product> products = [];
+      final outerData = response['data'];
+      
+      if (outerData is Map && outerData.containsKey('data')) {
+        final innerData = outerData['data'];
+        if (innerData is List) {
+          products = innerData.map((json) => Product.fromJson(json)).toList();
+        }
+      }
+      
+      print('Found ${products.length} filtered products');
+
+      // Extract pagination metadata from backend response
+      Map<String, dynamic>? paginationMetadata;
+      if (outerData is Map) {
+        paginationMetadata = {
+          'pageNumber': outerData['pageNumber'],
+          'pageSize': outerData['pageSize'],
+          'totalPages': outerData['totalPages'],
+          'totalCount': outerData['totalCount'],
+          'hasPreviousPage': outerData['hasPreviousPage'],
+          'hasNextPage': outerData['hasNextPage'],
+        };
+      }
+      
+      return ApiResponse(
+        data: products,
+        message: response['message'] as String?,
+        success: response['success'] ?? true,
+        resultStatus: response['resultStatus'] as int?,
+        metadata: paginationMetadata,
+      );
+    } catch (e) {
+      print('Error in filterProducts: $e');
+      print('Error type: ${e.runtimeType}');
+      rethrow;
+    }
+  }
+
   Future<ApiResponse<Product>> updateProduct(Product item, {List<File>? images}) async {
     try {
       // Use multipart form data for update as well

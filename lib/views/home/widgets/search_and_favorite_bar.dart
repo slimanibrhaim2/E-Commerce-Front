@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../favorites/favorites_screen.dart';
 import '../../products/search_results_screen.dart';
+import '../../products/filter_screen.dart';
 
 class SearchAndFavoriteBar extends StatefulWidget {
   final int favoriteCount;
@@ -66,6 +67,30 @@ class _SearchAndFavoriteBarState extends State<SearchAndFavoriteBar> {
                   ),
                 ),
                 onSubmitted: (value) => _performSearch(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Filter icon
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FilterScreen(),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color:  Colors.grey,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.filter_list,
+                color: Colors.white,
+                size: 24,
               ),
             ),
           ),
