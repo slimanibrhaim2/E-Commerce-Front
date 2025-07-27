@@ -15,6 +15,8 @@ import '../../widgets/modern_snackbar.dart';
 import '../../widgets/star_rating_widget.dart';
 import '../orders/my_orders_screen.dart';
 import '../profile/my_products_screen.dart';
+import 'followers_screen.dart';
+import 'following_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -77,6 +79,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
             const Divider(height: 32),
+            if (isLoggedIn) ...[
+              _ProfileOption(
+                icon: Icons.people,
+                label: 'المتابعون',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const FollowersScreen()),
+                  );
+                },
+              ),
+              _ProfileOption(
+                icon: Icons.person_add,
+                label: 'متابعاتي',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const FollowingScreen()),
+                  );
+                },
+              ),
+              const Divider(height: 32),
+            ],
             if (!isLoggedIn) ...[
               _ProfileOption(
                 icon: Icons.login,

@@ -1,55 +1,47 @@
 class Following {
-  final String id;
-  final String followerId;
-  final String followingId;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final DateTime? deletedAt;
+  final String? followingId;
+  final String? followingName;
+  final String? followingProfileUrl;
+  final DateTime? createdAt;
 
   Following({
-    required this.id,
-    required this.followerId,
-    required this.followingId,
-    required this.createdAt,
-    required this.updatedAt,
-    this.deletedAt,
+    this.followingId,
+    this.followingName,
+    this.followingProfileUrl,
+    this.createdAt,
   });
 
   factory Following.fromJson(Map<String, dynamic> json) {
     return Following(
-      id: json['id'] ?? '',
-      followerId: json['followerId'] ?? '',
-      followingId: json['followingId'] ?? '',
-      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
-      deletedAt: json['deletedAt'] != null ? DateTime.parse(json['deletedAt']) : null,
+      followingId: json['followingId'] as String?,
+      followingName: json['followingName'] as String?,
+      followingProfileUrl: json['followingProfileUrl'] as String?,
+      createdAt: json['createdAt'] != null 
+          ? DateTime.tryParse(json['createdAt'] as String)
+          : null,
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'followerId': followerId,
-    'followingId': followingId,
-    'createdAt': createdAt.toIso8601String(),
-    'updatedAt': updatedAt.toIso8601String(),
-    if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
-  };
+  Map<String, dynamic> toJson() {
+    return {
+      'followingId': followingId,
+      'followingName': followingName,
+      'followingProfileUrl': followingProfileUrl,
+      'createdAt': createdAt?.toIso8601String(),
+    };
+  }
 
   Following copyWith({
-    String? id,
-    String? followerId,
     String? followingId,
+    String? followingName,
+    String? followingProfileUrl,
     DateTime? createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt,
   }) {
     return Following(
-      id: id ?? this.id,
-      followerId: followerId ?? this.followerId,
       followingId: followingId ?? this.followingId,
+      followingName: followingName ?? this.followingName,
+      followingProfileUrl: followingProfileUrl ?? this.followingProfileUrl,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 } 

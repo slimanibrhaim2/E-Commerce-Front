@@ -79,4 +79,5 @@ class ApiEndpoints {
 
   // Follow/Unfollow endpoints
   static const String userFollowers = '/api/users/followers';
+  static const String userFollowing = '/api/users/followers/following';
 } 
