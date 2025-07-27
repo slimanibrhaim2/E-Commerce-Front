@@ -29,6 +29,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final List<Map<String, String>> _features = [];
   final _featureNameController = TextEditingController();
   final _featureValueController = TextEditingController();
+  bool _hasSerialNumbers = false; // New toggle state
   bool get isEditMode => widget.productToEdit != null;
 
   @override
@@ -43,7 +44,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _serialNumberController.text = p.serialNumber ?? '';
       _selectedCategory = p.categoryId;
       _features.addAll(p.features.map((f) => {'name': f.name, 'value': f.value}));
+      // Set toggle based on existing serial number
+      _hasSerialNumbers = p.serialNumber != null && p.serialNumber!.isNotEmpty;
       // Note: Images are not prefilled for edit (backend should handle existing images)
+    } else {
+      // For new products, set default quantity to 1
+      _quantityController.text = '1';
     }
   }
 
@@ -296,24 +302,96 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _serialNumberController,
-                  textAlign: TextAlign.right,
-                  decoration: const InputDecoration(
-                    labelText: 'الرقم التسلسلي',
-                    labelStyle: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
-                    border: OutlineInputBorder(),
-                    hintText: 'اختياري - أدخل الرقم التسلسلي للمنتج',
+                // Serial Numbers Toggle
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'هذا المنتج له أرقام تسلسلية؟',
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _hasSerialNumbers 
+                                ? 'كل قطعة لها رقم تسلسلي منفصل (مثل الأجهزة الإلكترونية)' 
+                                : 'منتج عادي بدون أرقام تسلسلية (مثل الملابس)',
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _hasSerialNumbers,
+                        onChanged: (value) {
+                          setState(() {
+                            _hasSerialNumbers = value;
+                            if (_hasSerialNumbers) {
+                              // Set quantity to 1 and clear any previous value
+                              _quantityController.text = '1';
+                            } else {
+                              // Clear serial number when toggle is off
+                              _serialNumberController.clear();
+                            }
+                          });
+                        },
+                        activeColor: const Color(0xFF7C3AED),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),
+                // Serial Number Field (only shown when toggle is on)
+                if (_hasSerialNumbers) ...[
+                  TextFormField(
+                    controller: _serialNumberController,
+                    textAlign: TextAlign.right,
+                    decoration: const InputDecoration(
+                      labelText: 'الرقم التسلسلي *',
+                      labelStyle: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+                      border: OutlineInputBorder(),
+                      hintText: 'أدخل الرقم التسلسلي الفريد لهذا المنتج',
+                    ),
+                    validator: (value) {
+                      if (_hasSerialNumbers && (value == null || value.isEmpty)) {
+                        return 'الرجاء إدخال الرقم التسلسلي';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                // Quantity Field
                 TextFormField(
                   controller: _quantityController,
                   textAlign: TextAlign.right,
-                  decoration: const InputDecoration(
-                    labelText: 'الكمية المتوفرة',
-                    labelStyle: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
-                    border: OutlineInputBorder(),
+                  enabled: !_hasSerialNumbers, // Disabled when serial numbers are enabled
+                  decoration: InputDecoration(
+                    labelText: _hasSerialNumbers ? 'الكمية (قطعة واحدة)' : 'الكمية المتوفرة',
+                    labelStyle: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+                    border: const OutlineInputBorder(),
+                    filled: _hasSerialNumbers,
+                    fillColor: _hasSerialNumbers ? Colors.grey.shade100 : null,
+                    suffixIcon: _hasSerialNumbers 
+                      ? const Icon(Icons.lock, color: Colors.grey) 
+                      : null,
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
@@ -323,9 +401,40 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     if (int.tryParse(value) == null) {
                       return 'الرجاء إدخال رقم صحيح';
                     }
+                    if (_hasSerialNumbers && int.parse(value) != 1) {
+                      return 'الكمية يجب أن تكون 1 للمنتجات ذات الأرقام التسلسلية';
+                    }
                     return null;
                   },
                 ),
+                // Help notice for serial numbers
+                if (_hasSerialNumbers) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.blue.shade600, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'لإضافة عدة قطع من نفس المنتج، أضف كل قطعة برقمها التسلسلي منفصلة.',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: 12,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 // Category Dropdown
                 Consumer<CategoriesViewModel>(
