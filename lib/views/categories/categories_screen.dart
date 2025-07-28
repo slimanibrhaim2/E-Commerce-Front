@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/config/app_colors.dart';
 import '../../view_models/categories_view_model.dart';
 import '../../widgets/modern_loader.dart';
 import 'widgets/category_card.dart';
@@ -26,9 +27,9 @@ class CategoriesScreen extends StatelessWidget {
           ),
           centerTitle: true,
           bottom: TabBar(
-            indicatorColor: Colors.pink,
-            labelColor: Colors.pink,
-            unselectedLabelColor: Colors.grey,
+            indicatorColor: AppColors.primary,
+            labelColor: AppColors.primary,
+            unselectedLabelColor: AppColors.navBarUnselected,
             tabs: const [
               Tab(
                 child: Row(
@@ -94,7 +95,7 @@ class CategoriesScreen extends StatelessWidget {
                           icon: const Icon(Icons.refresh),
                           label: const Text('إعادة المحاولة'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.pink,
+                            backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,
@@ -132,7 +133,7 @@ class CategoriesScreen extends StatelessWidget {
                           icon: const Icon(Icons.refresh),
                           label: const Text('تحديث'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.pink,
+                            backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                           ),
                         ),
@@ -143,7 +144,7 @@ class CategoriesScreen extends StatelessWidget {
 
                 return RefreshIndicator(
                   onRefresh: () => viewModel.loadCategories(),
-                  color: Colors.pink,
+                  color: AppColors.primary,
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: viewModel.categories.length,

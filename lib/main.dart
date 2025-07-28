@@ -1,5 +1,6 @@
 import 'package:e_commerce/views/main_navigation_screen.dart';
 import 'package:flutter/material.dart';
+import 'core/config/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'core/api/api_client.dart';
 import 'core/api/api_endpoints.dart';
@@ -134,8 +135,24 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'E-Commerce',
         theme: ThemeData(
-          primarySwatch: Colors.pink,
+          colorScheme: AppColors.colorScheme,
           fontFamily: 'Cairo',
+          useMaterial3: true,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: 0,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
         ),
         home: MainNavigationScreen(),
         debugShowCheckedModeBanner: false,

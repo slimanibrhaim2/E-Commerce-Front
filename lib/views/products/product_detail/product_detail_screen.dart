@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/config/app_colors.dart';
 
 import '../../../view_models/product_details_view_model.dart';
 import '../../../widgets/modern_loader.dart';
@@ -25,6 +26,7 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _currentImageIndex = 0;
   final PageController _pageController = PageController();
+  bool _isDescriptionExpanded = false;
 
   @override
   void dispose() {
@@ -290,11 +292,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                             // Price (Right)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade50,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.grey.shade300),
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -302,18 +304,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   Text(
                                     'السعر: ',
                                     style: TextStyle(
-                                      fontSize: 15,
-                                      color: Colors.grey.shade700,
+                                      fontSize: 16,
+                                      color: AppColors.primary,
                                       fontFamily: 'Cairo',
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   Text(
                                     '${product.price.toStringAsFixed(0)} ل.س',
-                                    style: const TextStyle(
-                                      fontSize: 18,
+                                    style: TextStyle(
+                                      fontSize: 24,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                      color: AppColors.primary,
                                       fontFamily: 'Cairo',
                                     ),
                                   ),
@@ -323,31 +325,67 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ],
                         ),
                         const SizedBox(height: 24),
-                        const Text(
-                          'الوصف',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Cairo',
-                            color: Color(0xFF2D3436),
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'الوصف',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Cairo',
+                                color: Color(0xFF2D3436),
+                              ),
+                            ),
+                            if (product.description.length > 100)
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _isDescriptionExpanded = !_isDescriptionExpanded;
+                                  });
+                                },
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  _isDescriptionExpanded ? 'عرض أقل' : 'عرض المزيد',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontFamily: 'Cairo',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                         Container(
+                          width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade50,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Colors.grey.shade200),
                           ),
-                          child: Text(
-                            product.description,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[700],
-                              fontFamily: 'Cairo',
-                              height: 1.6,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _isDescriptionExpanded
+                                    ? product.description
+                                    : product.description.length > 100
+                                        ? '${product.description.substring(0, 100)}...'
+                                        : product.description,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[700],
+                                  fontFamily: 'Cairo',
+                                  height: 1.6,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         if (product.serialNumber != null && product.serialNumber!.isNotEmpty) ...[

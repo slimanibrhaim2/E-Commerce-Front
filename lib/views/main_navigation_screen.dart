@@ -1,6 +1,7 @@
 import 'package:e_commerce/views/products/product_list/product_list_screen.dart';
 import 'package:e_commerce/views/products/product_list/widgets/product_card.dart';
 import 'package:flutter/material.dart';
+import '../core/config/app_colors.dart';
 
 import 'package:provider/provider.dart';
 import '../view_models/products_view_model.dart';
@@ -66,7 +67,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               style: TextStyle(
                 fontFamily: 'Cairo',
                 fontWeight: FontWeight.bold,
-                color: Colors.pink, // Modern purple
+                color: AppColors.primary,
                 fontSize: 22,
               ),
             ),
@@ -78,11 +79,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ListTile(
                   leading: Container(
                     decoration: BoxDecoration(
-                      color: Colors.pink.withOpacity(0.1),
+                      color: AppColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     padding: const EdgeInsets.all(8),
-                    child: const Icon(Icons.shopping_bag, color: Colors.pink),
+                    child: Icon(Icons.shopping_bag, color: AppColors.primary),
                   ),
                   title: const Text(
                     'إضافة منتج',
@@ -114,11 +115,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ListTile(
                   leading: Container(
                     decoration: BoxDecoration(
-                      color: Colors.pink.withOpacity(0.1),
+                      color: AppColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     padding: const EdgeInsets.all(8),
-                    child: const Icon(Icons.miscellaneous_services, color: Colors.pink),
+                    child: Icon(Icons.miscellaneous_services, color: AppColors.primary),
                   ),
                   title: const Text(
                     'إضافة خدمة',
@@ -174,9 +175,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             });
           }
         },
-        selectedItemColor: Colors.pink,
-        unselectedItemColor: Colors.grey,
-                 backgroundColor: const Color(0xFFF1F3F5), // Slightly darker grey color
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.navBarUnselected,
+        backgroundColor: AppColors.navBarBackground,
         elevation: 8, // Add some elevation for depth
         type: BottomNavigationBarType.fixed,
         items: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/config/app_colors.dart';
 import '../../view_models/cart_view_model.dart';
 import '../../view_models/user_view_model.dart';
 import '../../widgets/modern_loader.dart';
@@ -182,7 +183,7 @@ class _CartScreenState extends State<CartScreen> {
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.pink,
+                                color: AppColors.primary,
                               ),
                             ),
                           ),

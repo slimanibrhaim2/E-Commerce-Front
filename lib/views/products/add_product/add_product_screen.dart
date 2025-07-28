@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../core/config/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import '../../../models/product.dart';
@@ -574,7 +575,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pink,
+                                                backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: Text(

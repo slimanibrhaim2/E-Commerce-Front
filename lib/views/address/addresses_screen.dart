@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/config/app_colors.dart';
 import '../../view_models/address_view_model.dart';
 import '../../models/address.dart';
 import '../../widgets/modern_snackbar.dart';
@@ -160,13 +161,13 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       child: ElevatedButton(
                         onPressed: viewModel.isLoading ? null : _addNewAddress,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.pink,
+                          backgroundColor: AppColors.primary,
                           padding: const EdgeInsets.symmetric(vertical: 18),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
                           elevation: 4,
-                          shadowColor: Colors.pinkAccent.withOpacity(0.2),
+                          shadowColor: AppColors.primaryLight.withOpacity(0.2),
                         ),
                         child: viewModel.isLoading
                             ? const SizedBox(
@@ -495,13 +496,13 @@ class _AddressesScreenState extends State<AddressesScreen> {
                     child: ElevatedButton(
                       onPressed: viewModel.isLoading ? null : _addNewAddress,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pink,
+                        backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 18),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 4,
-                        shadowColor: Colors.pinkAccent.withOpacity(0.2),
+                        shadowColor: AppColors.primaryLight.withOpacity(0.2),
                       ),
                       child: viewModel.isLoading
                           ? const SizedBox(

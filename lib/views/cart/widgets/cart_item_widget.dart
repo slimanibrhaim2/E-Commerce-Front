@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/config/app_colors.dart';
 import '../../../view_models/cart_view_model.dart';
 import '../../../models/cart_item.dart';
 import '../../../widgets/modern_snackbar.dart';
@@ -153,7 +154,7 @@ class CartItemWidget extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.pink,
+                                color: AppColors.primary,
                               ),
                             );
                           },
