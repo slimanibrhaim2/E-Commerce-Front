@@ -10,6 +10,7 @@ import 'home/home_screen.dart';
 import 'categories/categories_screen.dart';
 import 'profile/profile_screen.dart';
 import 'products/add_product/add_product_screen.dart';
+import 'auth/login_screen.dart';
 import '../view_models/user_view_model.dart';
 import '../widgets/modern_snackbar.dart';
 import '../view_models/cart_view_model.dart';
@@ -51,6 +52,86 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     setState(() {
       currentIndex = index;
     });
+  }
+
+  void _showLoginRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Row(
+              children: [
+                Icon(
+                  Icons.login,
+                  color: Colors.blue,
+                  size: 24,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'تسجيل الدخول مطلوب',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            content: const Text(
+              'يجب عليك تسجيل الدخول أولاً لإضافة منتجات جديدة',
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 16,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'إلغاء',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'تسجيل الدخول',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _showAddDialog(BuildContext context) {
@@ -102,12 +183,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         ),
                       );
                     } else {
-                      ModernSnackbar.show(
-                        context: context,
-                        message: 'الرجاء تسجيل الدخول أولاً للمتابعة',
-                        type: SnackBarType.error,
-                      );
-                      Navigator.of(context).pushNamed('/login');
+                      _showLoginRequiredDialog(context);
                     }
                   },
                 ),

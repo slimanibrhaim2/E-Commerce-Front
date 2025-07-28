@@ -9,6 +9,10 @@ import '../../../widgets/modern_snackbar.dart';
 import '../../../view_models/user_view_model.dart';
 import '../../../view_models/favorites_view_model.dart';
 import '../../user_info/seller_profile_screen.dart';
+import '../../../models/user.dart';
+import '../../../widgets/follow_button.dart';
+import '../../../widgets/star_rating_widget.dart';
+import '../../../view_models/follow_view_model.dart';
 
 
 class ProductDetailScreen extends StatefulWidget {
@@ -27,6 +31,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _currentImageIndex = 0;
   final PageController _pageController = PageController();
   bool _isDescriptionExpanded = false;
+  User? _seller;
+  bool _isLoadingSeller = false;
 
   @override
   void dispose() {
@@ -42,6 +48,235 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       context.read<ProductDetailsViewModel>().loadProduct(widget.productId)
     );
   }
+
+  Future<void> _loadSellerInfo(String sellerId) async {
+    if (_isLoadingSeller) return;
+    
+    setState(() {
+      _isLoadingSeller = true;
+    });
+
+    try {
+      final userViewModel = context.read<UserViewModel>();
+      final seller = await userViewModel.fetchUserById(sellerId);
+      
+      if (mounted) {
+        setState(() {
+          _seller = seller;
+          _isLoadingSeller = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingSeller = false;
+        });
+      }
+    }
+  }
+
+    Widget _buildSellerInfoSection(dynamic product) {
+    // Load seller info when we have the product
+    if (product.userId != null && _seller == null && !_isLoadingSeller) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadSellerInfo(product.userId!);
+      });
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.store,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'صاحب الإعلان',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                  color: Color(0xFF2D3436),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          
+          if (_isLoadingSeller)
+            const Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 12),
+                Text(
+                  'جاري تحميل معلومات البائع...',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            )
+          else
+            Column(
+              children: [
+                // Seller Profile Row
+                Row(
+                  children: [
+                    // Large Profile Image
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor: Colors.grey[200],
+                      backgroundImage: _seller?.profilePhoto != null && _seller!.profilePhoto!.isNotEmpty
+                          ? NetworkImage(context.read<UserViewModel>().apiClient.getUserFileUrl(_seller!.profilePhoto!))
+                          : null,
+                      child: _seller?.profilePhoto == null || _seller!.profilePhoto!.isEmpty
+                          ? const Icon(
+                              Icons.person,
+                              size: 36,
+                              color: Colors.grey,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 16),
+                    // Seller Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _seller?.fullName ?? 'البائع',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Cairo',
+                              color: Color(0xFF2D3436),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                                                     // Star Rating using our StarRatingWidget
+                           if (_seller?.rating != null) ...[
+                             StarRatingWidget(
+                               rating: _seller!.rating!,
+                               numOfReviews: _seller!.numOfReviews,
+                               starSize: 16,
+                               fontSize: 12,
+                               alignment: MainAxisAlignment.start,
+                             ),
+                           ] else ...[
+                             Text(
+                               'عضو',
+                               style: TextStyle(
+                                 fontSize: 12,
+                                 color: Colors.grey[600],
+                                 fontFamily: 'Cairo',
+                               ),
+                             ),
+                           ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                
+                // Action Buttons Row
+                Row(
+                  children: [
+                                         // Follow Button
+                     Expanded(
+                       child: Consumer<UserViewModel>(
+                         builder: (context, userViewModel, child) {
+                           if (userViewModel.user?.id == product.userId) {
+                             return const SizedBox.shrink(); // Hide for own products
+                           }
+                           return FollowButton(
+                             key: ValueKey('follow_${product.userId}_${_seller?.isFollowing}'),
+                             userId: product.userId!,
+                             initialIsFollowing: _seller?.isFollowing,
+                             height: 50,
+                           );
+                         },
+                       ),
+                     ),
+                    const SizedBox(width: 12),
+                                         // Profile Button
+                     Expanded(
+                       child: SizedBox(
+                         height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            if (product.userId != null) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => SellerProfileScreen(
+                                    sellerId: product.userId!,
+                                    sellerName: _seller?.fullName ?? 'البائع',
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.person, size: 18, color: Colors.white),
+                          label: const Text(
+                            'الملف الشخصي',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontFamily: 'Cairo',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -259,14 +494,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [AppColors.primary, AppColors.primaryLight],
+                              colors: [
+                                AppColors.priceGradientStart,
+                                AppColors.priceGradientEnd,
+                              ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.3),
+                                color: AppColors.priceGradientStart.withOpacity(0.3),
                                 blurRadius: 12,
                                 offset: const Offset(0, 6),
                               ),
@@ -507,59 +745,124 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                           ),
                         ],
+                        // Modern Features Section
                         if (product.features.isNotEmpty) ...[
                           const SizedBox(height: 24),
-                          const Text(
-                            'المميزات',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Cairo',
-                              color: Color(0xFF2D3436),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          ...product.features.map((feature) => Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(12),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey[200]!),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        feature.name,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Cairo',
-                                          color: Color(0xFF2D3436),
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        feature.value,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey[600],
-                                          fontFamily: 'Cairo',
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.grey.shade200),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
-                          )),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Header
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.featured_play_list,
+                                        color: AppColors.primary,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'المميزات',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'Cairo',
+                                        color: Color(0xFF2D3436),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                
+                                // Features Table
+                                Column(
+                                  children: product.features.asMap().entries.map((entry) {
+                                    final index = entry.key;
+                                    final feature = entry.value;
+                                    final isLast = index == product.features.length - 1;
+                                    
+                                    return Column(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                                          decoration: BoxDecoration(
+                                            color: index % 2 == 0 
+                                                ? Colors.grey[50] 
+                                                : Colors.white,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              // Feature Name (Left)
+                                              Expanded(
+                                                flex: 2,
+                                                child: Text(
+                                                  feature.name,
+                                                  style: const TextStyle(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: 'Cairo',
+                                                    color: Color(0xFF2D3436),
+                                                  ),
+                                                  textAlign: TextAlign.right,
+                                                ),
+                                              ),
+                                              
+                                              // Separator
+                                              Container(
+                                                margin: const EdgeInsets.symmetric(horizontal: 16),
+                                                width: 1,
+                                                height: 24,
+                                                color: Colors.grey[300],
+                                              ),
+                                              
+                                              // Feature Value (Right)
+                                              Expanded(
+                                                flex: 3,
+                                                child: Text(
+                                                  feature.value,
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.grey[700],
+                                                    fontFamily: 'Cairo',
+                                                    height: 1.4,
+                                                  ),
+                                                  textAlign: TextAlign.right,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        if (!isLast) const SizedBox(height: 8),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                         const SizedBox(height: 24),
                         SizedBox(
@@ -596,83 +899,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                           ),
                         ),
-                        // Show Seller Info Button - moved to bottom
-                        if (product.userId != null && product.userId!.isNotEmpty) ...[
-                          const SizedBox(height: 24),
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.blue.shade200),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.store,
-                                      color: Colors.blue.shade600,
-                                      size: 24,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    const Expanded(
-                                      child: Text(
-                                        'معلومات البائع',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Cairo',
-                                          color: Colors.blue,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'تعرف على البائع وطريقة التواصل معه',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.blue,
-                                    fontFamily: 'Cairo',
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => SellerProfileScreen(
-                                            sellerId: product.userId!,
-                                            sellerName: product.name,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.person, size: 18),
-                                    label: const Text(
-                                      'عرض معلومات البائع',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontFamily: 'Cairo',
-                                      ),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                      side: BorderSide(color: Colors.blue.shade300),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                        
+                        // Seller Info Section - At the very bottom after Add to Cart
+                        const SizedBox(height: 32),
+                        _buildSellerInfoSection(product),
                       ],
                     ),
                   ),

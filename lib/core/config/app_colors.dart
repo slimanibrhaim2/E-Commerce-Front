@@ -5,6 +5,10 @@ class AppColors {
   static const Color primary = Color(0xFF7C3AED); // Deep Purple
   static const Color primaryLight = Color(0xFF9F67FF); // Light Purple
   static const Color primaryDark = Color(0xFF6025C9); // Dark Purple
+  
+  // Price Section Colors
+  static const Color priceGradientStart = Color(0xFF9F7AEA); // Light purple for price
+  static const Color priceGradientEnd = Color(0xFFB794F6); // Even lighter purple for price
 
   // Secondary Colors
   static const Color secondary = Color(0xFF10B981); // Green for success/positive actions

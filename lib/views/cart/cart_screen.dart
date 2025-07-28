@@ -12,6 +12,7 @@ import '../../models/address.dart';
 import 'widgets/cart_item_widget.dart';
 import 'widgets/address_selection_sheet.dart';
 import 'widgets/order_summary_screen.dart';
+import '../auth/login_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -67,6 +68,86 @@ class _CartScreenState extends State<CartScreen> {
         });
       }
     }
+  }
+
+  void _showLoginRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Row(
+              children: [
+                Icon(
+                  Icons.login,
+                  color: Colors.blue,
+                  size: 24,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'تسجيل الدخول مطلوب',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            content: const Text(
+              'يجب عليك تسجيل الدخول أولاً لإتمام الطلب',
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 16,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'إلغاء',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'تسجيل الدخول',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
 
@@ -606,11 +687,7 @@ class _CartScreenState extends State<CartScreen> {
                               final addressViewModel = context.read<AddressViewModel>();
                               final userViewModel = context.read<UserViewModel>();
                               if (!userViewModel.isLoggedIn) {
-                                ModernSnackbar.show(
-                                  context: context,
-                                  message: 'يجب تسجيل الدخول لإتمام الطلب',
-                                  type: SnackBarType.error,
-                                );
+                                _showLoginRequiredDialog(context);
                                 return;
                               }
                               await addressViewModel.loadAddresses();

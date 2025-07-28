@@ -238,10 +238,10 @@ class _ContactOption extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: (iconColor ?? Colors.black87).withOpacity(0.05),
+            color: iconColor ?? Colors.blue,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: iconColor ?? Colors.black87, size: 24),
+          child: Icon(icon, color: Colors.white, size: 24),
         ),
         title: Text(
           title,
