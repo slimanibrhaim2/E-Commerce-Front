@@ -1,69 +1,75 @@
 class Review {
   final String? id;
   final String? experienceDescription;
-  final int overallSatisfaction;
-  final int itemQuality;
-  final int communication;
-  final int timeliness;
-  final String valueForMoney;
-  final int netPromoterScore;
-  final bool willUseAgain;
-  final String? orderId;
+  final int? overallSatisfaction;
+  final int? itemQuality;
+  final int? communication;
+  final int? timeliness;
+  final String? valueForMoney;
+  final int? netPromoterScore;
+  final bool? willUseAgain;
+  final double? rating;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final String? providerId;
+  final String? reviewerId;
+  final String? orderId;
 
-  Review({
+  const Review({
     this.id,
     this.experienceDescription,
-    required this.overallSatisfaction,
-    required this.itemQuality,
-    required this.communication,
-    required this.timeliness,
-    required this.valueForMoney,
-    required this.netPromoterScore,
-    required this.willUseAgain,
-    this.orderId,
+    this.overallSatisfaction,
+    this.itemQuality,
+    this.communication,
+    this.timeliness,
+    this.valueForMoney,
+    this.netPromoterScore,
+    this.willUseAgain,
+    this.rating,
     this.createdAt,
     this.updatedAt,
+    this.providerId,
+    this.reviewerId,
+    this.orderId,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
       id: json['id'] as String?,
       experienceDescription: json['experienceDescription'] as String?,
-      overallSatisfaction: json['overallSatisfaction'] as int? ?? 0,
-      itemQuality: json['itemQuality'] as int? ?? 0,
-      communication: json['communication'] as int? ?? 0,
-      timeliness: json['timeliness'] as int? ?? 0,
-      valueForMoney: json['valueForMoney'] as String? ?? '',
-      netPromoterScore: json['netPromoterScore'] as int? ?? 0,
-      willUseAgain: json['willUseAgain'] as bool? ?? false,
+      overallSatisfaction: json['overallSatisfaction'] as int?,
+      itemQuality: json['itemQuality'] as int?,
+      communication: json['communication'] as int?,
+      timeliness: json['timeliness'] as int?,
+      valueForMoney: json['valueForMoney'] as String?,
+      netPromoterScore: json['netPromoterScore'] as int?,
+      willUseAgain: json['willUseAgain'] as bool?,
+      rating: json['rating']?.toDouble(),
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      providerId: json['providerId'] as String?,
+      reviewerId: json['reviewerId'] as String?,
       orderId: json['orderId'] as String?,
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
-    // Extract just the letter from valueForMoney (e.g., "A. قيمة ممتازة" -> "A")
-    String cleanValueForMoney = valueForMoney;
-    if (valueForMoney.isNotEmpty && valueForMoney.contains('.')) {
-      cleanValueForMoney = valueForMoney.split('.')[0].trim();
-    }
-    
     return {
-      if (id != null) 'id': id,
-      if (experienceDescription != null) 'experienceDescription': experienceDescription,
+      'id': id,
+      'experienceDescription': experienceDescription,
       'overallSatisfaction': overallSatisfaction,
       'itemQuality': itemQuality,
       'communication': communication,
       'timeliness': timeliness,
-      'valueForMoney': cleanValueForMoney,
+      'valueForMoney': valueForMoney,
       'netPromoterScore': netPromoterScore,
       'willUseAgain': willUseAgain,
-      if (orderId != null) 'orderId': orderId,
-      if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
-      if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+      'rating': rating,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'providerId': providerId,
+      'reviewerId': reviewerId,
+      'orderId': orderId,
     };
   }
 
@@ -77,9 +83,12 @@ class Review {
     String? valueForMoney,
     int? netPromoterScore,
     bool? willUseAgain,
-    String? orderId,
+    double? rating,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? providerId,
+    String? reviewerId,
+    String? orderId,
   }) {
     return Review(
       id: id ?? this.id,
@@ -91,9 +100,12 @@ class Review {
       valueForMoney: valueForMoney ?? this.valueForMoney,
       netPromoterScore: netPromoterScore ?? this.netPromoterScore,
       willUseAgain: willUseAgain ?? this.willUseAgain,
-      orderId: orderId ?? this.orderId,
+      rating: rating ?? this.rating,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      providerId: providerId ?? this.providerId,
+      reviewerId: reviewerId ?? this.reviewerId,
+      orderId: orderId ?? this.orderId,
     );
   }
 } 

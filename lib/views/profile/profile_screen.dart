@@ -13,6 +13,7 @@ import 'privacy_policy_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../widgets/modern_snackbar.dart';
 import '../../widgets/star_rating_widget.dart';
+import '../reviews/my_reviews_screen.dart';
 import '../orders/my_orders_screen.dart';
 import '../profile/my_products_screen.dart';
 import 'followers_screen.dart';
@@ -143,6 +144,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
             ),
+            if (isLoggedIn)
+              _ProfileOption(
+                icon: Icons.rate_review,
+                label: 'مراجعاتي',
+                color: Colors.purple.shade600,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const MyReviewsScreen()),
+                  );
+                },
+              ),
             _ProfileOption(
               icon: Icons.favorite,
               label: 'المفضلة',

@@ -75,7 +75,7 @@ class MyApp extends StatelessWidget {
           create: (context) => PaymentRepository(context.read<ApiClient>()),
         ),
         Provider<ReviewRepository>(
-          create: (context) => ReviewRepository(context.read<ApiClient>()),
+          create: (context) => ReviewRepository(apiClient: context.read<ApiClient>()),
         ),
         Provider<FollowRepository>(
           create: (context) => FollowRepository(context.read<ApiClient>()),

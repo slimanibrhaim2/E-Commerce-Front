@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/config/review_config.dart';
 import '../../models/review.dart';
 import '../../view_models/review_view_model.dart';
 import '../../widgets/modern_loader.dart';
@@ -21,21 +22,17 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _experienceController = TextEditingController();
   
-  int _overallSatisfaction = 0;
-  int _itemQuality = 0;
-  int _communication = 0;
-  int _timeliness = 0;
-  String _valueForMoney = '';
-  int _netPromoterScore = 0;
-  bool _willUseAgain = false;
-
-  final List<String> _valueForMoneyOptions = [
-    'A. قيمة ممتازة',
-    'B. قيمة جيدة',
-    'C. قيمة مقبولة',
-    'D. قيمة ضعيفة',
-    'E. قيمة سيئة جداً',
-  ];
+  // Dynamic form values
+  final Map<String, dynamic> _formValues = {
+    'experienceDescription': '',
+    'overallSatisfaction': 0,
+    'itemQuality': 0,
+    'communication': 0,
+    'timeliness': 0,
+    'valueForMoney': '',
+    'netPromoterScore': 0,
+    'willUseAgain': false,
+  };
 
   @override
   void dispose() {
@@ -43,17 +40,71 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
     super.dispose();
   }
 
-  Widget _buildStarRating({
-    required String title,
-    required String subtitle,
-    required int value,
-    required Function(int) onChanged,
-  }) {
+  Widget _buildQuestionWidget(ReviewQuestion question) {
+    switch (question.type) {
+      case 'text':
+        return _buildTextQuestion(question);
+      case 'star':
+        return _buildStarRating(question);
+      case 'radio':
+        return _buildRadioQuestion(question);
+      case 'nps':
+        return _buildNPSRating(question);
+      case 'boolean':
+        return _buildBooleanQuestion(question);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildTextQuestion(ReviewQuestion question) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          title,
+          question.title,
+          style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2D3436),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          question.subtitle,
+          style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 14,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextFormField(
+          controller: _experienceController,
+          maxLines: 4,
+          decoration: InputDecoration(
+            hintText: ReviewConfig.textFieldHint,
+            hintStyle: const TextStyle(fontFamily: 'Cairo'),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            contentPadding: const EdgeInsets.all(16),
+          ),
+          style: const TextStyle(fontFamily: 'Cairo'),
+          onChanged: (value) => _formValues[question.fieldKey] = value,
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildStarRating(ReviewQuestion question) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          question.title,
           style: const TextStyle(
             fontFamily: 'Cairo',
             fontSize: 16,
@@ -63,7 +114,7 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          subtitle,
+          question.subtitle,
           style: TextStyle(
             fontFamily: 'Cairo',
             fontSize: 14,
@@ -74,8 +125,9 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(5, (index) {
+            final value = _formValues[question.fieldKey] as int;
             return GestureDetector(
-              onTap: () => onChanged(index + 1),
+              onTap: () => setState(() => _formValues[question.fieldKey] = index + 1),
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 child: Icon(
@@ -92,13 +144,13 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
     );
   }
 
-  Widget _buildNPSRating() {
+  Widget _buildRadioQuestion(ReviewQuestion question) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'مدى التوصية (NPS)',
-          style: TextStyle(
+        Text(
+          question.title,
+          style: const TextStyle(
             fontFamily: 'Cairo',
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -106,9 +158,46 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'ما مدى احتمالية أن توصي بهذا المزود لصديق أو زميل؟',
-          style: TextStyle(
+        Text(
+          question.subtitle,
+          style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 14,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...question.options!.map((option) => RadioListTile<String>(
+          title: Text(
+            option,
+            style: const TextStyle(fontFamily: 'Cairo'),
+          ),
+          value: option,
+          groupValue: _formValues[question.fieldKey] as String,
+          onChanged: (value) => setState(() => _formValues[question.fieldKey] = value!),
+        )),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildNPSRating(ReviewQuestion question) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          question.title,
+          style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2D3436),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          question.subtitle,
+          style: const TextStyle(
             fontFamily: 'Cairo',
             fontSize: 14,
             color: Colors.grey,
@@ -116,7 +205,7 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
         ),
         const SizedBox(height: 8),
         const Text(
-          '0 = غير محتمل إطلاقاً … 10 = محتمل جداً',
+          ReviewConfig.npsRangeText,
           style: TextStyle(
             fontFamily: 'Cairo',
             fontSize: 12,
@@ -127,20 +216,21 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: List.generate(11, (index) {
+            final value = _formValues[question.fieldKey] as int;
             return GestureDetector(
-              onTap: () => setState(() => _netPromoterScore = index),
+              onTap: () => setState(() => _formValues[question.fieldKey] = index),
               child: Container(
                 width: 30,
                 height: 30,
                 decoration: BoxDecoration(
-                  color: _netPromoterScore == index ? Colors.blue : Colors.grey[200],
+                  color: value == index ? Colors.blue : Colors.grey[200],
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Center(
                   child: Text(
                     '$index',
                     style: TextStyle(
-                      color: _netPromoterScore == index ? Colors.white : Colors.black,
+                      color: value == index ? Colors.white : Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -152,6 +242,77 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
         const SizedBox(height: 16),
       ],
     );
+  }
+
+  Widget _buildBooleanQuestion(ReviewQuestion question) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          question.title,
+          style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2D3436),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          question.subtitle,
+          style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 14,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: RadioListTile<bool>(
+                title: const Text(
+                  ReviewConfig.yesText,
+                  style: TextStyle(fontFamily: 'Cairo'),
+                ),
+                value: true,
+                groupValue: _formValues[question.fieldKey] as bool,
+                onChanged: (value) => setState(() => _formValues[question.fieldKey] = value!),
+              ),
+            ),
+            Expanded(
+              child: RadioListTile<bool>(
+                title: const Text(
+                  ReviewConfig.noText,
+                  style: TextStyle(fontFamily: 'Cairo'),
+                ),
+                value: false,
+                groupValue: _formValues[question.fieldKey] as bool,
+                onChanged: (value) => setState(() => _formValues[question.fieldKey] = value!),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  bool _validateForm() {
+    // Check required star ratings
+    final starQuestions = ReviewConfig.getQuestionsByType('star');
+    for (final question in starQuestions) {
+      if ((_formValues[question.fieldKey] as int) == 0) {
+        return false;
+      }
+    }
+    
+    // Check value for money
+    if ((_formValues['valueForMoney'] as String).isEmpty) {
+      return false;
+    }
+    
+    return true;
   }
 
   @override
@@ -182,154 +343,11 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Experience Description
-                    const Text(
-                      'صف تجربتك مع المزود',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D3436),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'يرجى وصف ما أعجبك أكثر، وأي مشكلات واجهتها، وكيف يمكننا التحسين.',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _experienceController,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        hintText: 'اكتب تجربتك هنا...',
-                        hintStyle: const TextStyle(fontFamily: 'Cairo'),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        contentPadding: const EdgeInsets.all(16),
-                      ),
-                      style: const TextStyle(fontFamily: 'Cairo'),
-                    ),
-                    const SizedBox(height: 24),
+                    // Build all questions dynamically
+                    ...ReviewConfig.questions.map((question) => 
+                      _buildQuestionWidget(question)),
 
-                    // Overall Satisfaction
-                    _buildStarRating(
-                      title: 'درجة الرضا العام',
-                      subtitle: 'على مقياس من 1 إلى 5، ما مدى رضاك عن هذا المزود؟',
-                      value: _overallSatisfaction,
-                      onChanged: (value) => setState(() => _overallSatisfaction = value),
-                    ),
-
-                    // Item Quality
-                    _buildStarRating(
-                      title: 'جودة المنتج/الخدمة',
-                      subtitle: 'كيف تقيم جودة المنتج أو الخدمة التي تلقيتها؟',
-                      value: _itemQuality,
-                      onChanged: (value) => setState(() => _itemQuality = value),
-                    ),
-
-                    // Communication
-                    _buildStarRating(
-                      title: 'التواصل والاستجابة',
-                      subtitle: 'كيف تقيم وضوح وسرعة ولباقة تواصل المزود؟',
-                      value: _communication,
-                      onChanged: (value) => setState(() => _communication = value),
-                    ),
-
-                    // Timeliness
-                    _buildStarRating(
-                      title: 'الالتزام بالموعد أو التسليم',
-                      subtitle: 'ما مدى رضاك عن سرعة التسليم أو الالتزام بموعد الخدمة؟',
-                      value: _timeliness,
-                      onChanged: (value) => setState(() => _timeliness = value),
-                    ),
-
-                    // Value for Money
-                    const Text(
-                      'القيمة مقابل السعر',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D3436),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'هل ترى أن السعر الذي دفعته عادل مقابل الجودة التي حصلت عليها؟',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ..._valueForMoneyOptions.map((option) => RadioListTile<String>(
-                      title: Text(
-                        option,
-                        style: const TextStyle(fontFamily: 'Cairo'),
-                      ),
-                      value: option,
-                      groupValue: _valueForMoney,
-                      onChanged: (value) => setState(() => _valueForMoney = value!),
-                    )),
                     const SizedBox(height: 16),
-
-                    // NPS Rating
-                    _buildNPSRating(),
-
-                    // Will Use Again
-                    const Text(
-                      'هل ستستخدمه مرة أخرى؟',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D3436),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'هل ستختار هذا المزود مرة أخرى لشراء مشابه في المستقبل؟',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<bool>(
-                            title: const Text(
-                              'نعم',
-                              style: TextStyle(fontFamily: 'Cairo'),
-                            ),
-                            value: true,
-                            groupValue: _willUseAgain,
-                            onChanged: (value) => setState(() => _willUseAgain = value!),
-                          ),
-                        ),
-                        Expanded(
-                          child: RadioListTile<bool>(
-                            title: const Text(
-                              'لا',
-                              style: TextStyle(fontFamily: 'Cairo'),
-                            ),
-                            value: false,
-                            groupValue: _willUseAgain,
-                            onChanged: (value) => setState(() => _willUseAgain = value!),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
 
                     // Submit Button
                     SizedBox(
@@ -337,14 +355,10 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
                       child: ElevatedButton(
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            if (_overallSatisfaction == 0 || 
-                                _itemQuality == 0 || 
-                                _communication == 0 || 
-                                _timeliness == 0 || 
-                                _valueForMoney.isEmpty) {
+                            if (!_validateForm()) {
                               ModernSnackbar.show(
                                 context: context,
-                                message: 'يرجى إكمال جميع التقييمات المطلوبة',
+                                message: ReviewConfig.validationMessage,
                                 type: SnackBarType.error,
                               );
                               return;
@@ -352,13 +366,13 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
 
                             final review = Review(
                               experienceDescription: _experienceController.text.trim(),
-                              overallSatisfaction: _overallSatisfaction,
-                              itemQuality: _itemQuality,
-                              communication: _communication,
-                              timeliness: _timeliness,
-                              valueForMoney: _valueForMoney,
-                              netPromoterScore: _netPromoterScore,
-                              willUseAgain: _willUseAgain,
+                              overallSatisfaction: _formValues['overallSatisfaction'] as int,
+                              itemQuality: _formValues['itemQuality'] as int,
+                              communication: _formValues['communication'] as int,
+                              timeliness: _formValues['timeliness'] as int,
+                              valueForMoney: _formValues['valueForMoney'] as String,
+                              netPromoterScore: _formValues['netPromoterScore'] as int,
+                              willUseAgain: _formValues['willUseAgain'] as bool,
                               orderId: widget.orderId,
                             );
 
@@ -373,7 +387,7 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
                             } else if (message != null && context.mounted) {
                               ModernSnackbar.show(
                                 context: context,
-                                message: 'تم إرسال التقييم بنجاح',
+                                message: ReviewConfig.successMessage,
                                 type: SnackBarType.success,
                               );
                               Navigator.of(context).pop();
@@ -388,7 +402,7 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
                           ),
                         ),
                         child: const Text(
-                          'إرسال التقييم',
+                          ReviewConfig.submitButtonText,
                           style: TextStyle(
                             fontFamily: 'Cairo',
                             fontSize: 16,
