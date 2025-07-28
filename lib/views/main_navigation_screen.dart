@@ -127,7 +127,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: Navigate to add service screen
+                    // Add service functionality to be implemented
                   },
                 ),
                 const SizedBox(height: 8),

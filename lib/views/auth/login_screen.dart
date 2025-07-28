@@ -56,9 +56,9 @@ class _LoginScreenState extends State<LoginScreen> {
       await context.read<FavoritesViewModel>().loadFavorites();
       await context.read<CartViewModel>().loadCart();
       
-      print('Offline data synced successfully');
+                  // Offline data synced successfully
     } catch (e) {
-      print('Error syncing offline data: $e');
+              // Error syncing offline data
     }
   }
 

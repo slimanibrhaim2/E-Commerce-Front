@@ -26,7 +26,7 @@ class LocalStorageService {
         final List<dynamic> favorites = json.decode(favoritesJson);
         return favorites.cast<String>();
       } catch (e) {
-        print('Error parsing offline favorites: $e');
+        // Error parsing offline favorites
         return [];
       }
     }
@@ -64,7 +64,7 @@ class LocalStorageService {
         final List<dynamic> cart = json.decode(cartJson);
         return cart.cast<Map<String, dynamic>>();
       } catch (e) {
-        print('Error parsing offline cart: $e');
+        // Error parsing offline cart
         return [];
       }
     }

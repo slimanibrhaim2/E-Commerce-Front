@@ -75,12 +75,12 @@ class FavoritesViewModel extends ChangeNotifier {
             }
           }
         } catch (e) {
-          print('Error fetching product $productId: $e');
+          // Error fetching product details
         }
       }
       notifyListeners();
     } catch (e) {
-      print('Error fetching offline favorite products: $e');
+      // Error fetching offline favorite products
     }
   }
 
@@ -189,7 +189,7 @@ class FavoritesViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       // Silently handle errors for background reload
-      print('Silent favorites reload error: $e');
+      // Silent favorites reload error
     }
   }
 
@@ -287,7 +287,7 @@ class FavoritesViewModel extends ChangeNotifier {
             await _localStorage!.removeOfflineFavorite(productId);
           }
         } catch (e) {
-          print('Failed to sync favorite $productId: $e');
+          // Failed to sync favorite
           // Keep in offline list if sync fails
         }
       }

@@ -62,9 +62,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await context.read<FavoritesViewModel>().loadFavorites();
       await context.read<CartViewModel>().loadCart();
       
-      print('Offline data synced successfully');
+                  // Offline data synced successfully
     } catch (e) {
-      print('Error syncing offline data: $e');
+              // Error syncing offline data
     }
   }
 
@@ -141,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     message: message ?? '',
                     type: SnackBarType.success,
                   );
-                  print('JWT Token: \n${userViewModel.jwt!}');
+                  // JWT Token received successfully
                   await _storage.write(key: 'auth_token', value: userViewModel.jwt!);
                   // Fetch user profile after registration
                   await userViewModel.loadUserProfile();

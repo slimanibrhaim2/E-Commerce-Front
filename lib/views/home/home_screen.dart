@@ -51,10 +51,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   return SearchAndFavoriteBar(
                     favoriteCount: favoriteCount,
                     onSearch: (query) {
-                      print('Searching for: $query');
+                      // Search functionality handled in SearchAndFavoriteBar
                     },
                     onFavoriteTap: () {
-                      print('Favorite tapped');
+                      // Favorite navigation handled in SearchAndFavoriteBar
                     },
                   );
                 },

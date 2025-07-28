@@ -22,27 +22,27 @@ class OrderViewModel extends ChangeNotifier {
     error = null;
     notifyListeners();
     try {
-      print('OrderViewModel: Starting checkout with address ID: $addressId');
+      // Starting checkout process
       final response = await repository.checkout(addressId);
-      print('OrderViewModel: Checkout response - success: ${response.success}, message: ${response.message}, data: ${response.data}');
+      // Checkout response received
       
       // Check if the response indicates a business error
       if (response.success == false) {
         error = response.message ?? 'حدث خطأ أثناء إتمام الطلب';
         order = null;
-        print('OrderViewModel: Business error detected - $error');
+                  // Business error detected
         notifyListeners();
         return error;
       }
       
       order = response.data;
       error = null;
-      print('OrderViewModel: Checkout successful - order created');
+              // Checkout successful - order created
       notifyListeners();
       return response.message;
     } catch (e) {
       error = e.toString();
-      print('OrderViewModel: Exception during checkout - $error');
+      // Exception during checkout
       notifyListeners();
       return error;
     } finally {
@@ -107,7 +107,7 @@ class OrderViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       // Handle error silently or log it
-      print('Error refreshing current order: $e');
+      // Error refreshing current order
     }
   }
 } 

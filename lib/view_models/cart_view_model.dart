@@ -94,7 +94,7 @@ class CartViewModel extends ChangeNotifier {
               addedIds.add(productId);
             }
           } catch (e) {
-            print('Error fetching product details for cart item: $e');
+            // Error fetching product details for cart item
           }
         }());
       }
