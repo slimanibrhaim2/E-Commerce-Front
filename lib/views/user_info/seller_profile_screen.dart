@@ -8,6 +8,7 @@ import '../../widgets/modern_loader.dart';
 import '../../widgets/star_rating_widget.dart';
 import '../../widgets/follow_button.dart';
 import 'seller_products_screen.dart';
+import '../reviews/provider_reviews_screen.dart';
 
 class SellerProfileScreen extends StatefulWidget {
   final String sellerId;
@@ -291,6 +292,43 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                                                  icon: const Icon(Icons.shopping_bag, color: Colors.white, size: 24),
                                 label: const Text(
                                   'عرض منتجات البائع',
+                                  style: TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            
+                            // Customer Reviews Button
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ProviderReviewsScreen(
+                                        providerId: widget.sellerId,
+                                        providerName: _seller?.fullName ?? widget.sellerName,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 2,
+                                ),
+                                icon: const Icon(Icons.rate_review, color: Colors.white, size: 24),
+                                label: const Text(
+                                  'مراجعات الزبائن لهذا البائع',
                                   style: TextStyle(
                                     fontFamily: 'Cairo',
                                     fontWeight: FontWeight.bold,
