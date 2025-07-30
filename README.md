@@ -1,18 +1,18 @@
 # E-Commerce Mobile Application - Frontend System Design
 
 ## Table of Contents
-1. [Overview](#overview)
-2. [Architecture Pattern](#architecture-pattern)
-3. [System Architecture](#system-architecture)
-4. [Application Structure](#application-structure)
-5. [Data Flow](#data-flow)
-6. [User Interface Design](#user-interface-design)
-7. [State Management](#state-management)
-8. [API Integration](#api-integration)
-9. [Security Implementation](#security-implementation)
-10. [Performance Optimization](#performance-optimization)
-11. [Technology Stack](#technology-stack)
-12. [Deployment Architecture](#deployment-architecture)
+1. [Overview](#-overview)
+2. [Architecture Pattern](#-architecture-pattern)
+3. [System Architecture](#-system-architecture)
+4. [Application Structure](#-application-structure)
+5. [Data Flow](#-data-flow)
+6. [User Interface Design](#-user-interface-design)
+7. [State Management](#-state-management)
+8. [API Integration](#-api-integration)
+9. [Security Implementation](#-security-implementation)
+10. [Performance Optimization](#-performance-optimization)
+11. [Technology Stack](#-technology-stack)
+12. [Deployment Architecture](#-deployment-architecture)
 
 ## 1. Overview
 
