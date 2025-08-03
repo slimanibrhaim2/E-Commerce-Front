@@ -5,6 +5,7 @@ import '../../view_models/cart_view_model.dart';
 import '../../view_models/favorites_view_model.dart';
 import '../../models/user.dart';
 import '../../widgets/modern_snackbar.dart';
+import '../../core/config/app_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
@@ -96,41 +97,48 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 title: 'الاسم الأول',
                 value: user?.firstName ?? 'غير متوفر',
                 icon: Icons.person,
+                iconColor: AppColors.primary,
               ),
               _InfoCard(
                 title: 'اسم الأب',
                 value: user?.middleName ?? 'غير متوفر',
                 icon: Icons.person_outline,
+                iconColor: AppColors.primary,
               ),
               _InfoCard(
                 title: 'الكنية',
                 value: user?.lastName ?? 'غير متوفر',
                 icon: Icons.person_outline,
+                iconColor: AppColors.primary,
               ),
               _InfoCard(
                 title: 'رقم الهاتف',
                 value: user?.phoneNumber ?? 'غير متوفر',
                 icon: Icons.phone,
+                iconColor: AppColors.primary,
               ),
               _InfoCard(
                 title: 'البريد الإلكتروني',
                 value: user?.email ?? 'غير متوفر',
                 icon: Icons.email,
+                iconColor: AppColors.primary,
               ),
               _InfoCard(
                 title: 'الوصف الشخصي',
                 value: user?.description ?? 'غير متوفر',
                 icon: Icons.description,
+                iconColor: AppColors.primary,
+                isDescription: true,
               ),
               const Spacer(),
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.edit),
+                      icon: const Icon(Icons.edit, color: Colors.white),
                       label: const Text(
                         'تعديل',
-                        style: TextStyle(fontFamily: 'Cairo'),
+                        style: TextStyle(fontFamily: 'Cairo', color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
@@ -146,10 +154,10 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.delete),
+                      icon: const Icon(Icons.delete, color: Colors.white),
                       label: const Text(
                         'حذف الحساب',
-                        style: TextStyle(fontFamily: 'Cairo'),
+                        style: TextStyle(fontFamily: 'Cairo', color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
@@ -581,11 +589,15 @@ class _InfoCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
+  final Color iconColor;
+  final bool isDescription;
 
   const _InfoCard({
     required this.title,
     required this.value,
     required this.icon,
+    this.iconColor = AppColors.primary,
+    this.isDescription = false,
   });
 
   @override
@@ -595,40 +607,81 @@ class _InfoCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.blueGrey),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                      fontFamily: 'Cairo',
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      value,
+        child: isDescription 
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: iconColor),
+                    const SizedBox(width: 16),
+                    Text(
+                      title,
                       style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                        fontSize: 14,
                         fontFamily: 'Cairo',
                       ),
-                      textAlign: TextAlign.right,
-                      overflow: TextOverflow.ellipsis,
                     ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                ],
-              ),
+                  child: Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Cairo',
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Icon(icon, color: iconColor),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                          fontFamily: 'Cairo',
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          value,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Cairo',
+                          ),
+                          textAlign: TextAlign.right,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
       ),
     );
   }
