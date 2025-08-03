@@ -9,6 +9,9 @@ class ApiEndpoints {
   static const String myProducts = '/api/products/my-products';
   static const String productSearch = '/api/products/search'; // Search products
   static const String productFilter = '/api/products/filter'; // Filter products
+  static const String productFeatureNames = '/api/products/feature-names'; // Get feature names for category
+  static const String productFeatureValues = '/api/products/feature-values'; // Get feature values for feature name
+  static const String productAdvancedFilter = '/api/products/advanced-filter'; // Advanced filter with features
   
   // Category endpoints
   static const String categories = '/api/Category';

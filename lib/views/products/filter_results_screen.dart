@@ -8,12 +8,16 @@ class FilterResultsScreen extends StatefulWidget {
   final String? categoryId;
   final double? minPrice;
   final double? maxPrice;
+  final List<String>? featureNames;
+  final List<String>? featureValues;
 
   const FilterResultsScreen({
     super.key,
     this.categoryId,
     this.minPrice,
     this.maxPrice,
+    this.featureNames,
+    this.featureValues,
   });
 
   @override
@@ -31,11 +35,23 @@ class _FilterResultsScreenState extends State<FilterResultsScreen> {
     
     // Load filtered products when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductsViewModel>().filterProducts(
-        categoryId: widget.categoryId,
-        minPrice: widget.minPrice,
-        maxPrice: widget.maxPrice,
-      );
+      if (widget.featureNames != null || widget.featureValues != null) {
+        // Use advanced filter if features are provided
+        context.read<ProductsViewModel>().advancedFilterProducts(
+          categoryId: widget.categoryId,
+          minPrice: widget.minPrice,
+          maxPrice: widget.maxPrice,
+          featureNames: widget.featureNames,
+          featureValues: widget.featureValues,
+        );
+      } else {
+        // Use basic filter if no features
+        context.read<ProductsViewModel>().filterProducts(
+          categoryId: widget.categoryId,
+          minPrice: widget.minPrice,
+          maxPrice: widget.maxPrice,
+        );
+      }
     });
   }
 
@@ -76,6 +92,17 @@ class _FilterResultsScreenState extends State<FilterResultsScreen> {
       filters.add('من ${widget.minPrice!.toStringAsFixed(0)} ل.س');
     } else if (widget.maxPrice != null) {
       filters.add('حتى ${widget.maxPrice!.toStringAsFixed(0)} ل.س');
+    }
+    
+    // Add feature filters if they exist
+    if (widget.featureNames != null && widget.featureNames!.isNotEmpty) {
+      final uniqueFeatures = widget.featureNames!.toSet().length;
+      filters.add('$uniqueFeatures خاصية محددة');
+    }
+    
+    if (widget.featureValues != null && widget.featureValues!.isNotEmpty) {
+      final totalValues = widget.featureValues!.length;
+      filters.add('$totalValues قيمة مختارة');
     }
     
     return filters.isEmpty ? 'جميع المنتجات' : filters.join(' • ');
@@ -135,11 +162,21 @@ class _FilterResultsScreenState extends State<FilterResultsScreen> {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        productsViewModel.filterProducts(
-                          categoryId: widget.categoryId,
-                          minPrice: widget.minPrice,
-                          maxPrice: widget.maxPrice,
-                        );
+                        if (widget.featureNames != null || widget.featureValues != null) {
+                          productsViewModel.advancedFilterProducts(
+                            categoryId: widget.categoryId,
+                            minPrice: widget.minPrice,
+                            maxPrice: widget.maxPrice,
+                            featureNames: widget.featureNames,
+                            featureValues: widget.featureValues,
+                          );
+                        } else {
+                          productsViewModel.filterProducts(
+                            categoryId: widget.categoryId,
+                            minPrice: widget.minPrice,
+                            maxPrice: widget.maxPrice,
+                          );
+                        }
                       },
                       child: const Text(
                         'إعادة المحاولة',
@@ -229,11 +266,21 @@ class _FilterResultsScreenState extends State<FilterResultsScreen> {
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
-                      await productsViewModel.filterProducts(
-                        categoryId: widget.categoryId,
-                        minPrice: widget.minPrice,
-                        maxPrice: widget.maxPrice,
-                      );
+                      if (widget.featureNames != null || widget.featureValues != null) {
+                        await productsViewModel.advancedFilterProducts(
+                          categoryId: widget.categoryId,
+                          minPrice: widget.minPrice,
+                          maxPrice: widget.maxPrice,
+                          featureNames: widget.featureNames,
+                          featureValues: widget.featureValues,
+                        );
+                      } else {
+                        await productsViewModel.filterProducts(
+                          categoryId: widget.categoryId,
+                          minPrice: widget.minPrice,
+                          maxPrice: widget.maxPrice,
+                        );
+                      }
                     },
                     child: GridView.builder(
                       controller: _scrollController,
@@ -264,7 +311,11 @@ class _FilterResultsScreenState extends State<FilterResultsScreen> {
                       onPressed: productsViewModel.isLoadingMoreFilteredProducts 
                           ? null 
                           : () async {
-                              await productsViewModel.loadMoreFilteredProducts();
+                              if (widget.featureNames != null || widget.featureValues != null) {
+                                await productsViewModel.loadMoreAdvancedFilteredProducts();
+                              } else {
+                                await productsViewModel.loadMoreFilteredProducts();
+                              }
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF7C3AED),

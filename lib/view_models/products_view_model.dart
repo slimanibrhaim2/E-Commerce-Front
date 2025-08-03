@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
+import '../models/product_feature.dart';
 import '../repositories/product_repository.dart';
 import '../core/api/api_response.dart';
 import '../core/api/api_client.dart';
@@ -26,6 +27,15 @@ class ProductsViewModel extends ChangeNotifier {
   String? _currentFilterCategoryId;
   double? _currentFilterMinPrice;
   double? _currentFilterMaxPrice;
+  List<String>? _currentFilterFeatureNames;
+  List<String>? _currentFilterFeatureValues;
+  
+  // Feature-related state
+  List<ProductFeatureName> _featureNames = [];
+  Map<String, List<ProductFeatureValue>> _featureValues = {};
+  bool _isLoadingFeatureNames = false;
+  bool _isLoadingFeatureValues = false;
+  String? _selectedFeatureName;
   
   // Pagination state
   int _currentPage = 1;
@@ -67,6 +77,13 @@ class ProductsViewModel extends ChangeNotifier {
   int get totalCount => _totalCount;
   int get filteredTotalCount => _filteredTotalCount; // New: Getter for filtered products total count
   int get totalPages => _totalPages;
+  
+  // Feature-related getters
+  List<ProductFeatureName> get featureNames => _featureNames;
+  Map<String, List<ProductFeatureValue>> get featureValues => _featureValues;
+  bool get isLoadingFeatureNames => _isLoadingFeatureNames;
+  bool get isLoadingFeatureValues => _isLoadingFeatureValues;
+  String? get selectedFeatureName => _selectedFeatureName;
 
   // Load products with pagination (first page)
   Future<String?> loadProducts({String? category}) async {
@@ -442,6 +459,163 @@ class ProductsViewModel extends ChangeNotifier {
         categoryId: categoryId,
         minPrice: minPrice,
         maxPrice: maxPrice,
+        pageNumber: pageNumber,
+        pageSize: _pageSize,
+      );
+      
+      final newProducts = response.data ?? [];
+
+      final metadata = response.metadata;
+      if (metadata != null) {
+        _filteredCurrentPage = metadata['pageNumber'] ?? pageNumber;
+        _pageSize = metadata['pageSize'] ?? _pageSize;
+        _totalPages = metadata['totalPages'] ?? 0;
+        _filteredTotalCount = metadata['totalCount'] ?? 0;
+        _hasMoreFilteredData = metadata['hasNextPage'] ?? false;
+      }
+      
+      if (reset) {
+        _filteredProducts = newProducts;
+      } else {
+        _filteredProducts.addAll(newProducts);
+      }
+      notifyListeners();
+      
+      return response.message;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return _error;
+    } finally {
+      if (reset) {
+        _isLoadingFilteredProducts = false;
+      } else {
+        _isLoadingMoreFilteredProducts = false;
+      }
+      notifyListeners();
+    }
+  }
+
+  // Load feature names for a category
+  Future<String?> loadFeatureNames(String categoryId) async {
+    try {
+      _isLoadingFeatureNames = true;
+      _error = null;
+      notifyListeners();
+
+      final response = await _repository.getFeatureNames(categoryId);
+      _featureNames = response.data ?? [];
+      
+      // Clear existing feature values when category changes
+      _featureValues.clear();
+      _selectedFeatureName = null;
+      
+      notifyListeners();
+      return response.message;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return _error;
+    } finally {
+      _isLoadingFeatureNames = false;
+      notifyListeners();
+    }
+  }
+
+  // Load feature values for a specific feature name and category
+  Future<String?> loadFeatureValues(String featureName, String categoryId) async {
+    try {
+      _isLoadingFeatureValues = true;
+      _error = null;
+      notifyListeners();
+
+      final response = await _repository.getFeatureValues(featureName, categoryId);
+      _featureValues[featureName] = response.data ?? [];
+      
+      notifyListeners();
+      return response.message;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return _error;
+    } finally {
+      _isLoadingFeatureValues = false;
+      notifyListeners();
+    }
+  }
+
+  // Set selected feature name
+  void setSelectedFeatureName(String? featureName) {
+    _selectedFeatureName = featureName;
+    notifyListeners();
+  }
+
+  // Advanced filter products with features
+  Future<String?> advancedFilterProducts({
+    String? categoryId,
+    double? minPrice,
+    double? maxPrice,
+    List<String>? featureNames,
+    List<String>? featureValues,
+  }) async {
+    return await _advancedFilterProductsPage(
+      1,
+      reset: true,
+      categoryId: categoryId,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+      featureNames: featureNames,
+      featureValues: featureValues,
+    );
+  }
+
+  Future<String?> loadMoreAdvancedFilteredProducts() async {
+    if (!_hasMoreFilteredData || _isLoadingMoreFilteredProducts) return null;
+    return await _advancedFilterProductsPage(
+      _filteredCurrentPage + 1,
+      reset: false,
+      categoryId: _currentFilterCategoryId,
+      minPrice: _currentFilterMinPrice,
+      maxPrice: _currentFilterMaxPrice,
+      featureNames: _currentFilterFeatureNames,
+      featureValues: _currentFilterFeatureValues,
+    );
+  }
+
+  Future<String?> _advancedFilterProductsPage(
+    int pageNumber, {
+    required bool reset,
+    String? categoryId,
+    double? minPrice,
+    double? maxPrice,
+    List<String>? featureNames,
+    List<String>? featureValues,
+  }) async {
+    try {
+      if (reset) {
+        _isLoadingFilteredProducts = true;
+        _filteredCurrentPage = 1;
+        _hasMoreFilteredData = true;
+        _filteredProducts.clear();
+        
+        // Store current filter parameters
+        _currentFilterCategoryId = categoryId;
+        _currentFilterMinPrice = minPrice;
+        _currentFilterMaxPrice = maxPrice;
+        _currentFilterFeatureNames = featureNames;
+        _currentFilterFeatureValues = featureValues;
+      } else {
+        _isLoadingMoreFilteredProducts = true;
+      }
+      _error = null;
+      notifyListeners();
+
+      final response = await _repository.advancedFilterProducts(
+        categoryId: categoryId,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        featureNames: featureNames,
+        featureValues: featureValues,
         pageNumber: pageNumber,
         pageSize: _pageSize,
       );

@@ -1,6 +1,7 @@
 import '../core/api/api_endpoints.dart';
 import '../core/api/api_base_repository.dart' as api;
 import '../models/product.dart';
+import '../models/product_feature.dart';
 import '../core/api/api_response.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -555,6 +556,161 @@ class ProductRepository extends api.ApiRepositoryBase<Product> {
     } catch (e) {
       print('Error updating product: $e');
       throw Exception(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
+
+  // New method: Get feature names for a category
+  Future<ApiResponse<List<ProductFeatureName>>> getFeatureNames(String categoryId) async {
+    try {
+      final url = '${ApiEndpoints.productFeatureNames}?categoryId=$categoryId';
+      print('Getting feature names with URL: $url');
+      
+      final response = await apiClient.get(url);
+      print('Feature names response: $response');
+      
+      List<ProductFeatureName> featureNames = [];
+      final data = response['data'];
+      
+      if (data is List) {
+        // The API returns a simple array of strings, not objects
+        featureNames = data.map((nameString) => ProductFeatureName(name: nameString.toString())).toList();
+      }
+      
+      print('Found ${featureNames.length} feature names');
+      
+      return ApiResponse(
+        data: featureNames,
+        success: response['success'] ?? true,
+        message: response['message'],
+        resultStatus: response['resultStatus'] as int?,
+      );
+    } catch (e) {
+      print('Error in getFeatureNames: $e');
+      rethrow;
+    }
+  }
+
+  // New method: Get feature values for a feature name and category
+  Future<ApiResponse<List<ProductFeatureValue>>> getFeatureValues(String featureName, String categoryId) async {
+    try {
+      final url = '${ApiEndpoints.productFeatureValues}?featureName=${Uri.encodeComponent(featureName)}&categoryId=$categoryId';
+      print('Getting feature values with URL: $url');
+      
+      final response = await apiClient.get(url);
+      print('Feature values response: $response');
+      
+      List<ProductFeatureValue> featureValues = [];
+      final data = response['data'];
+      
+      if (data is List) {
+        // The API likely returns a simple array of strings, not objects
+        featureValues = data.map((valueString) => ProductFeatureValue(value: valueString.toString())).toList();
+      }
+      
+      print('Found ${featureValues.length} feature values');
+      
+      return ApiResponse(
+        data: featureValues,
+        success: response['success'] ?? true,
+        message: response['message'],
+        resultStatus: response['resultStatus'] as int?,
+      );
+    } catch (e) {
+      print('Error in getFeatureValues: $e');
+      rethrow;
+    }
+  }
+
+  // New method: Advanced filter with features
+  Future<ApiResponse<List<Product>>> advancedFilterProducts({
+    String? categoryId,
+    double? minPrice,
+    double? maxPrice,
+    List<String>? featureNames,
+    List<String>? featureValues,
+    int pageNumber = 1,
+    int pageSize = 10,
+  }) async {
+    try {
+      // Build query parameters
+      List<String> queryParams = [
+        'pageNumber=$pageNumber',
+        'pageSize=$pageSize',
+      ];
+      
+      if (categoryId != null && categoryId.isNotEmpty) {
+        queryParams.add('categoryId=$categoryId');
+      }
+      
+      if (minPrice != null) {
+        queryParams.add('minPrice=$minPrice');
+      }
+      
+      if (maxPrice != null) {
+        queryParams.add('maxPrice=$maxPrice');
+      }
+      
+      // Add feature names (can be multiple)
+      if (featureNames != null && featureNames.isNotEmpty) {
+        for (String featureName in featureNames) {
+          queryParams.add('featureNames=${Uri.encodeComponent(featureName)}');
+        }
+      }
+      
+      // Add feature values (can be multiple)
+      if (featureValues != null && featureValues.isNotEmpty) {
+        for (String featureValue in featureValues) {
+          queryParams.add('featureValues=${Uri.encodeComponent(featureValue)}');
+        }
+      }
+      
+      final filterUrl = '${ApiEndpoints.productAdvancedFilter}?${queryParams.join('&')}';
+      
+      print('Advanced filtering products with URL: $filterUrl');
+      print('Filter params - Category: $categoryId, MinPrice: $minPrice, MaxPrice: $maxPrice');
+      print('Feature Names: $featureNames');
+      print('Feature Values: $featureValues');
+      
+      final response = await apiClient.get(filterUrl);
+      
+      print('Advanced filter response: $response');
+      
+      List<Product> products = [];
+      final outerData = response['data'];
+      
+      if (outerData is Map && outerData.containsKey('data')) {
+        final innerData = outerData['data'];
+        if (innerData is List) {
+          products = innerData.map((json) => Product.fromJson(json)).toList();
+        }
+      }
+      
+      print('Found ${products.length} advanced filtered products');
+
+      // Extract pagination metadata from backend response
+      Map<String, dynamic>? paginationMetadata;
+      if (outerData is Map) {
+        paginationMetadata = {
+          'pageNumber': outerData['pageNumber'],
+          'pageSize': outerData['pageSize'],
+          'totalPages': outerData['totalPages'],
+          'totalCount': outerData['totalCount'],
+          'hasPreviousPage': outerData['hasPreviousPage'],
+          'hasNextPage': outerData['hasNextPage'],
+        };
+      }
+      
+      return ApiResponse(
+        data: products,
+        success: response['success'] ?? true,
+        message: response['message'],
+        resultStatus: response['resultStatus'] as int?,
+        metadata: paginationMetadata,
+      );
+    } catch (e) {
+      print('Error in advancedFilterProducts: $e');
+      print('Error type: ${e.runtimeType}');
+      rethrow;
     }
   }
 } 
