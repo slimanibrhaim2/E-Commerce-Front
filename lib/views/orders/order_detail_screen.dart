@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/order_view_model.dart';
 import '../../view_models/cart_view_model.dart';
@@ -70,8 +71,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('تفاصيل الطلب #${widget.orderId}', style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+          title: Text('تفاصيل الطلب #${widget.orderId}', style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.white)),
           centerTitle: true,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          iconTheme: const IconThemeData(color: Colors.white),
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF7C3AED),
+                  const Color(0xFF9333EA),
+                ],
+              ),
+            ),
+          ),
         ),
         body: orderViewModel.isLoadingOrderDetail
             ? const Center(child: ModernLoader())
@@ -79,7 +95,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ? Center(child: Text(orderViewModel.orderDetailError!, style: const TextStyle(fontFamily: 'Cairo', color: Colors.red)))
                 : orderViewModel.selectedOrder == null
                     ? const Center(child: Text('لم يتم العثور على الطلب', style: TextStyle(fontFamily: 'Cairo')))
-                    : Padding(
+                    : SingleChildScrollView(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,146 +106,692 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               isCancelled: orderViewModel.selectedOrder!.orderStatus == 'ملغي',
                             ),
                             const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('المبلغ الكلي:', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
-                                Text('${(orderViewModel.selectedOrder!.totalAmount ?? 0).toStringAsFixed(0)} ل.س', style: TextStyle(fontFamily: 'Cairo', color: Colors.green)),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            // Load address details if we have an address ID
-                            if (orderViewModel.selectedOrder!.addressId != null && orderViewModel.selectedOrder!.addressId!.isNotEmpty)
-                              FutureBuilder<void>(
-                                future: _loadDeliveryAddress(orderViewModel.selectedOrder!.addressId!),
-                                builder: (context, snapshot) {
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text('عنوان التوصيل: ', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
-                                          if (_isLoadingAddress)
-                                            const SizedBox(
-                                              width: 16,
-                                              height: 16,
-                                              child: CircularProgressIndicator(strokeWidth: 2),
-                                            )
-                                          else if (_deliveryAddress != null)
-                                            Expanded(
-                                              child: GestureDetector(
-                                                                                                 onTap: () {
-                                                   if (_deliveryAddress!.latitude != null && _deliveryAddress!.longitude != null) {
-                                                     Navigator.of(context).push(
-                                                       MaterialPageRoute(
-                                                         builder: (context) => ViewAddressOnMapScreen(
-                                                           latitude: _deliveryAddress!.latitude!,
-                                                           longitude: _deliveryAddress!.longitude!,
-                                                           name: _deliveryAddress!.name,
-                                                         ),
-                                                       ),
-                                                     );
-                                                   }
-                                                 },
-                                                child: Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.blue.shade50,
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    border: Border.all(color: Colors.blue.shade200),
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize: MainAxisSize.min,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.location_on,
-                                                        color: Colors.blue.shade600,
-                                                        size: 20,
-                                                      ),
-                                                      const SizedBox(width: 8),
-                                                      Expanded(
-                                                        child: Text(
-                                                          _deliveryAddress!.name ?? 'عنوان التوصيل',
-                                                          style: TextStyle(
-                                                            fontFamily: 'Cairo',
-                                                            color: Colors.blue.shade700,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      Icon(
-                                                        Icons.map,
-                                                        color: Colors.blue.shade600,
-                                                        size: 16,
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            )
-                                          else
-                                            Text(
-                                              'خطأ في تحميل العنوان',
-                                              style: TextStyle(
-                                                fontFamily: 'Cairo',
-                                                color: Colors.red.shade600,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
+                            
+                            // Order ID Section with Copy Button
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    const Color(0xFF7C3AED).withOpacity(0.1),
+                                    const Color(0xFF9333EA).withOpacity(0.1),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(0xFF7C3AED).withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF7C3AED).withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          const Color(0xFF7C3AED),
+                                          const Color(0xFF9333EA),
                                         ],
                                       ),
-                                      if (_deliveryAddress != null) ...[
-                                        const SizedBox(height: 8),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.receipt_long, color: Colors.white, size: 18),
+                                        const SizedBox(width: 8),
                                         Text(
-                                          'اضغط على العنوان لرؤيته على الخريطة',
+                                          'رقم الطلب',
+                                          style: TextStyle(
+                                            fontFamily: 'Cairo',
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.grey.shade300),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                const Color(0xFF7C3AED).withOpacity(0.2),
+                                                const Color(0xFF9333EA).withOpacity(0.2),
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Icon(
+                                            Icons.tag,
+                                            color: const Color(0xFF7C3AED),
+                                            size: 24,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'رقم الطلب',
+                                                style: TextStyle(
+                                                  fontFamily: 'Cairo',
+                                                  fontSize: 12,
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                '#${orderViewModel.selectedOrder!.id}',
+                                                style: TextStyle(
+                                                  fontFamily: 'Cairo',
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: Colors.grey.shade800,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                const Color(0xFF7C3AED),
+                                                const Color(0xFF9333EA),
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(12),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFF7C3AED).withOpacity(0.3),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Material(
+                                            color: Colors.transparent,
+                                            child: InkWell(
+                                              borderRadius: BorderRadius.circular(12),
+                                              onTap: () async {
+                                                await Clipboard.setData(
+                                                  ClipboardData(text: orderViewModel.selectedOrder!.id ?? ''),
+                                                );
+                                                if (context.mounted) {
+                                                  ModernSnackbar.show(
+                                                    context: context,
+                                                    message: 'تم نسخ رقم الطلب بنجاح',
+                                                    type: SnackBarType.success,
+                                                  );
+                                                }
+                                              },
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(12),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.copy,
+                                                      color: Colors.white,
+                                                      size: 18,
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    Text(
+                                                      'نسخ',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Cairo',
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            
+                            // Order Summary Card
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.white,
+                                    Colors.grey.shade50,
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.shade300,
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 5),
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Colors.green.shade400, Colors.green.shade600],
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(Icons.monetization_on, color: Colors.white, size: 20),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'ملخص الطلب',
                                           style: TextStyle(
                                             fontFamily: 'Cairo',
                                             fontSize: 12,
                                             color: Colors.grey.shade600,
-                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'المبلغ الكلي',
+                                          style: TextStyle(
+                                            fontFamily: 'Cairo',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.grey.shade800,
                                           ),
                                         ),
                                       ],
-                                    ],
-                                  );
-                                },
-                              )
-                            else
-                              Text('عنوان التوصيل: غير محدد', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.grey)),
-                            const SizedBox(height: 12),
-                            Text('العناصر:', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 16)),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: orderViewModel.selectedOrder!.items.length,
-                                itemBuilder: (context, index) {
-                                  final item = orderViewModel.selectedOrder!.items[index];
-                                  return Card(
-                                    margin: const EdgeInsets.symmetric(vertical: 6),
-                                    child: ListTile(
-                                      leading: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                                          ? Image.network(
-                                              context.read<CartViewModel>().apiClient.getMediaUrl(item.imageUrl!),
-                                              width: 50,
-                                              height: 50,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported),
-                                            )
-                                          : const Icon(Icons.image_not_supported),
-                                      title: Text(item.name ?? '', style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
-                                      subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('السعر: ${(item.price ?? 0).toStringAsFixed(0)} ل.س', style: const TextStyle(fontFamily: 'Cairo')),
-                                          Text('الكمية: ${item.quantity}', style: const TextStyle(fontFamily: 'Cairo')),
-                                        ],
-                                      ),
-                                      trailing: Text('المجموع: ${(item.totalPrice ?? 0).toStringAsFixed(0)} ل.س', style: const TextStyle(fontFamily: 'Cairo', color: Colors.green)),
                                     ),
-                                  );
-                                },
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Colors.green.shade400, Colors.green.shade600],
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.green.shade300,
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      '${(orderViewModel.selectedOrder!.totalAmount ?? 0).toStringAsFixed(0)} ل.س',
+                                      style: TextStyle(
+                                        fontFamily: 'Cairo',
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
+                            const SizedBox(height: 20),
+                            // Address Card
+                            if (orderViewModel.selectedOrder!.addressId != null && orderViewModel.selectedOrder!.addressId!.isNotEmpty)
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.white,
+                                      Colors.blue.shade50,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.blue.shade200,
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 5),
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                  border: Border.all(color: Colors.blue.shade200),
+                                ),
+                                child: FutureBuilder<void>(
+                                  future: _loadDeliveryAddress(orderViewModel.selectedOrder!.addressId!),
+                                  builder: (context, snapshot) {
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [Colors.blue.shade400, Colors.blue.shade600],
+                                            ),
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.location_on, color: Colors.white, size: 18),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'عنوان التوصيل',
+                                                style: TextStyle(
+                                                  fontFamily: 'Cairo',
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        if (_isLoadingAddress)
+                                          Row(
+                                            children: [
+                                              const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                'جارٍ تحميل العنوان...',
+                                                style: TextStyle(
+                                                  fontFamily: 'Cairo',
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        else if (_deliveryAddress != null)
+                                          GestureDetector(
+                                            onTap: () {
+                                              if (_deliveryAddress!.latitude != null && _deliveryAddress!.longitude != null) {
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) => ViewAddressOnMapScreen(
+                                                      latitude: _deliveryAddress!.latitude!,
+                                                      longitude: _deliveryAddress!.longitude!,
+                                                      name: _deliveryAddress!.name,
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(12),
+                                                border: Border.all(color: Colors.blue.shade200),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.blue.shade100,
+                                                    blurRadius: 8,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    padding: const EdgeInsets.all(12),
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        colors: [Colors.blue.shade400, Colors.blue.shade600],
+                                                      ),
+                                                      borderRadius: BorderRadius.circular(12),
+                                                    ),
+                                                    child: Icon(
+                                                      Icons.location_on,
+                                                      color: Colors.white,
+                                                      size: 24,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          _deliveryAddress!.name ?? 'عنوان التوصيل',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Cairo',
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 16,
+                                                            color: Colors.grey.shade800,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 4),
+                                                        Text(
+                                                          'اضغط لعرض الموقع على الخريطة',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Cairo',
+                                                            color: Colors.blue.shade600,
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Icon(
+                                                    Icons.arrow_forward_ios,
+                                                    color: Colors.blue.shade400,
+                                                    size: 16,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                        else
+                                          Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red.shade50,
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: Colors.red.shade200),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.error_outline,
+                                                  color: Colors.red.shade600,
+                                                  size: 24,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Text(
+                                                  'خطأ في تحميل العنوان',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Cairo',
+                                                    color: Colors.red.shade600,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: Colors.grey.shade300),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.location_off, color: Colors.grey.shade600, size: 24),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'عنوان التوصيل: غير محدد',
+                                      style: TextStyle(
+                                        fontFamily: 'Cairo',
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            const SizedBox(height: 20),
+                            // Order Items Card
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.white,
+                                    Colors.grey.shade50,
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.shade300,
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 5),
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          const Color(0xFF7C3AED),
+                                          const Color(0xFF9333EA),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 18),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'عناصر الطلب (${orderViewModel.selectedOrder!.items.length})',
+                                          style: TextStyle(
+                                            fontFamily: 'Cairo',
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ListView.separated(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: orderViewModel.selectedOrder!.items.length,
+                                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                                    itemBuilder: (context, index) {
+                                      final item = orderViewModel.selectedOrder!.items[index];
+                                      return Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(color: Colors.grey.shade200),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.grey.shade200,
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            // Product Image
+                                            Container(
+                                              width: 60,
+                                              height: 60,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(12),
+                                                border: Border.all(color: Colors.grey.shade300),
+                                              ),
+                                              child: ClipRRect(
+                                                borderRadius: BorderRadius.circular(12),
+                                                child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                                                    ? Image.network(
+                                                        context.read<CartViewModel>().apiClient.getMediaUrl(item.imageUrl!),
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder: (context, error, stackTrace) => Container(
+                                                          color: Colors.grey.shade100,
+                                                          child: Icon(
+                                                            Icons.image_not_supported,
+                                                            color: Colors.grey.shade400,
+                                                            size: 30,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : Container(
+                                                        color: Colors.grey.shade100,
+                                                        child: Icon(
+                                                          Icons.image_not_supported,
+                                                          color: Colors.grey.shade400,
+                                                          size: 30,
+                                                        ),
+                                                      ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            // Product Details
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    item.name ?? 'منتج غير محدد',
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Cairo',
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                    maxLines: 2,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Wrap(
+                                                    spacing: 8,
+                                                    runSpacing: 4,
+                                                    children: [
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.grey.shade100,
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          'السعر: ${(item.price ?? 0).toStringAsFixed(0)} ل.س',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Cairo',
+                                                            fontSize: 11,
+                                                            color: Colors.grey.shade700,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.blue.shade100,
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          'الكمية: ${item.quantity}',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Cairo',
+                                                            fontSize: 11,
+                                                            color: Colors.blue.shade700,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            // Total Price
+                            Column(
+                              children: [
+                                Text(
+                                  'المجموع',
+                                  style: TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontSize: 10,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [Colors.green.shade400, Colors.green.shade600],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '${(item.totalPrice ?? 0).toStringAsFixed(0)} ل.س',
+                                    style: const TextStyle(
+                                      fontFamily: 'Cairo',
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
                             // Show payment and cancel buttons for pending orders
                             if (orderViewModel.selectedOrder!.orderStatus == 'قيد الانتظار') ...[
                               const SizedBox(height: 20),
